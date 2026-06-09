@@ -966,6 +966,7 @@ async function fetchEmails() {
 }
 
 async function fetchCalendarEvents(){
+  window._calendarPermError=null; // limpa erro anterior antes de cada tentativa
   try{
     const token=await getToken();
     if(!token){console.warn('No token for calendar');return[];}
@@ -1618,7 +1619,8 @@ function renderMeetingCal(){
 
   // ── Renderiza cards agrupados por dia ────────────────────────────────────────
   if(filtered.length===0){
-    if(window._calendarPermError){
+    // Mostrar cadeado APENAS se nenhum evento foi carregado E há erro de permissão
+    if(window._calendarPermError && allCount===0){
       teamsHtml+=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center">
         <div style="font-size:1.6rem;margin-bottom:10px">🔒</div>
         <div style="font-size:.86rem;font-weight:600;color:var(--text-soft);margin-bottom:8px">Calendário Teams não disponível</div>
@@ -1628,7 +1630,8 @@ function renderMeetingCal(){
         </div>
       </div>`;
     } else {
-      const msgs={hoje:'Nenhuma reunião agendada para hoje.',amanha:'Nenhuma reunião amanhã.',semana:'Sem reuniões esta semana.',todos:'Sem eventos no calendário.',dia:'Nenhuma reunião neste dia.'};
+      // Filtro sem resultados (eventos carregados mas não neste dia/período)
+      const msgs={hoje:'Nenhuma reunião agendada para hoje.',amanha:'Nenhuma reunião amanhã.',semana:'Sem reuniões esta semana.',todos:'Sem eventos no calendário nos próximos 30 dias.',dia:'Nenhuma reunião neste dia.'};
       teamsHtml+=`<div class="teams-no-perm">
         <div style="font-size:1.8rem;margin-bottom:10px">📭</div>
         <div style="font-size:.84rem;font-weight:600;color:var(--text-soft);margin-bottom:5px">${msgs[calTeamsFilter]||'Sem reuniões.'}</div>
