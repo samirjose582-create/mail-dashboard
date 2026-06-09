@@ -1,0 +1,13 @@
+# Ficheiros Windows-only (não necessários para o servidor web)
+Iniciar_Dashboard.bat
+Iniciar_Dashboard.vbs
+Criar_Atalho.bat
+Criar_Atalho.ps1
+icon_dashboard.ico
+
+# Sistema
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.tmp
+*.log

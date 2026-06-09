@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checklist Diário — Samir</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#0f172a;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:30px 16px 60px}
+    .card{background:#1e293b;border-radius:18px;width:100%;max-width:760px;box-shadow:0 25px 60px rgba(0,0,0,.5);overflow:hidden}
+
+    /* Header */
+    .card-header{background:linear-gradient(135deg,#1d4ed8,#2563eb);padding:26px 32px 22px}
+    .card-header h1{color:#fff;font-size:1.5rem;font-weight:700}
+    .header-sub{display:flex;gap:10px;align-items:center;margin-top:6px}
+    .header-sub span{color:#bfdbfe;font-size:.82rem}
+    .date-chip{background:rgba(255,255,255,.15);color:#e0f2fe;font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:99px}
+
+    /* Progress */
+    .progress-wrap{padding:20px 32px 0}
+    .progress-info{display:flex;justify-content:space-between;font-size:.8rem;color:#94a3b8;margin-bottom:8px}
+    .progress-bar-bg{background:#334155;border-radius:99px;height:10px;overflow:hidden}
+    .progress-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#22c55e,#16a34a);transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+    /* Stats */
+    .stats{display:flex;gap:12px;padding:16px 32px}
+    .stat-chip{flex:1;background:#0f172a;border-radius:10px;padding:10px 14px;text-align:center}
+    .stat-chip .num{font-size:1.4rem;font-weight:700;color:#fff}
+    .stat-chip .lbl{font-size:.72rem;color:#64748b;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+    .stat-chip.done .num{color:#22c55e}
+    .stat-chip.pend .num{color:#f59e0b}
+
+    /* Celebration */
+    .celebration{display:none;text-align:center;padding:12px;background:#052e16;color:#4ade80;font-size:.9rem;font-weight:600;animation:fadeIn .5s ease}
+    .celebration.show{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+    .divider{border:none;border-top:1px solid #1e293b;margin:0 24px}
+
+    /* Input */
+    .input-section{padding:20px 24px 12px}
+    .input-label{font-size:.72rem;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;font-weight:600}
+    .input-row{display:flex;gap:10px;align-items:center}
+    .task-input{flex:1;background:#0f172a;border:1.5px solid #334155;border-radius:10px;padding:12px 16px;color:#e2e8f0;font-size:.95rem;font-family:inherit;outline:none;transition:border-color .2s}
+    .task-input:focus{border-color:#2563eb}
+    .task-input::placeholder{color:#475569}
+
+    /* Mic button */
+    .mic-btn{
+      width:52px;height:52px;border-radius:14px;border:none;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      background:#1d4ed8;transition:all .25s;flex-shrink:0;
+    }
+    .mic-btn:hover{background:#2563eb;transform:scale(1.05)}
+    .mic-btn.recording{background:#dc2626;animation:pulse-red 1.2s ease-in-out infinite}
+    .mic-btn.processing{background:#d97706;animation:pulse-amber .7s ease-in-out infinite}
+    .mic-btn.success{background:#16a34a;animation:none}
+    .mic-btn.loading{background:#475569;cursor:not-allowed;animation:none}
+    @keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}60%{box-shadow:0 0 0 14px rgba(220,38,38,0)}}
+    @keyframes pulse-amber{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,.5)}60%{box-shadow:0 0 0 12px rgba(217,119,6,0)}}
+    .mic-btn svg{width:24px;height:24px;fill:#fff;transition:opacity .2s}
+
+    /* Volume meter */
+    .vol-wrap{display:none;align-items:center;gap:3px;height:24px}
+    .vol-wrap.active{display:flex}
+    .vol-bar{width:4px;border-radius:2px;background:#dc2626;transition:height .08s ease;min-height:3px}
+
+    /* Add button */
+    .add-btn{height:52px;padding:0 22px;border-radius:10px;border:none;cursor:pointer;background:#2563eb;color:#fff;font-size:.88rem;font-weight:600;white-space:nowrap;transition:all .2s;flex-shrink:0}
+    .add-btn:hover{background:#1d4ed8;transform:translateY(-1px)}
+
+    /* Status bar */
+    .mic-status{margin-top:10px;border-radius:10px;padding:10px 16px;font-size:.85rem;display:flex;align-items:center;gap:10px;background:#0f172a;border:1.5px solid #1e293b;min-height:44px;transition:border-color .3s,background .3s}
+    .mic-status.idle{color:#475569;font-style:italic}
+    .mic-status.loading{border-color:#475569;color:#94a3b8}
+    .mic-status.recording{border-color:#dc2626}
+    .mic-status.processing{border-color:#d97706;color:#fbbf24}
+    .mic-status.success{border-color:#16a34a;color:#4ade80}
+    .mic-status.error{border-color:#7f1d1d;color:#f87171;background:#1c0a0a}
+    .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .dot.grey{background:#475569}
+    .dot.red{background:#ef4444;animation:blink .8s ease-in-out infinite}
+    .dot.amber{background:#f59e0b;animation:blink .6s ease-in-out infinite}
+    .dot.green{background:#22c55e}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.1}}
+    .status-txt{flex:1}
+    .silence-bar-wrap{margin-left:auto;width:80px;height:6px;background:#1e293b;border-radius:3px;overflow:hidden;display:none}
+    .silence-bar-fill{height:100%;background:#dc2626;border-radius:3px;width:100%;transition:width .1s linear}
+
+    /* Tasks */
+    .task-list{padding:12px 24px 16px;display:flex;flex-direction:column;gap:10px;min-height:60px}
+    .empty-state{text-align:center;padding:32px 0;color:#334155;font-size:.9rem}
+    .empty-state .icon{font-size:2rem;margin-bottom:8px}
+    .task-item{display:flex;align-items:center;gap:14px;background:#0f172a;border:1.5px solid #1e293b;border-radius:12px;padding:14px 16px;transition:all .25s}
+    .task-item:hover{border-color:#334155}
+    .task-item.done{border-color:#166534;background:#052e16;opacity:.85}
+    .checkbox{width:26px;height:26px;border-radius:7px;border:2px solid #475569;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .25s;background:#1e293b}
+    .task-item.done .checkbox{background:#22c55e;border-color:#22c55e}
+    .checkbox svg{display:none;width:14px;height:14px}
+    .task-item.done .checkbox svg{display:block}
+    .task-content{flex:1;cursor:pointer}
+    .task-num{font-size:.7rem;color:#475569;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
+    .task-title{font-size:.95rem;color:#e2e8f0;font-weight:500;line-height:1.4}
+    .task-item.done .task-title{color:#4ade80;text-decoration:line-through;text-decoration-color:#166534}
+    .badge{font-size:.72rem;font-weight:600;padding:4px 10px;border-radius:99px;flex-shrink:0}
+    .badge.pending{background:#451a03;color:#fbbf24}
+    .badge.done-badge{background:#052e16;color:#4ade80}
+    .del-btn{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;background:transparent;color:#475569;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .del-btn:hover{background:#7f1d1d;color:#fca5a5}
+    .edit-btn{width:28px;height:28px;border-radius:7px;border:none;cursor:pointer;background:transparent;color:#475569;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
+    .edit-btn:hover{background:#1e3a5f;color:#60a5fa}
+
+    /* Inline edit mode */
+    .task-item.editing{border-color:#2563eb;background:#0c1a2e}
+    .task-item.editing .task-content{display:none}
+    .task-item.editing .badge{display:none}
+    .edit-input{
+      flex:1;background:#0f172a;border:1.5px solid #2563eb;border-radius:8px;
+      padding:8px 12px;color:#e2e8f0;font-size:.95rem;font-family:inherit;outline:none;
+    }
+    .save-btn{height:32px;padding:0 14px;border-radius:8px;border:none;cursor:pointer;background:#2563eb;color:#fff;font-size:.8rem;font-weight:600;white-space:nowrap;transition:all .2s;flex-shrink:0}
+    .save-btn:hover{background:#1d4ed8}
+    .cancel-btn{height:32px;padding:0 10px;border-radius:8px;border:none;cursor:pointer;background:#334155;color:#94a3b8;font-size:.8rem;font-weight:600;white-space:nowrap;transition:all .2s;flex-shrink:0}
+    .cancel-btn:hover{background:#475569;color:#fff}
+
+    /* Actions */
+    .actions{display:flex;gap:10px;padding:4px 24px 24px}
+    .btn{flex:1;padding:10px;border:none;border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s}
+    .btn:hover{opacity:.85;transform:translateY(-1px)}
+    .btn-all{background:#14532d;color:#86efac}
+    .btn-clear{background:#7f1d1d;color:#fca5a5}
+    .btn-reset{background:#0f172a;color:#64748b;border:1px solid #334155}
+
+    .footer{text-align:center;padding:14px;border-top:1px solid #1e293b;font-size:.72rem;color:#334155}
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <div class="card-header">
+    <h1>🎙️ Checklist Diário</h1>
+    <div class="header-sub">
+      <span>Samir</span>
+      <span class="date-chip">terca-feira, 2 de junho de 2026</span>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-info"><span>Progresso do dia</span><span id="pct">0%</span></div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar" style="width:0%"></div></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-chip"><div class="num" id="total">0</div><div class="lbl">Total</div></div>
+    <div class="stat-chip done"><div class="num" id="doneCount">0</div><div class="lbl">Concluídas</div></div>
+    <div class="stat-chip pend"><div class="num" id="pendCount">0</div><div class="lbl">Pendentes</div></div>
+  </div>
+
+  <div class="celebration" id="celebration">🎉 Todas as tarefas do dia concluídas!</div>
+  <hr class="divider"/>
+
+  <div class="input-section">
+    <div class="input-label">➕ Adicionar tarefa</div>
+    <div class="input-row">
+      <input class="task-input" id="taskInput" type="text"
+             placeholder="Digite ou use o microfone…"
+             onkeydown="if(event.key==='Enter')addFromInput()"/>
+
+      <!-- Volume bars (visíveis durante gravação) -->
+      <div class="vol-wrap" id="volWrap">
+        <div class="vol-bar" id="vb0"></div>
+        <div class="vol-bar" id="vb1"></div>
+        <div class="vol-bar" id="vb2"></div>
+        <div class="vol-bar" id="vb3"></div>
+        <div class="vol-bar" id="vb4"></div>
+      </div>
+
+      <button class="mic-btn loading" id="micBtn" onclick="toggleMic()" title="Gravar tarefa por voz">
+        <svg viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V20H9v2h6v-2h-2v-2.08A7 7 0 0 0 19 11h-2z"/></svg>
+      </button>
+      <button class="add-btn" onclick="addFromInput()">Adicionar</button>
+    </div>
+
+    <!-- Status bar -->
+    <div class="mic-status loading" id="micStatus">
+      <div class="dot grey" id="statusDot"></div>
+      <span class="status-txt" id="statusTxt">A carregar modelo de voz…</span>
+      <div class="silence-bar-wrap" id="silenceWrap">
+        <div class="silence-bar-fill" id="silenceFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" style="margin:12px 24px"/>
+  <div class="task-list" id="taskList"></div>
+
+  <div class="actions">
+    <button class="btn btn-all"   onclick="markAll()">✅ Marcar todas</button>
+    <button class="btn btn-clear" onclick="clearDone()">🗑️ Remover concluídas</button>
+    <button class="btn btn-reset" onclick="clearAll()">↩ Limpar dia</button>
+  </div>
+
+  <div class="footer">Samir · Tarefas guardadas automaticamente por dia</div>
+</div>
+
+<script>
+// ── Storage ───────────────────────────────────────────────────────────────────
+const pad = n => String(n).padStart(2,'0');
+const _d  = new Date();
+const KEY = `samir_tasks_${_d.getFullYear()}-${pad(_d.getMonth()+1)}-${pad(_d.getDate())}`;
+const load = () => { try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch{ return []; } };
+const save = t => localStorage.setItem(KEY, JSON.stringify(t));
+let tasks = load();
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(){
+  const list = document.getElementById('taskList');
+  list.innerHTML = '';
+  if(!tasks.length){
+    list.innerHTML='<div class="empty-state"><div class="icon">🎙️</div><div>Ainda não há tarefas.<br>Use o microfone ou escreva acima.</div></div>';
+  } else {
+    tasks.forEach((t,i)=>{
+      const el=document.createElement('div');
+      el.className='task-item'+(t.done?' done':'');
+      el.id='task-'+i;
+      el.innerHTML=`
+        <div class="checkbox" onclick="toggle(${i})">
+          <svg viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="2,7 5.5,10.5 12,3"/>
+          </svg>
+        </div>
+        <div class="task-content" onclick="toggle(${i})">
+          <div class="task-num">Tarefa ${i+1}</div>
+          <div class="task-title">${esc(t.title)}</div>
+        </div>
+        <span class="badge ${t.done?'done-badge':'pending'}">${t.done?'Concluída':'Pendente'}</span>
+        <button class="edit-btn" onclick="startEdit(${i})" title="Editar tarefa">✏️</button>
+        <button class="del-btn"  onclick="del(${i})"       title="Remover tarefa">✕</button>`;
+      list.appendChild(el);
+    });
+  }
+  const total=tasks.length, done=tasks.filter(t=>t.done).length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('bar').style.width=pct+'%';
+  document.getElementById('pct').textContent=pct+'%';
+  document.getElementById('total').textContent=total;
+  document.getElementById('doneCount').textContent=done;
+  document.getElementById('pendCount').textContent=total-done;
+  const cel=document.getElementById('celebration');
+  done===total&&total>0?cel.classList.add('show'):cel.classList.remove('show');
+}
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function addTask(t){ const s=t.trim(); if(!s) return; tasks.push({title:s,done:false,at:new Date().toISOString()}); save(tasks); render(); document.getElementById('taskList').lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+function addFromInput(){ addTask(document.getElementById('taskInput').value); document.getElementById('taskInput').value=''; }
+function toggle(i){ tasks[i].done=!tasks[i].done; save(tasks); render(); }
+function del(i){ tasks.splice(i,1); save(tasks); render(); }
+function markAll(){ tasks.forEach(t=>t.done=true); save(tasks); render(); }
+function clearDone(){ tasks=tasks.filter(t=>!t.done); save(tasks); render(); }
+function clearAll(){ if(!confirm('Limpar todas as tarefas do dia?')) return; tasks=[]; save(tasks); render(); }
+
+// ── Edição inline ──────────────────────────────────────────────────────────
+function startEdit(i){
+  const el = document.getElementById('task-'+i);
+  if(!el) return;
+  el.classList.add('editing');
+
+  // Cria campo de edição inline
+  const inp = document.createElement('input');
+  inp.className  = 'edit-input';
+  inp.value      = tasks[i].title;
+  inp.id         = 'edit-input-'+i;
+  inp.placeholder= 'Edite a tarefa…';
+
+  const saveBtn   = document.createElement('button');
+  saveBtn.className = 'save-btn';
+  saveBtn.textContent = '✓ Guardar';
+  saveBtn.onclick = () => confirmEdit(i);
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'cancel-btn';
+  cancelBtn.textContent = '✕';
+  cancelBtn.onclick = () => cancelEdit(i);
+
+  // Insere após o checkbox
+  const checkbox = el.querySelector('.checkbox');
+  el.insertBefore(cancelBtn, checkbox.nextSibling);
+  el.insertBefore(saveBtn,   checkbox.nextSibling);
+  el.insertBefore(inp,       checkbox.nextSibling);
+
+  inp.focus();
+  inp.select();
+
+  // Enter = guardar, Escape = cancelar
+  inp.addEventListener('keydown', e => {
+    if(e.key === 'Enter')  confirmEdit(i);
+    if(e.key === 'Escape') cancelEdit(i);
+  });
+}
+
+function confirmEdit(i){
+  const inp = document.getElementById('edit-input-'+i);
+  if(!inp) return;
+  const newTitle = inp.value.trim();
+  if(newTitle){ tasks[i].title = newTitle; save(tasks); }
+  render();
+}
+
+function cancelEdit(i){ render(); }
+
+// ── Status UI ─────────────────────────────────────────────────────────────────
+function setStatus(state, html){
+  const bar=document.getElementById('micStatus');
+  const dot=document.getElementById('statusDot');
+  const txt=document.getElementById('statusTxt');
+  const sw =document.getElementById('silenceWrap');
+  bar.className='mic-status '+state;
+  const dotMap={idle:'grey',loading:'grey',recording:'red',processing:'amber',success:'green',error:'grey'};
+  dot.className='dot '+(dotMap[state]||'grey');
+  txt.innerHTML=html;
+  sw.style.display=(state==='recording')?'block':'none';
+}
+function setMicBtn(state){
+  document.getElementById('micBtn').className='mic-btn '+state;
+}
+
+// ── Polling: espera servidor estar pronto ─────────────────────────────────────
+let serverReady = false;
+async function pollServer(){
+  try{
+    const r = await fetch('/status');
+    const j = await r.json();
+    if(j.ready){
+      serverReady=true;
+      setStatus('idle','Prima o microfone e fale a tarefa');
+      setMicBtn('');
+    } else {
+      setStatus('loading','A carregar modelo Whisper… <span style="color:#64748b">(aguarde)</span>');
+      setTimeout(pollServer, 1500);
+    }
+  } catch(e){
+    setStatus('loading','A aguardar servidor… <span style="color:#64748b">(inicie via abrir_checklist.vbs)</span>');
+    setTimeout(pollServer, 2000);
+  }
+}
+pollServer();
+
+// ── MediaRecorder + Whisper ───────────────────────────────────────────────────
+let mediaRec=null, audioCtx=null, analyser=null, animFrame=null;
+let silenceTimer=null, silenceStart=null;
+const SILENCE_MS   = 1800;   // para após 1.8s de silêncio
+const SILENCE_RMS  = 0.012;  // limiar de silêncio
+const volBars = [0,1,2,3,4].map(i=>document.getElementById('vb'+i));
+
+function startVolMeter(stream){
+  audioCtx  = new AudioContext();
+  analyser  = audioCtx.createAnalyser();
+  analyser.fftSize = 512;
+  audioCtx.createMediaStreamSource(stream).connect(analyser);
+  const buf = new Float32Array(analyser.fftSize);
+  const volWrap = document.getElementById('volWrap');
+  volWrap.classList.add('active');
+
+  function tick(){
+    animFrame=requestAnimationFrame(tick);
+    analyser.getFloatTimeDomainData(buf);
+    let rms=0; for(let i=0;i<buf.length;i++) rms+=buf[i]*buf[i];
+    rms=Math.sqrt(rms/buf.length);
+
+    // Anima barras de volume
+    const levels=[.2,.5,.8,.5,.3];
+    const boost=Math.min(rms/0.08,1);
+    volBars.forEach((b,i)=>{
+      const h=Math.max(3, Math.round(boost*levels[i]*22 + Math.random()*3));
+      b.style.height=h+'px';
+    });
+
+    // Silêncio → countdown
+    if(rms < SILENCE_RMS){
+      if(!silenceStart) silenceStart=Date.now();
+      const elapsed=Date.now()-silenceStart;
+      const pct=Math.min(elapsed/SILENCE_MS,1);
+      document.getElementById('silenceFill').style.width=((1-pct)*100)+'%';
+      if(elapsed>=SILENCE_MS){ stopAndTranscribe(); }
+    } else {
+      silenceStart=null;
+      document.getElementById('silenceFill').style.width='100%';
+    }
+  }
+  tick();
+}
+
+function stopVolMeter(){
+  if(animFrame){ cancelAnimationFrame(animFrame); animFrame=null; }
+  if(audioCtx){ audioCtx.close(); audioCtx=null; analyser=null; }
+  document.getElementById('volWrap').classList.remove('active');
+  volBars.forEach(b=>b.style.height='3px');
+  silenceStart=null;
+  document.getElementById('silenceFill').style.width='100%';
+}
+
+async function toggleMic(){
+  if(!serverReady){ setStatus('loading','Aguarda o modelo Whisper terminar de carregar…'); return; }
+  if(mediaRec && mediaRec.state==='recording'){
+    stopAndTranscribe();
+  } else {
+    await startRecording();
+  }
+}
+
+async function startRecording(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    const chunks=[];
+
+    // tenta webm/opus; fallback para o que o browser suportar
+    const mimeType=['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4']
+      .find(m=>MediaRecorder.isTypeSupported(m)) || '';
+
+    mediaRec=new MediaRecorder(stream, mimeType?{mimeType}:{});
+    mediaRec.ondataavailable=e=>{ if(e.data.size>0) chunks.push(e.data); };
+    mediaRec.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      stopVolMeter();
+      if(chunks.length===0){ setStatus('idle','Prima o microfone e fale a tarefa'); setMicBtn(''); return; }
+      setStatus('processing','A processar áudio…');
+      setMicBtn('processing');
+
+      try {
+        // Decodifica o audio no browser (AudioContext) e envia como float32 16kHz
+        // Sem necessidade de ffmpeg no servidor
+        const blob        = new Blob(chunks, {type: mimeType||'audio/webm'});
+        const arrayBuf    = await blob.arrayBuffer();
+        const decodeCtx   = new AudioContext({sampleRate: 16000});
+        const audioBuf    = await decodeCtx.decodeAudioData(arrayBuf);
+        await decodeCtx.close();
+        const float32     = audioBuf.getChannelData(0); // mono, 16kHz
+        await transcribe(float32.buffer, 'audio/float32');
+      } catch(e) {
+        setStatus('error','Erro ao processar áudio: '+e.message);
+        setMicBtn('');
+      }
+    };
+
+    mediaRec.start(200);   // chunks a cada 200ms
+    startVolMeter(stream);
+    setStatus('recording','<span style="color:#f87171">● A gravar</span> — fale a tarefa; para automaticamente ao silenciar');
+    setMicBtn('recording');
+  } catch(e){
+    if(e.name==='NotAllowedError') setStatus('error','Permissão de microfone negada. Verifique as definições do browser.');
+    else setStatus('error','Erro ao aceder ao microfone: '+e.message);
+    setMicBtn('');
+  }
+}
+
+function stopAndTranscribe(){
+  if(mediaRec && mediaRec.state==='recording') mediaRec.stop();
+}
+
+async function transcribe(blob, mime){
+  try{
+    const resp=await fetch('/transcribe',{
+      method:'POST',
+      headers:{'Content-Type': mime},
+      body: blob
+    });
+    const data=await resp.json();
+    if(data.text){
+      addTask(data.text);
+      setStatus('success','✓ Adicionado: <strong>'+esc(data.text)+'</strong>');
+      setMicBtn('success');
+      setTimeout(()=>{ setStatus('idle','Prima o microfone e fale a tarefa'); setMicBtn(''); },2500);
+    } else {
+      setStatus('idle','Nenhuma voz detectada. Tente novamente.');
+      setMicBtn('');
+    }
+  } catch(e){
+    setStatus('error','Erro na transcrição. Verifique se o servidor está ativo.');
+    setMicBtn('');
+  }
+}
+
+render();
+</script>
+</body>
+</html>

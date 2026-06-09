@@ -1,0 +1,43 @@
+{
+  "name": "Mail Dashboard — JP Projetos",
+  "short_name": "Mail Dashboard",
+  "description": "Dashboard de e-mails e reuniões Microsoft 365 — Samir",
+  "start_url": "./Relatorio_email.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080c14",
+  "theme_color": "#0d1628",
+  "orientation": "any",
+  "lang": "pt-BR",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Urgências",
+      "short_name": "Urgências",
+      "description": "Ver e-mails urgentes",
+      "url": "./Relatorio_email.html#urgencias",
+      "icons": [{ "src": "icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Reuniões",
+      "short_name": "Reuniões",
+      "description": "Ver reuniões Teams",
+      "url": "./Relatorio_email.html#reunioes",
+      "icons": [{ "src": "icon.svg", "sizes": "any" }]
+    }
+  ]
+}

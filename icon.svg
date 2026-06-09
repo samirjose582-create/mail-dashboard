@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fundo arredondado -->
+  <rect width="512" height="512" rx="96" fill="#0d1628"/>
+  <!-- Brilho sutil no fundo -->
+  <radialGradient id="bg-glow" cx="50%" cy="40%" r="60%">
+    <stop offset="0%" stop-color="#1a2d50"/>
+    <stop offset="100%" stop-color="#0d1628"/>
+  </radialGradient>
+  <rect width="512" height="512" rx="96" fill="url(#bg-glow)"/>
+
+  <!-- Envelope -->
+  <rect x="80" y="160" width="352" height="240" rx="18" fill="#161e2e" stroke="#1c2640" stroke-width="2"/>
+  <!-- Linha divisória do envelope (aba) -->
+  <path d="M80 210 L256 310 L432 210" fill="none" stroke="#38bdf8" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Linhas do envelope (corpo) -->
+  <line x1="130" y1="285" x2="230" y2="285" stroke="#1c2640" stroke-width="8" stroke-linecap="round"/>
+  <line x1="130" y1="315" x2="200" y2="315" stroke="#1c2640" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Círculo de notificação (canto superior direito) -->
+  <circle cx="374" cy="162" r="52" fill="#0d1628"/>
+  <circle cx="374" cy="162" r="44" fill="#f87171"/>
+  <!-- Número no círculo -->
+  <text x="374" y="178" font-family="Arial,sans-serif" font-size="46" font-weight="700" fill="white" text-anchor="middle">!</text>
+
+  <!-- Brilho azul no topo do envelope -->
+  <rect x="80" y="160" width="352" height="52" rx="18" fill="url(#env-top)"/>
+  <linearGradient id="env-top" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.15"/>
+    <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+  </linearGradient>
+</svg>
