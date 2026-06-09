@@ -319,6 +319,61 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .cal-filter-clear{background:none;border:none;color:var(--purple);cursor:pointer;font-size:.75rem;font-weight:600;opacity:.8;}
 .cal-filter-clear:hover{opacity:1;}
 
+/* ── CALENDÁRIO SEMANAL (WEEK VIEW) ── */
+.cal-view-toggle{display:flex;gap:5px;margin-bottom:12px;}
+.cal-vtab{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:5px 13px;border-radius:7px;cursor:pointer;font-size:.74rem;font-weight:600;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px;}
+.cal-vtab:hover{border-color:var(--border2);color:var(--text-soft);}
+.cal-vtab.active{background:var(--purple-dim);border-color:rgba(192,132,252,.3);color:var(--purple);}
+.week-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.week-label{font-size:.84rem;font-weight:600;color:var(--text);letter-spacing:-.2px;}
+.week-nav-group{display:flex;align-items:center;gap:6px;}
+.week-today-btn{background:var(--purple-dim);border:1px solid rgba(192,132,252,.3);color:var(--purple);padding:4px 12px;border-radius:7px;cursor:pointer;font-size:.72rem;font-weight:600;font-family:'Inter',sans-serif;transition:all .15s;}
+.week-today-btn:hover{background:rgba(192,132,252,.2);}
+/* Outer container */
+.week-grid-outer{border-radius:12px;border:1px solid var(--border);overflow:hidden;background:var(--surface);}
+/* Header row: time gutter + 7 day headers */
+.week-grid-header{display:grid;grid-template-columns:52px repeat(7,1fr);background:var(--surface2);border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;z-index:10;}
+.week-time-gutter-hdr{border-right:1px solid rgba(255,255,255,.06);}
+.week-day-hdr{padding:9px 4px;text-align:center;border-right:1px solid rgba(255,255,255,.05);transition:background .15s;}
+.week-day-hdr:last-child{border-right:none;}
+.week-day-hdr.today-col-hdr{background:rgba(56,189,248,.08);}
+.week-day-name{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);margin-bottom:3px;}
+.week-day-num{font-size:1.1rem;font-weight:700;color:var(--text-soft);line-height:1;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin:0 auto;}
+.week-day-num.is-today{background:var(--blue);color:#000;font-weight:800;}
+.week-day-num.has-events::after{content:'';display:block;width:4px;height:4px;background:var(--purple);border-radius:50%;margin:2px auto 0;}
+/* Body */
+.week-grid-body{display:flex;overflow-y:auto;max-height:570px;scroll-behavior:smooth;}
+.week-grid-body::-webkit-scrollbar{width:5px;}
+.week-grid-body::-webkit-scrollbar-track{background:transparent;}
+.week-grid-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px;}
+/* Time column */
+.week-time-col{width:52px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.05);}
+.week-time-slot{height:60px;display:flex;align-items:flex-start;padding:0 7px 0 0;justify-content:flex-end;box-sizing:border-box;}
+.week-time-label{font-size:.58rem;color:var(--text-muted);font-family:var(--mono);transform:translateY(-8px);white-space:nowrap;}
+/* Days area */
+.week-days-area{flex:1;display:grid;grid-template-columns:repeat(7,1fr);position:relative;}
+.week-day-col{position:relative;border-right:1px solid rgba(255,255,255,.04);}
+.week-day-col:last-child{border-right:none;}
+.week-day-col.today-col{background:rgba(56,189,248,.025);}
+.week-hour-line{height:60px;border-bottom:1px solid rgba(255,255,255,.04);position:relative;box-sizing:border-box;}
+.week-hour-line::after{content:'';position:absolute;bottom:50%;left:0;right:0;height:1px;background:rgba(255,255,255,.015);}
+/* Current time line */
+.week-now-line{position:absolute;left:0;right:0;height:2px;background:var(--red);z-index:6;pointer-events:none;box-shadow:0 0 6px rgba(248,113,113,.4);}
+.week-now-dot{position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 6px rgba(248,113,113,.6);}
+/* Events */
+.week-event{position:absolute;border-radius:6px;padding:4px 6px;overflow:hidden;cursor:pointer;transition:all .15s;z-index:2;box-sizing:border-box;}
+.week-event:hover{filter:brightness(1.15);transform:scale(1.01);z-index:8;box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.week-event.ev-teams{background:rgba(91,94,166,.75);border-left:3px solid #8b8fe8;}
+.week-event.ev-other{background:rgba(56,189,248,.22);border-left:3px solid var(--blue);}
+.week-event.ev-google{background:rgba(74,222,128,.2);border-left:3px solid var(--green);}
+.week-event.ev-live{background:rgba(248,113,113,.3);border-left:3px solid var(--red);}
+.week-event-title{font-size:.68rem;font-weight:700;color:#f0f4ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35;}
+.week-event-time{font-size:.6rem;color:rgba(255,255,255,.65);font-family:var(--mono);margin-top:1px;}
+.week-event-badge{font-size:.52rem;font-weight:700;opacity:.85;margin-top:2px;display:block;}
+/* All-day strip */
+.week-allday-row{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:1px solid rgba(255,255,255,.06);background:var(--surface2);min-height:24px;}
+.week-allday-cell{border-right:1px solid rgba(255,255,255,.04);padding:2px 3px;font-size:.6rem;}
+
 /* ── COMPOSITOR E-MAIL ── */
 .tab.t-escrever.active{color:var(--green);border-bottom-color:var(--green);}
 .composer{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
@@ -1508,6 +1563,7 @@ function saveAsTemplate(){
 
 // ── CALENDÁRIO REUNIÕES ───────────────────────────────────────────────────────
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calSelDay=null,calTeamsFilter='hoje';
+let calViewMode='lista',calWeekOffset=0;
 const CAL_DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const TZ='America/Sao_Paulo';
 
@@ -1533,6 +1589,143 @@ function minsUntil(iso){return Math.round((new Date(iso)-Date.now())/60000);}
 
 function calSetTeamsFilter(f){calTeamsFilter=f;renderMeetingCal();}
 function calSetTeamsFilterDay(d){calSelDay=calSelDay===d?null:d;calTeamsFilter='dia';renderMeetingCal();}
+
+// ── WEEK CALENDAR HELPERS ─────────────────────────────────────────────────────
+function calSetViewMode(mode){calViewMode=mode;renderMeetingCal();}
+function calNavWeek(dir){calWeekOffset+=dir;renderMeetingCal();}
+function calGoTodayWeek(){calWeekOffset=0;renderMeetingCal();}
+
+function getWeekDays(offset){
+  const now=new Date();
+  const dow=now.getDay();
+  const mondayDiff=dow===0?-6:1-dow;
+  const monday=new Date(now);
+  monday.setHours(0,0,0,0);
+  monday.setDate(now.getDate()+mondayDiff+offset*7);
+  return Array.from({length:7},(_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return d;});
+}
+
+function layoutDayEvents(events){
+  const sorted=[...events].sort((a,b)=>new Date(a.startDt)-new Date(b.startDt));
+  const colEnds=[];
+  const withCol=sorted.map(ev=>{
+    const s=new Date(ev.startDt).getTime();
+    const e=new Date(ev.endDt||ev.startDt).getTime()+30*60*1000;
+    let col=0;
+    while(colEnds[col]&&colEnds[col]>s)col++;
+    colEnds[col]=e;
+    return{...ev,_col:col};
+  });
+  const maxCol=colEnds.length||1;
+  return withCol.map(ev=>({...ev,_maxCol:maxCol}));
+}
+
+function renderWeekCalendar(){
+  const HOUR_H=60,START_HOUR=7,END_HOUR=22;
+  const days=getWeekDays(calWeekOffset);
+  const todaySP=spToday();
+  const DOW_PT=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  function dayISOStr(d){return d.toLocaleDateString('sv-SE',{timeZone:TZ});}
+  function getSpHM(iso){
+    const hm=new Date(iso).toLocaleTimeString('sv-SE',{timeZone:TZ,hour:'2-digit',minute:'2-digit'});
+    const[h,m]=hm.split(':').map(Number);return{h,m};
+  }
+
+  // Week label
+  const fmtDay=d=>d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');
+  const weekLabel=`${fmtDay(days[0])} – ${fmtDay(days[6])} ${days[6].getFullYear()}`;
+
+  // Header cells
+  let hdrCells='<div class="week-time-gutter-hdr"></div>';
+  days.forEach(d=>{
+    const ds=dayISOStr(d);
+    const isToday=ds===todaySP;
+    const hasMeets=CALENDAR_EVENTS.some(e=>spDateStr(e.startDt)===ds);
+    hdrCells+=`<div class="week-day-hdr${isToday?' today-col-hdr':''}">
+      <div class="week-day-name">${DOW_PT[d.getDay()]}</div>
+      <div class="week-day-num${isToday?' is-today':''}${hasMeets&&!isToday?' has-events':''}">${d.getDate()}</div>
+    </div>`;
+  });
+
+  // Time column
+  let timeCells='';
+  for(let h=START_HOUR;h<END_HOUR;h++){
+    timeCells+=`<div class="week-time-slot"><span class="week-time-label">${String(h).padStart(2,'0')}:00</span></div>`;
+  }
+
+  // Current time
+  const nowHM=new Date().toLocaleTimeString('sv-SE',{timeZone:TZ,hour:'2-digit',minute:'2-digit'});
+  const[nowH,nowM]=nowHM.split(':').map(Number);
+  const nowTop=((nowH-START_HOUR)*60+nowM)/60*HOUR_H;
+  const nowVisible=nowH>=START_HOUR&&nowH<END_HOUR;
+
+  // Day columns
+  let dayCols='';
+  days.forEach(d=>{
+    const ds=dayISOStr(d);
+    const isToday=ds===todaySP;
+
+    // Hour grid lines
+    let hourLines='';
+    for(let h=START_HOUR;h<END_HOUR;h++) hourLines+=`<div class="week-hour-line"></div>`;
+
+    // Now line
+    const nowLine=isToday&&nowVisible
+      ?`<div class="week-now-line" style="top:${nowTop.toFixed(0)}px"><div class="week-now-dot"></div></div>`:'';
+
+    // Events
+    const dayEvts=CALENDAR_EVENTS.filter(e=>spDateStr(e.startDt)===ds);
+    let evtsHtml='';
+    layoutDayEvents(dayEvts).forEach(e=>{
+      const{h:sh,m:sm}=getSpHM(e.startDt);
+      const{h:eh,m:em}=getSpHM(e.endDt||e.startDt);
+      if(sh<START_HOUR||sh>=END_HOUR)return;
+      const top=((sh-START_HOUR)*60+sm)/60*HOUR_H;
+      const durMin=Math.max((eh*60+em)-(sh*60+sm),15);
+      const height=Math.min(Math.max(durMin/60*HOUR_H,20),(END_HOUR-START_HOUR)*HOUR_H-top);
+      const w=e._maxCol>1?(100/e._maxCol-1.5):97;
+      const l=e._maxCol>1?(e._col*(100/e._maxCol)+0.5):1.5;
+      const live=isEvtNow(e);
+      const cls=live?'ev-live':(e.isOnline?'ev-teams':'ev-other');
+      const startFmt=`${String(sh).padStart(2,'0')}:${String(sm).padStart(2,'0')}`;
+      const endFmt=`${String(eh).padStart(2,'0')}:${String(em).padStart(2,'0')}`;
+      const title=e.subject.length>32?e.subject.slice(0,30)+'…':e.subject;
+      const joinHref=esc(e.joinUrl||e.webLink||'#');
+      evtsHtml+=`<div class="week-event ${cls}"
+        style="top:${top.toFixed(1)}px;height:${height.toFixed(1)}px;left:${l.toFixed(1)}%;width:${w.toFixed(1)}%"
+        onclick="window.open('${joinHref}','_blank')"
+        title="${esc(e.subject+' | '+startFmt+'–'+endFmt+(e.organizer?' | '+e.organizer:''))}">
+        <div class="week-event-title">${title}</div>
+        ${height>28?`<div class="week-event-time">${startFmt}–${endFmt}</div>`:''}
+        ${height>48&&e.isOnline?`<span class="week-event-badge" style="color:#c084fc">🟣 Teams</span>`:''}
+        ${height>64&&live?`<span class="week-event-badge" style="color:var(--red)">● AO VIVO</span>`:''}
+      </div>`;
+    });
+
+    dayCols+=`<div class="week-day-col${isToday?' today-col':''}">${hourLines}${nowLine}${evtsHtml}</div>`;
+  });
+
+  const totalH=(END_HOUR-START_HOUR)*HOUR_H;
+  const scrollInit=Math.max(0,(nowH-START_HOUR-1))*HOUR_H;
+
+  return `<div class="week-cal-nav">
+    <div class="week-nav-group">
+      <button class="cal-nav" onclick="calNavWeek(-1)">‹</button>
+      <button class="cal-nav" onclick="calNavWeek(1)">›</button>
+    </div>
+    <span class="week-label">📅 ${weekLabel}</span>
+    <button class="week-today-btn" onclick="calGoTodayWeek()">Hoje</button>
+  </div>
+  <div class="week-grid-outer">
+    <div class="week-grid-header">${hdrCells}</div>
+    <div class="week-grid-body" id="week-body" style="max-height:570px">
+      <div class="week-time-col">${timeCells}</div>
+      <div class="week-days-area" style="height:${totalH}px">${dayCols}</div>
+    </div>
+  </div>
+  <script>requestAnimationFrame(()=>{const b=document.getElementById('week-body');if(b)b.scrollTop=${scrollInit};});<\/script>`;
+}
 
 function renderMeetingCal(){
   const panel=document.getElementById('panel-reunioes');
@@ -1617,80 +1810,91 @@ function renderMeetingCal(){
     </div>
     <a class="btn-new-meeting" href="https://teams.microsoft.com/l/meeting/new" target="_blank">+ Nova Reunião</a>
   </div>
-  ${filtersHtml}`;
+  <div class="cal-view-toggle">
+    <button class="cal-vtab${calViewMode==='lista'?' active':''}" onclick="calSetViewMode('lista')">📋 Lista</button>
+    <button class="cal-vtab${calViewMode==='semana'?' active':''}" onclick="calSetViewMode('semana')">📅 Semana</button>
+  </div>`;
 
-  // ── Renderiza cards agrupados por dia ────────────────────────────────────────
-  if(filtered.length===0){
-    // Mostrar cadeado APENAS se nenhum evento foi carregado E há erro de permissão
-    if(window._calendarPermError && allCount===0){
-      teamsHtml+=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center">
-        <div style="font-size:1.6rem;margin-bottom:10px">🔒</div>
-        <div style="font-size:.86rem;font-weight:600;color:var(--text-soft);margin-bottom:8px">Calendário Teams não disponível</div>
-        <div style="font-size:.74rem;color:var(--text-muted);line-height:1.7">
-          A integração com o calendário Teams requer aprovação do Administrador do tenant.<br>
-          Os convites de reunião recebidos por e-mail continuam visíveis abaixo.
-        </div>
-      </div>`;
-    } else {
-      // Filtro sem resultados (eventos carregados mas não neste dia/período)
-      const msgs={hoje:'Nenhuma reunião agendada para hoje.',amanha:'Nenhuma reunião amanhã.',semana:'Sem reuniões esta semana.',todos:'Sem eventos no calendário nos próximos 30 dias.',dia:'Nenhuma reunião neste dia.'};
-      teamsHtml+=`<div class="teams-no-perm">
-        <div style="font-size:1.8rem;margin-bottom:10px">📭</div>
-        <div style="font-size:.84rem;font-weight:600;color:var(--text-soft);margin-bottom:5px">${msgs[calTeamsFilter]||'Sem reuniões.'}</div>
-      </div>`;
-    }
+  if(calViewMode==='semana'){
+    // ── Calendário semanal interativo ──────────────────────────────────────────
+    teamsHtml+=renderWeekCalendar();
   } else {
-    // Agrupa por data SP
-    const dayMap=new Map();
-    filtered.forEach(e=>{
-      const k=spDateStr(e.startDt);
-      if(!dayMap.has(k))dayMap.set(k,[]);
-      dayMap.get(k).push(e);
-    });
+    // ── Vista lista: filtros + cards ───────────────────────────────────────────
+    teamsHtml+=filtersHtml;
 
-    dayMap.forEach((events,dateKey)=>{
-      const isToday=dateKey===todaySP;
-      const isTomorrow=dateKey===tomorrowStr;
-      let badge='';
-      if(isToday) badge=`<span class="teams-day-today">HOJE</span>`;
-      else if(isTomorrow) badge=`<span class="teams-day-today" style="background:rgba(251,146,60,.15);color:var(--orange);border-color:rgba(251,146,60,.25)">AMANHÃ</span>`;
-
-      teamsHtml+=`<div class="teams-day-group">
-        <div class="teams-day-label">${fmtEvtDate(events[0].startDt)} ${badge}</div>`;
-
-      events.forEach(e=>{
-        const live=isEvtNow(e);
-        const mins=minsUntil(e.startDt);
-        const startT=fmtEvtTime(e.startDt),endT=fmtEvtTime(e.endDt);
-        const dateShort=fmtEvtDateShort(e.startDt);
-
-        let countdownBadge='';
-        if(live) countdownBadge=`<span class="teams-live-badge">● AO VIVO</span>`;
-        else if(mins>0&&mins<=60) countdownBadge=`<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.12);color:var(--yellow)">em ${mins}min</span>`;
-
-        teamsHtml+=`<div class="teams-card" style="cursor:default">
-          <div class="teams-card-inner">
-            <div class="teams-time-row">
-              <span class="teams-time-chip">🕐 ${startT}–${endT}</span>
-              <span style="font-size:.62rem;color:var(--text-muted);font-family:var(--mono)">${dateShort}</span>
-              ${countdownBadge}
-              ${e.isOnline?`<span style="font-size:.6rem;font-weight:700;color:var(--purple);background:var(--purple-dim);border:1px solid rgba(192,132,252,.2);border-radius:4px;padding:2px 7px;font-family:var(--mono);margin-left:auto">TEAMS</span>`:''}
-            </div>
-            <div class="teams-subject" style="margin-top:5px">${e.subject}</div>
-            ${e.organizer?`<div class="teams-org">👤 ${e.organizer}</div>`:''}
-            ${e.location?`<div class="teams-org">📍 ${e.location}</div>`:''}
-            <div class="teams-actions" style="margin-top:10px">
-              ${e.joinUrl
-                ?`<a class="btn-join${live?' ':" "}" href="${esc(e.joinUrl)}" target="_blank" onclick="event.stopPropagation()">▶ Entrar no Teams</a>`
-                :`<span style="font-size:.72rem;color:var(--text-muted)">Sem link Teams</span>`}
-              <a class="btn-join-sm" href="${esc(e.webLink)}" target="_blank" onclick="event.stopPropagation()">↗ Calendário</a>
-            </div>
+    // ── Renderiza cards agrupados por dia ──────────────────────────────────────
+    if(filtered.length===0){
+      // Mostrar cadeado APENAS se nenhum evento foi carregado E há erro de permissão
+      if(window._calendarPermError && allCount===0){
+        teamsHtml+=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center">
+          <div style="font-size:1.6rem;margin-bottom:10px">🔒</div>
+          <div style="font-size:.86rem;font-weight:600;color:var(--text-soft);margin-bottom:8px">Calendário Teams não disponível</div>
+          <div style="font-size:.74rem;color:var(--text-muted);line-height:1.7">
+            A integração com o calendário Teams requer aprovação do Administrador do tenant.<br>
+            Os convites de reunião recebidos por e-mail continuam visíveis abaixo.
           </div>
         </div>`;
+      } else {
+        // Filtro sem resultados (eventos carregados mas não neste dia/período)
+        const msgs={hoje:'Nenhuma reunião agendada para hoje.',amanha:'Nenhuma reunião amanhã.',semana:'Sem reuniões esta semana.',todos:'Sem eventos no calendário nos próximos 30 dias.',dia:'Nenhuma reunião neste dia.'};
+        teamsHtml+=`<div class="teams-no-perm">
+          <div style="font-size:1.8rem;margin-bottom:10px">📭</div>
+          <div style="font-size:.84rem;font-weight:600;color:var(--text-soft);margin-bottom:5px">${msgs[calTeamsFilter]||'Sem reuniões.'}</div>
+        </div>`;
+      }
+    } else {
+      // Agrupa por data SP
+      const dayMap=new Map();
+      filtered.forEach(e=>{
+        const k=spDateStr(e.startDt);
+        if(!dayMap.has(k))dayMap.set(k,[]);
+        dayMap.get(k).push(e);
       });
-      teamsHtml+=`</div>`;
-    });
-  }
+
+      dayMap.forEach((events,dateKey)=>{
+        const isToday=dateKey===todaySP;
+        const isTomorrow=dateKey===tomorrowStr;
+        let badge='';
+        if(isToday) badge=`<span class="teams-day-today">HOJE</span>`;
+        else if(isTomorrow) badge=`<span class="teams-day-today" style="background:rgba(251,146,60,.15);color:var(--orange);border-color:rgba(251,146,60,.25)">AMANHÃ</span>`;
+
+        teamsHtml+=`<div class="teams-day-group">
+          <div class="teams-day-label">${fmtEvtDate(events[0].startDt)} ${badge}</div>`;
+
+        events.forEach(e=>{
+          const live=isEvtNow(e);
+          const mins=minsUntil(e.startDt);
+          const startT=fmtEvtTime(e.startDt),endT=fmtEvtTime(e.endDt);
+          const dateShort=fmtEvtDateShort(e.startDt);
+
+          let countdownBadge='';
+          if(live) countdownBadge=`<span class="teams-live-badge">● AO VIVO</span>`;
+          else if(mins>0&&mins<=60) countdownBadge=`<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.12);color:var(--yellow)">em ${mins}min</span>`;
+
+          teamsHtml+=`<div class="teams-card" style="cursor:default">
+            <div class="teams-card-inner">
+              <div class="teams-time-row">
+                <span class="teams-time-chip">🕐 ${startT}–${endT}</span>
+                <span style="font-size:.62rem;color:var(--text-muted);font-family:var(--mono)">${dateShort}</span>
+                ${countdownBadge}
+                ${e.isOnline?`<span style="font-size:.6rem;font-weight:700;color:var(--purple);background:var(--purple-dim);border:1px solid rgba(192,132,252,.2);border-radius:4px;padding:2px 7px;font-family:var(--mono);margin-left:auto">TEAMS</span>`:''}
+              </div>
+              <div class="teams-subject" style="margin-top:5px">${e.subject}</div>
+              ${e.organizer?`<div class="teams-org">👤 ${e.organizer}</div>`:''}
+              ${e.location?`<div class="teams-org">📍 ${e.location}</div>`:''}
+              <div class="teams-actions" style="margin-top:10px">
+                ${e.joinUrl
+                  ?`<a class="btn-join${live?' ':" "}" href="${esc(e.joinUrl)}" target="_blank" onclick="event.stopPropagation()">▶ Entrar no Teams</a>`
+                  :`<span style="font-size:.72rem;color:var(--text-muted)">Sem link Teams</span>`}
+                <a class="btn-join-sm" href="${esc(e.webLink)}" target="_blank" onclick="event.stopPropagation()">↗ Calendário</a>
+              </div>
+            </div>
+          </div>`;
+        });
+        teamsHtml+=`</div>`;
+      });
+    }
+  } // end lista/semana conditional
 
   panel.innerHTML=cal+teamsHtml;
 }
