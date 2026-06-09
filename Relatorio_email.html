@@ -414,6 +414,16 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .cell-clr-sw:hover{transform:scale(1.3);z-index:1;position:relative;}
 /* Indicador de célula activa */
 .comp-body td.tbl-sel-cell,.comp-body th.tbl-sel-cell{outline:2px solid rgba(56,189,248,.6);outline-offset:-2px;}
+/* Column resize grip (::after) — aparece ao hover na célula */
+.comp-body td::after,.comp-body th::after{content:'';position:absolute;right:-4px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:9;background:transparent;transition:background .15s;}
+.comp-body table:hover td:hover::after,.comp-body table:hover th:hover::after{background:rgba(56,189,248,.28);}
+/* Row resize grip (::before) — aparece ao hover na célula */
+.comp-body td::before,.comp-body th::before{content:'';position:absolute;bottom:-4px;left:0;right:0;height:8px;cursor:row-resize;z-index:9;background:transparent;transition:background .15s;}
+.comp-body table:hover td:hover::before,.comp-body table:hover th:hover::before{background:rgba(56,189,248,.14);}
+/* Linha de feedback durante resize */
+#tbl-rz-line{position:fixed;z-index:10000;pointer-events:none;display:none;transition:none;}
+/* Tooltip de tamanho */
+#tbl-rz-tip{position:fixed;z-index:10001;pointer-events:none;display:none;background:#0d1628;border:1px solid rgba(56,189,248,.45);border-radius:7px;padding:4px 10px;font-size:.67rem;font-family:monospace;color:#38bdf8;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.5);letter-spacing:.4px;}
 .comp-body hr{border:none;border-top:1px solid #444;margin:12px 0;}
 .comp-body pre{background:#111827;border:1px solid #2d3748;border-radius:7px;padding:10px 14px;font-family:'Courier New',monospace;font-size:.8rem;color:#e2e8f0;margin:8px 0;white-space:pre-wrap;overflow-x:auto;}
 .comp-body blockquote{border-left:3px solid var(--blue);padding-left:12px;margin:6px 0 6px 4px;color:var(--text-soft);font-style:italic;}
@@ -2719,7 +2729,14 @@ function _getTblBar(){
         <option value="h">Só horizontais</option>
       </select>
       <div class="tbl-bar-sep"></div>
-      <button class="tbl-bar-btn danger" onclick="tblDelete()" title="Eliminar tabela">🗑 Tabela</button>`;
+      <button class="tbl-bar-btn danger" onclick="tblDelete()" title="Eliminar tabela">🗑 Tabela</button>
+      <div class="tbl-bar-sep"></div>
+      <span style="font-size:.57rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0">Estilo</span>
+      <button class="tbl-bar-btn" onclick="tblApplyStyle('default')" title="Bordas simples">⊞ Padrão</button>
+      <button class="tbl-bar-btn" onclick="tblApplyStyle('zebra')" title="Linhas alternadas">▤ Zebra</button>
+      <button class="tbl-bar-btn" onclick="tblApplyStyle('professional')" title="Cabeçalho azul + linhas alternadas">◈ Pro</button>
+      <button class="tbl-bar-btn" onclick="tblApplyStyle('minimal')" title="Sem bordas laterais">▭ Minimal</button>
+      <button class="tbl-bar-btn" onclick="tblApplyStyle('dark')" title="Fundo escuro">◉ Dark</button>`;
     document.body.appendChild(bar);
   }
   return bar;
@@ -2807,6 +2824,7 @@ function _initTblBarEvents(){
       if(!body.contains(active)&&!bar?.contains(active)) hideTblBar();
     },200);
   });
+  initTableResize(body);
 }
 
 // ── OPERAÇÕES DE LINHA ────────────────────────────────────────────────────────
@@ -2923,6 +2941,164 @@ function tblDelete(){
   table.remove();hideTblBar();
   _tblCtx={table:null,row:null,cell:null};
 }
+
+// ── PRESETS DE ESTILO ─────────────────────────────────────────────────────────
+function tblApplyStyle(preset){
+  const{table}=_tblCtx;if(!table)return;
+  const rows=[...table.rows];
+  const styles={
+    default:(c,ri)=>{c.style.border='1px solid #555';c.style.background=c.nodeName==='TH'?'rgba(255,255,255,.06)':'';c.style.color='';c.style.fontWeight=c.nodeName==='TH'?'700':'';},
+    zebra:(c,ri)=>{c.style.border='1px solid rgba(255,255,255,.08)';c.style.background=c.nodeName==='TH'?'rgba(56,189,248,.18)':ri%2===0?'rgba(255,255,255,.04)':'';c.style.color=c.nodeName==='TH'?'#38bdf8':'';c.style.fontWeight=c.nodeName==='TH'?'700':'';},
+    professional:(c,ri)=>{if(c.nodeName==='TH'||ri===0){c.style.background='#1565c0';c.style.color='#fff';c.style.border='1px solid #1565c0';c.style.fontWeight='700';}else{c.style.background=ri%2===0?'rgba(21,101,192,.08)':'';c.style.color='';c.style.border='1px solid rgba(255,255,255,.08)';c.style.fontWeight='';}},
+    minimal:(c,ri,maxRi)=>{c.style.borderLeft='none';c.style.borderRight='none';c.style.borderTop=ri===0?'2px solid rgba(255,255,255,.35)':'1px solid rgba(255,255,255,.1)';c.style.borderBottom=ri===maxRi?'2px solid rgba(255,255,255,.35)':'none';c.style.background=c.nodeName==='TH'?'rgba(255,255,255,.04)':'';c.style.fontWeight=c.nodeName==='TH'?'700':'';c.style.color='';},
+    dark:(c,ri)=>{c.style.background=c.nodeName==='TH'?'#0d1628':ri%2===0?'#111827':'#141f2e';c.style.border='1px solid rgba(255,255,255,.06)';c.style.color=c.nodeName==='TH'?'#38bdf8':'#cbd5e1';c.style.fontWeight=c.nodeName==='TH'?'700':'';}
+  };
+  const fn=styles[preset];if(!fn)return;
+  const maxRi=rows.length-1;
+  rows.forEach((r,ri)=>[...r.cells].forEach(c=>fn(c,ri,maxRi)));
+}
+
+// ── RESIZE DE COLUNAS E LINHAS POR ARRASTE ────────────────────────────────────
+(function(){
+  const THRESH=7;
+  let _rz=null;
+  let _rzLine=null,_rzTip=null;
+
+  function getRzLine(){
+    if(!_rzLine){_rzLine=document.createElement('div');_rzLine.id='tbl-rz-line';document.body.appendChild(_rzLine);}
+    return _rzLine;
+  }
+  function getRzTip(){
+    if(!_rzTip){_rzTip=document.createElement('div');_rzTip.id='tbl-rz-tip';document.body.appendChild(_rzTip);}
+    return _rzTip;
+  }
+
+  function showLine(type,rect,size){
+    const ln=getRzLine();
+    if(type==='col'){
+      ln.style.cssText=`position:fixed;z-index:10000;pointer-events:none;display:block;width:2px;height:${rect.height}px;top:${rect.top}px;left:${rect.left+size}px;background:#38bdf8;box-shadow:0 0 10px rgba(56,189,248,.7)`;
+    } else {
+      ln.style.cssText=`position:fixed;z-index:10000;pointer-events:none;display:block;height:2px;width:${rect.width}px;left:${rect.left}px;top:${rect.top+size}px;background:#38bdf8;box-shadow:0 0 10px rgba(56,189,248,.7)`;
+    }
+  }
+
+  function showTip(text,x,y){
+    const tip=getRzTip();
+    tip.style.left=(x+14)+'px';tip.style.top=(y-38)+'px';tip.textContent=text;tip.style.display='block';
+  }
+
+  function hideFeedback(){
+    if(_rzLine)_rzLine.style.display='none';
+    if(_rzTip)_rzTip.style.display='none';
+  }
+
+  function findBorder(e){
+    let el=e.target;
+    while(el&&el.nodeName!=='TD'&&el.nodeName!=='TH'){
+      if(!el.parentElement||el===document.body)return null;
+      el=el.parentElement;
+    }
+    if(!el)return null;
+    const rect=el.getBoundingClientRect();
+    const fromR=rect.right-e.clientX,fromB=rect.bottom-e.clientY;
+    if(fromR>=0&&fromR<=THRESH)return{type:'col',cell:el};
+    if(fromB>=0&&fromB<=THRESH)return{type:'row',cell:el};
+    return null;
+  }
+
+  function freezeCols(table){
+    const rows=[...table.rows];
+    if(!rows.length)return[];
+    const widths=[...rows[0].cells].map(c=>c.getBoundingClientRect().width);
+    const tblW=table.getBoundingClientRect().width;
+    table.style.tableLayout='fixed';
+    table.style.width=tblW+'px';
+    rows.forEach(r=>[...r.cells].forEach((c,i)=>{c.style.width=(widths[i]||80)+'px';c.style.boxSizing='border-box';}));
+    return widths;
+  }
+
+  function startCol(cell,sx){
+    const table=cell.closest('table');
+    const rows=[...table.rows];
+    const ci=cell.cellIndex;
+    const widths=freezeCols(table);
+    const tblRect=table.getBoundingClientRect();
+    return{type:'col',table,rows,ci,sx,initW:widths[ci]||cell.getBoundingClientRect().width,tblRect};
+  }
+
+  function startRow(cell,sy){
+    const row=cell.closest('tr');
+    const rh=row.getBoundingClientRect().height;
+    const rRect=row.getBoundingClientRect();
+    row.style.height=rh+'px';
+    [...row.cells].forEach(c=>{c.style.height=rh+'px';c.style.boxSizing='border-box';});
+    return{type:'row',row,sy,initH:rh,rRect};
+  }
+
+  function doResize(e){
+    if(!_rz)return;
+    if(_rz.type==='col'){
+      const newW=Math.max(30,_rz.initW+(e.clientX-_rz.sx));
+      _rz.rows.forEach(r=>{const c=r.cells[_rz.ci];if(c)c.style.width=newW+'px';});
+      const firstCell=_rz.rows[0]?.cells[_rz.ci];
+      if(firstCell)showLine('col',_rz.tblRect,newW);
+      showTip(Math.round(newW)+' px',e.clientX,e.clientY);
+    } else {
+      const newH=Math.max(24,_rz.initH+(e.clientY-_rz.sy));
+      _rz.row.style.height=newH+'px';
+      [..._rz.row.cells].forEach(c=>c.style.height=newH+'px');
+      showLine('row',_rz.rRect,newH);
+      showTip(Math.round(newH)+' px',e.clientX,e.clientY);
+    }
+  }
+
+  function endResize(){
+    if(!_rz)return;
+    _rz=null;hideFeedback();
+    document.body.style.userSelect='';
+  }
+
+  window.initTableResize=function(body){
+    if(body._rzReady)return;
+    body._rzReady=true;
+
+    // Cursor adaptativo ao hover perto da borda
+    body.addEventListener('mousemove',e=>{
+      if(_rz)return;
+      const info=findBorder(e);
+      let el=e.target;
+      while(el&&el.nodeName!=='TD'&&el.nodeName!=='TH'&&el!==body)el=el.parentElement;
+      if(el&&(el.nodeName==='TD'||el.nodeName==='TH'))
+        el.style.cursor=info?(info.type==='col'?'col-resize':'row-resize'):'';
+    });
+
+    // Iniciar arraste
+    body.addEventListener('mousedown',e=>{
+      const info=findBorder(e);
+      if(!info)return;
+      e.preventDefault();e.stopPropagation();
+      _rz=info.type==='col'?startCol(info.cell,e.clientX):startRow(info.cell,e.clientY);
+      document.body.style.userSelect='none';
+    });
+
+    // Duplo clique — auto-ajuste da coluna
+    body.addEventListener('dblclick',e=>{
+      const info=findBorder(e);
+      if(!info||info.type!=='col')return;
+      e.preventDefault();
+      const table=info.cell.closest('table');
+      const ci=info.cell.cellIndex;
+      [...table.rows].forEach(r=>{const c=r.cells[ci];if(c)c.style.width='';});
+      if([...table.rows[0].cells].every(c=>!c.style.width)){
+        table.style.tableLayout='';table.style.width='';
+      }
+    });
+
+    document.addEventListener('mousemove',e=>{if(_rz)doResize(e);});
+    document.addEventListener('mouseup',endResize);
+  };
+})();
+
 function insertHR(){
   const body=document.getElementById('comp-body');body.focus();
   document.execCommand('insertHTML',false,'<hr style="border:none;border-top:1px solid rgba(255,255,255,.2);margin:14px 0"><p><br></p>');
