@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mail Dashboard — Samir</title>
 <!-- PWA -->
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#0d1628">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mail Dashboard">
-<link rel="apple-touch-icon" href="/icon.svg">
-<link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="apple-touch-icon" href="./icon.svg">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 :root{
@@ -73,6 +73,34 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .install-btn{background:linear-gradient(135deg,rgba(56,189,248,.18),rgba(56,189,248,.08));border:1px solid rgba(56,189,248,.35);color:var(--blue);padding:7px 13px;border-radius:8px;cursor:pointer;font-size:.72rem;font-weight:600;display:none;align-items:center;gap:6px;transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;animation:install-pulse 3s ease-in-out infinite;}
 .install-btn:hover{background:rgba(56,189,248,.25);box-shadow:0 0 14px var(--blue-glow);}
 @keyframes install-pulse{0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,0);}50%{box-shadow:0 0 0 4px rgba(56,189,248,.12);}}
+/* ── INSTALL MODAL ── */
+#install-modal{display:none;position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:0 0 env(safe-area-inset-bottom,0);}
+#install-modal.open{display:flex;}
+.install-sheet{background:var(--surface2);border:1px solid var(--border2);border-radius:22px 22px 0 0;padding:28px 24px 32px;width:100%;max-width:480px;animation:slide-up .3s ease;}
+@keyframes slide-up{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.install-sheet-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px;}
+.install-sheet-title{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:10px;}
+.install-sheet-sub{font-size:.8rem;color:var(--text-muted);margin-bottom:22px;line-height:1.5;}
+.install-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:24px;}
+.install-step{display:flex;align-items:flex-start;gap:13px;padding:12px 14px;background:var(--surface3);border-radius:10px;border:1px solid var(--border);}
+.install-step-num{width:26px;height:26px;border-radius:50%;background:var(--blue-dim);border:1px solid rgba(56,189,248,.3);color:var(--blue);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.install-step-text{font-size:.82rem;color:var(--text-soft);line-height:1.5;}
+.install-step-text strong{color:var(--text);}
+.install-platform-badge{display:inline-flex;align-items:center;gap:5px;background:var(--blue-dim);border:1px solid rgba(56,189,248,.2);color:var(--blue);border-radius:6px;padding:3px 9px;font-size:.68rem;font-weight:600;margin-bottom:14px;}
+.install-btn-close{width:100%;padding:13px;background:var(--surface3);border:1px solid var(--border);border-radius:12px;color:var(--text-muted);font-size:.85rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;}
+.install-btn-close:hover{background:var(--surface);color:var(--text);}
+.install-btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,#0078d4,#005a9e);border:none;border-radius:12px;color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.install-btn-primary:hover{background:linear-gradient(135deg,#106ebe,#004880);box-shadow:0 0 20px rgba(0,120,212,.3);}
+/* Banner flutuante no mobile */
+#install-banner{display:none;position:fixed;bottom:16px;left:16px;right:16px;z-index:9000;background:var(--surface2);border:1px solid rgba(56,189,248,.3);border-radius:16px;padding:14px 16px;box-shadow:0 8px 32px rgba(0,0,0,.5);align-items:center;gap:12px;animation:slide-up .4s ease;}
+#install-banner.show{display:flex;}
+.ib-icon{font-size:1.5rem;flex-shrink:0;}
+.ib-text{flex:1;}
+.ib-title{font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:2px;}
+.ib-sub{font-size:.72rem;color:var(--text-muted);}
+.ib-btns{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+.ib-install{background:var(--blue);color:#000;border:none;border-radius:8px;padding:7px 14px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
+.ib-dismiss{background:none;border:none;color:var(--text-muted);font-size:.72rem;cursor:pointer;text-align:center;font-family:'Inter',sans-serif;}
 
 /* ── LIVE INDICATOR ── */
 .live-badge{display:flex;align-items:center;gap:5px;font-size:.68rem;color:var(--green);font-family:var(--mono);background:var(--green-dim);border:1px solid rgba(74,222,128,.2);border-radius:5px;padding:3px 8px;}
@@ -535,6 +563,27 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 </head>
 <body>
 
+<!-- INSTALL MODAL -->
+<div id="install-modal" onclick="if(event.target===this)closeInstallModal()">
+  <div class="install-sheet">
+    <div class="install-sheet-handle"></div>
+    <div id="install-modal-content"></div>
+  </div>
+</div>
+
+<!-- INSTALL BANNER (mobile) -->
+<div id="install-banner">
+  <div class="ib-icon">📲</div>
+  <div class="ib-text">
+    <div class="ib-title">Instalar Mail Dashboard</div>
+    <div class="ib-sub">Acesso rápido sem browser</div>
+  </div>
+  <div class="ib-btns">
+    <button class="ib-install" onclick="installPWA()">Instalar</button>
+    <button class="ib-dismiss" onclick="dismissBanner()">Agora não</button>
+  </div>
+</div>
+
 <!-- LOGIN -->
 <div id="login-overlay">
   <div class="login-box">
@@ -624,42 +673,135 @@ document.addEventListener('DOMContentLoaded', () => { const b = document.getElem
 // ── PWA: Service Worker + Install Prompt ─────────────────────────────────────
 let _installPrompt = null;
 
+// Caminhos relativos — funciona em localhost E GitHub Pages
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('[PWA] Service Worker registado:', reg.scope))
-      .catch(err => console.warn('[PWA] SW não registado:', err));
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('[PWA] SW registado:', reg.scope))
+      .catch(err => console.warn('[PWA] SW falhou:', err));
   });
 }
+
+// Detecção de plataforma
+const _isIOS        = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const _isAndroid    = /android/i.test(navigator.userAgent);
+const _isMobile     = _isIOS || _isAndroid;
+const _isSafari     = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+const _isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   _installPrompt = e;
   const btn = document.getElementById('install-btn');
-  if (btn) { btn.style.display = 'flex'; }
-  console.log('[PWA] App instalável detectada.');
+  if (btn) btn.style.display = 'flex';
+  // Banner flutuante no mobile (aparece 3s após carregamento)
+  if (_isMobile && !_isStandalone && !sessionStorage.getItem('ib_dismissed')) {
+    setTimeout(() => { document.getElementById('install-banner')?.classList.add('show'); }, 3000);
+  }
+  console.log('[PWA] Instalável.');
 });
 
 window.addEventListener('appinstalled', () => {
   _installPrompt = null;
-  const btn = document.getElementById('install-btn');
-  if (btn) btn.style.display = 'none';
-  console.log('[PWA] App instalada com sucesso!');
+  const b = document.getElementById('install-btn');
+  if (b) b.style.display = 'none';
+  document.getElementById('install-banner')?.classList.remove('show');
+  closeInstallModal();
+  console.log('[PWA] Instalada!');
 });
 
+// iOS não dispara beforeinstallprompt — mostrar botão manualmente após login
+function _checkIOSInstall() {
+  if (_isIOS && !_isStandalone) {
+    const btn = document.getElementById('install-btn');
+    if (btn) btn.style.display = 'flex';
+    if (!sessionStorage.getItem('ib_dismissed')) {
+      setTimeout(() => { document.getElementById('install-banner')?.classList.add('show'); }, 4000);
+    }
+  }
+}
+
+function dismissBanner() {
+  sessionStorage.setItem('ib_dismissed', '1');
+  document.getElementById('install-banner')?.classList.remove('show');
+}
+
+function closeInstallModal() {
+  document.getElementById('install-modal')?.classList.remove('open');
+}
+
 function installPWA() {
-  if (!_installPrompt) {
-    // App já instalada ou browser não suporta — abre instruções
-    alert('Para instalar:\n\n1. Certifique-se que está em http://localhost:3000\n2. No Edge/Chrome, clique no ícone ⊕ na barra de endereço\n3. Clique em "Instalar"\n\nA app ficará disponível no Menu Iniciar e na barra de tarefas.');
+  if (_isStandalone) { return; } // já está instalado
+
+  if (_isIOS) {
+    _showIOSInstructions(); return;
+  }
+
+  if (_installPrompt) {
+    _installPrompt.prompt();
+    _installPrompt.userChoice.then(r => {
+      console.log('[PWA] Escolha:', r.outcome);
+      _installPrompt = null;
+      document.getElementById('install-btn') && (document.getElementById('install-btn').style.display = 'none');
+      dismissBanner();
+    });
     return;
   }
-  _installPrompt.prompt();
-  _installPrompt.userChoice.then(choice => {
-    console.log('[PWA] Resposta:', choice.outcome);
-    _installPrompt = null;
-    const btn = document.getElementById('install-btn');
-    if (btn) btn.style.display = 'none';
-  });
+
+  _showManualInstructions();
+}
+
+function _showIOSInstructions() {
+  const el = document.getElementById('install-modal-content');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="install-platform-badge">🍎 iPhone / iPad</div>
+    <div class="install-sheet-title">📲 Instalar no iOS</div>
+    <div class="install-sheet-sub">Adiciona à Tela de Início para acesso direto, como uma app nativa.</div>
+    <div class="install-steps">
+      <div class="install-step">
+        <div class="install-step-num">1</div>
+        <div class="install-step-text">Toca no ícone de <strong>Partilhar</strong> <span style="font-size:1.1em">⬆️</span> na barra inferior do Safari</div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">2</div>
+        <div class="install-step-text">Desliza e toca em <strong>"Adicionar à Tela de Início"</strong> <span style="font-size:1.1em">➕</span></div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">3</div>
+        <div class="install-step-text">Confirma o nome e toca em <strong>"Adicionar"</strong> — o ícone aparece no ecrã inicial</div>
+      </div>
+    </div>
+    ${!_isSafari ? '<div style="background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.3);border-radius:10px;padding:10px 13px;font-size:.78rem;color:#fb923c;margin-bottom:16px;">⚠️ Abre este link no <strong>Safari</strong> para instalar. Chrome e Firefox no iOS não suportam PWA.</div>' : ''}
+    <button class="install-btn-close" onclick="closeInstallModal()">Fechar</button>`;
+  document.getElementById('install-modal').classList.add('open');
+}
+
+function _showManualInstructions() {
+  const el = document.getElementById('install-modal-content');
+  if (!el) return;
+  const isMac = /mac/i.test(navigator.userAgent) && !_isIOS;
+  const platform = _isAndroid ? '🤖 Android' : isMac ? '🍎 Mac' : '🖥️ PC';
+  el.innerHTML = `
+    <div class="install-platform-badge">${platform}</div>
+    <div class="install-sheet-title">📲 Instalar o App</div>
+    <div class="install-sheet-sub">Instala como app para acesso rápido sem abrir o browser.</div>
+    <div class="install-steps">
+      <div class="install-step">
+        <div class="install-step-num">1</div>
+        <div class="install-step-text">Abre este URL no <strong>Chrome</strong> ou <strong>Edge</strong></div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">2</div>
+        <div class="install-step-text">Clica no ícone <strong>⊕ Instalar</strong> na barra de endereço</div>
+      </div>
+      <div class="install-step">
+        <div class="install-step-num">3</div>
+        <div class="install-step-text">Confirma clicando em <strong>"Instalar"</strong> — o app fica no Menu Iniciar / Dock</div>
+      </div>
+    </div>
+    <button class="install-btn-close" onclick="closeInstallModal()">Fechar</button>`;
+  document.getElementById('install-modal').classList.add('open');
 }
 // ── OAUTH2 PKCE CONFIG ───────────────────────────────────────────────────────
 const REDIRECT_URI = window.location.origin + window.location.pathname;
@@ -924,6 +1066,7 @@ async function loadEmails(manual=false){
     document.getElementById('page-footer').textContent=`samir.goncalves@jpprojetos.com · ${DATA.total} emails · ${URGENCIAS.length} urgências · ${REUNIOES.length} reuniões · live`;
     hideLoading();
     document.getElementById('app').style.display='block';
+    _checkIOSInstall(); // mostrar botão instalar no iOS após login
     if(refreshTimer)clearTimeout(refreshTimer);
     refreshTimer=setTimeout(()=>loadEmails(),5*60*1000);
   }catch(e){hideLoading();console.error(e);alert('Erro: '+e.message);}

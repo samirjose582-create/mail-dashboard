@@ -24,6 +24,15 @@
       "purpose": "maskable"
     }
   ],
+  "screenshots": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Mail Dashboard — Vista principal"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Urgências",
