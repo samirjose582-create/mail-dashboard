@@ -393,6 +393,44 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .comp-body b,.comp-body strong{font-weight:700;}
 .comp-body u{text-decoration:underline;}
 .comp-body ul,.comp-body ol{padding-left:22px;margin:4px 0;}
+.comp-body table{border-collapse:collapse;width:100%;margin:8px 0;}
+.comp-body td,.comp-body th{border:1px solid #555;padding:6px 10px;min-width:40px;}
+.comp-body th{background:rgba(255,255,255,.06);font-weight:700;}
+.comp-body hr{border:none;border-top:1px solid #444;margin:12px 0;}
+.comp-body pre{background:#111827;border:1px solid #2d3748;border-radius:7px;padding:10px 14px;font-family:'Courier New',monospace;font-size:.8rem;color:#e2e8f0;margin:8px 0;white-space:pre-wrap;overflow-x:auto;}
+.comp-body blockquote{border-left:3px solid var(--blue);padding-left:12px;margin:6px 0 6px 4px;color:var(--text-soft);font-style:italic;}
+/* Toolbar extras */
+.tb-sel-font{background:var(--surface3);border:1px solid var(--border);color:var(--text-soft);border-radius:5px;font-size:.68rem;padding:3px 4px;cursor:pointer;outline:none;font-family:'Inter',sans-serif;max-width:100px;height:27px;}
+.tb-clr-wrap{position:relative;display:inline-flex;align-items:center;flex-shrink:0;}
+.tb-clr-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:27px;height:27px;background:none;border:1px solid transparent;border-radius:5px;cursor:pointer;padding:3px 4px;font-size:.8rem;font-weight:700;color:var(--text-soft);transition:all .15s;}
+.tb-clr-btn:hover{background:var(--surface3);border-color:var(--border);}
+.tb-clr-bar{width:13px;height:3px;border-radius:2px;transition:background .15s;}
+.clr-palette{position:absolute;top:calc(100% + 5px);left:0;z-index:400;background:#1a2235;border:1px solid var(--border);border-radius:10px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.55);display:none;width:192px;}
+.clr-palette.open{display:block;}
+.clr-palette-hdr{font-size:.57rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;font-weight:600;}
+.clr-swatches{display:grid;grid-template-columns:repeat(8,20px);gap:3px;}
+.clr-sw{width:20px;height:20px;border-radius:4px;cursor:pointer;border:1px solid rgba(255,255,255,.08);transition:all .1s;position:relative;}
+.clr-sw:hover{transform:scale(1.3);box-shadow:0 2px 8px rgba(0,0,0,.5);z-index:2;}
+.clr-custom-row{display:flex;align-items:center;gap:8px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);}
+.clr-custom-row input[type=color]{width:24px;height:22px;border:1px solid var(--border);border-radius:4px;background:none;cursor:pointer;padding:1px;}
+.clr-custom-row span{font-size:.62rem;color:var(--text-muted);}
+/* Table picker */
+.tbl-picker-wrap{position:relative;display:inline-flex;flex-shrink:0;}
+.tbl-popup{position:absolute;top:calc(100%+5px);left:0;z-index:400;background:#1a2235;border:1px solid var(--border);border-radius:10px;padding:10px;box-shadow:0 8px 28px rgba(0,0,0,.55);display:none;}
+.tbl-popup.open{display:block;}
+.tbl-cells{display:grid;grid-template-columns:repeat(8,20px);gap:2px;}
+.tbl-c{width:20px;height:20px;border:1px solid rgba(255,255,255,.12);border-radius:2px;cursor:pointer;background:var(--surface);transition:all .1s;}
+.tbl-c.hl{background:var(--blue-dim);border-color:rgba(56,189,248,.5);}
+.tbl-lbl{font-size:.62rem;color:var(--text-muted);text-align:center;margin-top:5px;font-family:var(--mono);}
+/* Link dialog */
+.lnk-dialog{position:absolute;top:calc(100%+5px);left:0;z-index:400;background:#1a2235;border:1px solid var(--border);border-radius:10px;padding:12px;box-shadow:0 8px 28px rgba(0,0,0,.55);display:none;width:260px;}
+.lnk-dialog.open{display:block;}
+.lnk-dialog input{background:var(--surface3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 9px;font-size:.75rem;width:100%;box-sizing:border-box;outline:none;font-family:'Inter',sans-serif;margin-bottom:6px;}
+.lnk-dialog input:focus{border-color:rgba(56,189,248,.4);}
+.lnk-dialog-btns{display:flex;gap:6px;margin-top:2px;}
+.lnk-ok{background:var(--blue-dim);border:1px solid rgba(56,189,248,.3);color:var(--blue);border-radius:6px;padding:5px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+.lnk-cancel{background:var(--surface3);border:1px solid var(--border);color:var(--text-muted);border-radius:6px;padding:5px 10px;font-size:.72rem;cursor:pointer;font-family:'Inter',sans-serif;}
+.lnk-wrap{position:relative;display:inline-flex;flex-shrink:0;}
 .comp-footer{display:flex;align-items:center;gap:8px;padding:11px 16px;border-top:1px solid var(--border);background:var(--surface2);flex-wrap:wrap;}
 .btn-send{background:linear-gradient(135deg,#0078d4,#005a9e);color:#fff;border:none;padding:9px 22px;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .2s;font-family:'Inter',sans-serif;}
 .btn-send:hover{background:linear-gradient(135deg,#106ebe,#004880);box-shadow:0 0 16px rgba(0,120,212,.3);}
@@ -2329,44 +2367,137 @@ function renderComposer(){
       <input class="comp-input" id="comp-sub" type="text" placeholder="Assunto do e-mail">
     </div>
     <div class="comp-toolbar">
+      <!-- Histórico -->
+      <button class="tb" onclick="fmt('undo')" title="Desfazer (Ctrl+Z)" style="font-size:.8rem">↩</button>
+      <button class="tb" onclick="fmt('redo')" title="Refazer (Ctrl+Y)" style="font-size:.8rem">↪</button>
+      <div class="tb-sep"></div>
+      <!-- Fonte e Tamanho -->
+      <select class="tb-sel-font" onchange="fmt('fontName',this.value);this.blur()" title="Tipo de letra">
+        <option value="Arial" selected>Arial</option>
+        <option value="Calibri">Calibri</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Verdana">Verdana</option>
+        <option value="Tahoma">Tahoma</option>
+        <option value="Trebuchet MS">Trebuchet</option>
+        <option value="Courier New">Courier New</option>
+      </select>
+      <select class="tb-sel" onchange="fmtFontSize(this.value);this.selectedIndex=0" title="Tamanho" style="width:68px">
+        <option value="" disabled selected>Tam.</option>
+        <option value="8pt">8</option>
+        <option value="9pt">9</option>
+        <option value="10pt">10</option>
+        <option value="11pt">11</option>
+        <option value="12pt">12</option>
+        <option value="14pt">14</option>
+        <option value="16pt">16</option>
+        <option value="18pt">18</option>
+        <option value="20pt">20</option>
+        <option value="24pt">24</option>
+        <option value="28pt">28</option>
+        <option value="36pt">36</option>
+        <option value="48pt">48</option>
+        <option value="72pt">72</option>
+      </select>
+      <div class="tb-sep"></div>
+      <!-- Estilo de texto -->
       <button class="tb" onclick="fmt('bold')" title="Negrito (Ctrl+B)"><b>B</b></button>
       <button class="tb" onclick="fmt('italic')" title="Itálico (Ctrl+I)"><i style="font-style:italic">I</i></button>
       <button class="tb" onclick="fmt('underline')" title="Sublinhado (Ctrl+U)"><u>U</u></button>
       <button class="tb" onclick="fmt('strikeThrough')" title="Riscado"><s>S</s></button>
+      <button class="tb" onclick="fmt('superscript')" title="Sobrescrito" style="font-size:.65rem">x²</button>
+      <button class="tb" onclick="fmt('subscript')" title="Subscrito" style="font-size:.65rem">x₂</button>
       <div class="tb-sep"></div>
-      <button class="tb" onclick="fmt('justifyLeft')" title="Alinhar esquerda" style="font-size:.9rem">⬅</button>
-      <button class="tb" onclick="fmt('justifyCenter')" title="Centrar" style="font-size:.9rem">↔</button>
-      <button class="tb" onclick="fmt('justifyRight')" title="Alinhar direita" style="font-size:.9rem">➡</button>
+      <!-- Cor do texto -->
+      <div class="tb-clr-wrap" id="wrap-font-clr">
+        <button class="tb-clr-btn" onmousedown="saveEpRange()" onclick="toggleClrPalette('font')" title="Cor do texto">
+          <span style="font-size:.8rem;font-weight:700;color:var(--text-soft)">A</span>
+          <div class="tb-clr-bar" id="clr-bar-font" style="background:#e74c3c"></div>
+        </button>
+        <div class="clr-palette" id="palette-font">
+          <div class="clr-palette-hdr">Cor do texto</div>
+          <div class="clr-swatches" id="swatches-font"></div>
+          <div class="clr-custom-row">
+            <input type="color" id="custom-font-clr" value="#e74c3c" onchange="applyClr('font',this.value)" title="Cor personalizada">
+            <span>Cor personalizada</span>
+          </div>
+        </div>
+      </div>
+      <!-- Realce -->
+      <div class="tb-clr-wrap" id="wrap-hl-clr">
+        <button class="tb-clr-btn" onmousedown="saveEpRange()" onclick="toggleClrPalette('hl')" title="Cor de realce">
+          <span style="font-size:.75rem;font-weight:700;color:var(--text-soft)">ab</span>
+          <div class="tb-clr-bar" id="clr-bar-hl" style="background:#f1c40f"></div>
+        </button>
+        <div class="clr-palette" id="palette-hl">
+          <div class="clr-palette-hdr">Cor de realce</div>
+          <div class="clr-swatches" id="swatches-hl"></div>
+          <div class="clr-custom-row">
+            <input type="color" id="custom-hl-clr" value="#f1c40f" onchange="applyClr('hl',this.value)" title="Cor personalizada">
+            <span>Cor personalizada</span>
+          </div>
+        </div>
+      </div>
       <div class="tb-sep"></div>
-      <button class="tb" onclick="fmt('insertUnorderedList')" title="Lista" style="font-size:.85rem">• —</button>
-      <button class="tb" onclick="fmt('insertOrderedList')" title="Lista numerada" style="font-size:.75rem">1.</button>
-      <button class="tb" onclick="fmt('indent')" title="Aumentar recuo" style="font-size:.85rem">→|</button>
-      <button class="tb" onclick="fmt('outdent')" title="Diminuir recuo" style="font-size:.85rem">|←</button>
+      <!-- Alinhamento -->
+      <button class="tb" onclick="fmt('justifyLeft')" title="Alinhar à esquerda" style="font-size:.82rem">≡←</button>
+      <button class="tb" onclick="fmt('justifyCenter')" title="Centrar" style="font-size:.82rem">≡</button>
+      <button class="tb" onclick="fmt('justifyRight')" title="Alinhar à direita" style="font-size:.82rem">≡→</button>
+      <button class="tb" onclick="fmt('justifyFull')" title="Justificado" style="font-size:.82rem">☰</button>
       <div class="tb-sep"></div>
-      <select class="tb-sel" onchange="fmtBlock(this.value);this.selectedIndex=0" title="Estilo de parágrafo">
+      <!-- Listas e recuo -->
+      <button class="tb" onclick="fmt('insertUnorderedList')" title="Lista com marcadores" style="font-size:.8rem">• ─</button>
+      <button class="tb" onclick="fmt('insertOrderedList')" title="Lista numerada" style="font-size:.74rem">1.</button>
+      <button class="tb" onclick="fmt('indent')" title="Aumentar recuo" style="font-size:.8rem">⇥</button>
+      <button class="tb" onclick="fmt('outdent')" title="Diminuir recuo" style="font-size:.8rem">⇤</button>
+      <div class="tb-sep"></div>
+      <!-- Estilo de parágrafo -->
+      <select class="tb-sel" onchange="fmtBlock(this.value);this.selectedIndex=0" title="Estilo de parágrafo" style="width:80px">
         <option value="" disabled selected>Estilo</option>
         <option value="p">Normal</option>
         <option value="h1">Título 1</option>
         <option value="h2">Título 2</option>
         <option value="h3">Título 3</option>
+        <option value="h4">Título 4</option>
         <option value="blockquote">Citação</option>
-      </select>
-      <select class="tb-sel" onchange="fmt('fontSize',this.value);this.selectedIndex=0" title="Tamanho">
-        <option value="" disabled selected>Tamanho</option>
-        <option value="1">Pequeno</option>
-        <option value="3">Normal</option>
-        <option value="4">Médio</option>
-        <option value="5">Grande</option>
-        <option value="7">Enorme</option>
+        <option value="pre">Código</option>
       </select>
       <div class="tb-sep"></div>
-      <button class="tb" onclick="insertLnk()" title="Inserir link" style="font-size:.78rem">🔗</button>
-      <button class="tb" onclick="fmt('removeFormat')" title="Remover formatação" style="font-size:.65rem;width:36px">✕ fmt</button>
+      <!-- Link -->
+      <div class="lnk-wrap" id="lnk-wrap">
+        <button class="tb" onmousedown="saveEpRange()" onclick="toggleLnkDialog()" title="Inserir/editar link" style="font-size:.82rem">🔗</button>
+        <div class="lnk-dialog" id="lnk-dialog">
+          <div style="font-size:.62rem;color:var(--text-muted);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Inserir Link</div>
+          <input id="lnk-text" type="text" placeholder="Texto do link (opcional)">
+          <input id="lnk-url" type="url" placeholder="URL (https://...)">
+          <div class="lnk-dialog-btns">
+            <button class="lnk-ok" onclick="applyLnk()">✓ Inserir</button>
+            <button class="lnk-cancel" onclick="closeLnkDialog()">Cancelar</button>
+            <button class="lnk-cancel" onclick="fmt('unlink')" style="margin-left:auto">✕ Remover</button>
+          </div>
+        </div>
+      </div>
+      <!-- Tabela -->
+      <div class="tbl-picker-wrap" id="tbl-wrap">
+        <button class="tb" onmousedown="saveEpRange()" onclick="toggleTblPicker()" title="Inserir tabela" style="font-size:.8rem">⊞</button>
+        <div class="tbl-popup" id="tbl-popup">
+          <div style="font-size:.6rem;color:var(--text-muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Inserir Tabela</div>
+          <div class="tbl-cells" id="tbl-cells"></div>
+          <div class="tbl-lbl" id="tbl-lbl">Passe o rato</div>
+        </div>
+      </div>
+      <!-- Divisor -->
+      <button class="tb" onclick="insertHR()" title="Inserir linha divisória" style="font-size:.8rem">─</button>
+      <!-- Bloco de código -->
+      <button class="tb" onclick="insertCodeBlock()" title="Bloco de código" style="font-size:.67rem;width:32px">&lt;/&gt;</button>
       <div class="tb-sep"></div>
-      <button class="tb" id="btn-emoji" onmousedown="saveEpRange()" onclick="toggleEmojiPicker(this)" title="Emojis e Ícones" style="font-size:.95rem">😊</button>
+      <!-- Limpar formatação -->
+      <button class="tb" onclick="fmt('removeFormat')" title="Limpar toda a formatação" style="font-size:.65rem;width:36px">✕fmt</button>
       <div class="tb-sep"></div>
-      <button class="tb" onclick="document.getElementById('comp-img-inp').click()" title="Inserir imagem no corpo" style="font-size:.9rem">🖼️</button>
-      <button class="tb" onclick="document.getElementById('comp-file-inp').click()" title="Anexar ficheiro" style="width:38px;font-size:.72rem;font-weight:600">📎 +</button>
+      <!-- Emoji, imagem, anexo -->
+      <button class="tb" id="btn-emoji" onmousedown="saveEpRange()" onclick="toggleEmojiPicker(this)" title="Emojis" style="font-size:.9rem">😊</button>
+      <button class="tb" onclick="document.getElementById('comp-img-inp').click()" title="Inserir imagem no corpo" style="font-size:.88rem">🖼️</button>
+      <button class="tb" onclick="document.getElementById('comp-file-inp').click()" title="Anexar ficheiro" style="width:36px;font-size:.7rem;font-weight:600">📎+</button>
       <input type="file" id="comp-img-inp" accept="image/*" style="display:none" onchange="insertInlineImg(this)">
       <input type="file" id="comp-file-inp" multiple style="display:none" onchange="addAttachs(this)">
     </div>
@@ -2385,7 +2516,196 @@ function renderComposer(){
 
 function fmt(cmd,val){document.getElementById('comp-body').focus();document.execCommand(cmd,false,val||null);}
 function fmtBlock(tag){document.getElementById('comp-body').focus();document.execCommand('formatBlock',false,tag);}
-function insertLnk(){const url=prompt('URL do link:','https://');if(url){document.getElementById('comp-body').focus();document.execCommand('createLink',false,url);}}
+
+// ── FONT SIZE via inline style (pt values) ────────────────────────────────────
+function fmtFontSize(pt){
+  const body=document.getElementById('comp-body');
+  body.focus();
+  const sel=window.getSelection();
+  if(!sel||sel.rangeCount===0)return;
+  const range=sel.getRangeAt(0);
+  if(range.collapsed){
+    // Cursor sem selecção: envolve palavra actual
+    const span=document.createElement('span');
+    span.style.fontSize=pt;
+    range.insertNode(span);
+    range.setStart(span,0);range.collapse(true);
+    sel.removeAllRanges();sel.addRange(range);
+  } else {
+    document.execCommand('fontSize',false,'4');
+    body.querySelectorAll('font[size="4"]').forEach(f=>{
+      f.removeAttribute('size');
+      f.style.fontSize=pt;
+    });
+  }
+}
+
+// ── PALETA DE CORES ───────────────────────────────────────────────────────────
+const _CLR_PALETTE=[
+  // Neutros
+  '#000000','#1a1a1a','#3d3d3d','#666666','#999999','#bbbbbb','#dddddd','#ffffff',
+  // Vermelhos / Laranjas
+  '#7b0000','#c0392b','#e74c3c','#ff6b6b','#e67e22','#f39c12','#f1c40f','#ffd93d',
+  // Verdes
+  '#1a5c2a','#1e8449','#27ae60','#2ecc71','#82e0aa','#006064','#00838f','#26c6da',
+  // Azuis
+  '#0d3b6e','#1565c0','#1976d2','#2196f3','#64b5f6','#0e47a1','#1a237e','#7986cb',
+  // Roxos / Rosas
+  '#4a0072','#6a1b9a','#8e24aa','#ce93d8','#ad1457','#e91e63','#f06292','#f8bbd0',
+  // Especiais
+  '#bf360c','#e64a19','#ff7043','#ffccbc','#004d40','#00695c','#80cbc4','#b2dfdb',
+];
+let _lastFontClr='#e74c3c', _lastHlClr='#f1c40f';
+
+function _buildSwatches(){
+  ['font','hl'].forEach(type=>{
+    const el=document.getElementById('swatches-'+type);
+    if(!el||el.children.length)return;
+    _CLR_PALETTE.forEach(c=>{
+      const d=document.createElement('div');
+      d.className='clr-sw';
+      d.style.background=c;
+      d.title=c;
+      d.onclick=()=>applyClr(type,c);
+      el.appendChild(d);
+    });
+  });
+}
+
+function toggleClrPalette(type){
+  _buildSwatches();
+  const id='palette-'+type;
+  const el=document.getElementById(id);
+  // Fecha outras paletas abertas
+  document.querySelectorAll('.clr-palette.open,.tbl-popup.open,.lnk-dialog.open').forEach(p=>{if(p.id!==id)p.classList.remove('open');});
+  el.classList.toggle('open');
+}
+
+function applyClr(type,color){
+  // Restaura selecção salva
+  if(_epSavedRange){
+    const sel=window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(_epSavedRange);
+    _epSavedRange=null;
+  }
+  const body=document.getElementById('comp-body');
+  body.focus();
+  if(type==='font'){
+    document.execCommand('foreColor',false,color);
+    _lastFontClr=color;
+    const bar=document.getElementById('clr-bar-font');
+    if(bar)bar.style.background=color;
+    const inp=document.getElementById('custom-font-clr');
+    if(inp)inp.value=color;
+  } else {
+    // hiliteColor é o standard; backColor é fallback para Firefox
+    if(!document.execCommand('hiliteColor',false,color))
+      document.execCommand('backColor',false,color);
+    _lastHlClr=color;
+    const bar=document.getElementById('clr-bar-hl');
+    if(bar)bar.style.background=color;
+    const inp=document.getElementById('custom-hl-clr');
+    if(inp)inp.value=color;
+  }
+  document.getElementById('palette-'+type).classList.remove('open');
+}
+
+// ── TABELA ────────────────────────────────────────────────────────────────────
+function _buildTblCells(){
+  const wrap=document.getElementById('tbl-cells');
+  if(!wrap||wrap.children.length)return;
+  for(let r=1;r<=6;r++){
+    for(let c=1;c<=8;c++){
+      const d=document.createElement('div');
+      d.className='tbl-c';
+      d.id=`tc-${r}-${c}`;
+      d.onmouseenter=()=>{
+        for(let i=1;i<=6;i++)for(let j=1;j<=8;j++){
+          const el=document.getElementById(`tc-${i}-${j}`);
+          if(el)el.className='tbl-c'+(i<=r&&j<=c?' hl':'');
+        }
+        const lbl=document.getElementById('tbl-lbl');
+        if(lbl)lbl.textContent=`${r} linhas × ${c} colunas`;
+      };
+      d.onclick=()=>insertTable(r,c);
+      wrap.appendChild(d);
+    }
+  }
+}
+
+function toggleTblPicker(){
+  _buildTblCells();
+  const p=document.getElementById('tbl-popup');
+  document.querySelectorAll('.clr-palette.open,.lnk-dialog.open').forEach(x=>x.classList.remove('open'));
+  p.classList.toggle('open');
+}
+
+function insertTable(r,c){
+  if(_epSavedRange){const sel=window.getSelection();sel.removeAllRanges();sel.addRange(_epSavedRange);_epSavedRange=null;}
+  const body=document.getElementById('comp-body');
+  body.focus();
+  let hdr='<tr>'+Array.from({length:c},()=>`<th style="border:1px solid #555;padding:7px 12px;background:rgba(255,255,255,.06);font-weight:700;text-align:left"> </th>`).join('')+'</tr>';
+  let rows='';
+  for(let i=1;i<r;i++) rows+='<tr>'+Array.from({length:c},()=>`<td style="border:1px solid #555;padding:7px 12px;min-width:60px"> </td>`).join('')+'</tr>';
+  document.execCommand('insertHTML',false,`<table style="border-collapse:collapse;width:100%;margin:10px 0">${hdr}${rows}</table><p><br></p>`);
+  document.getElementById('tbl-popup').classList.remove('open');
+}
+
+// ── DIVISOR E CÓDIGO ──────────────────────────────────────────────────────────
+function insertHR(){
+  const body=document.getElementById('comp-body');body.focus();
+  document.execCommand('insertHTML',false,'<hr style="border:none;border-top:1px solid rgba(255,255,255,.2);margin:14px 0"><p><br></p>');
+}
+function insertCodeBlock(){
+  const body=document.getElementById('comp-body');body.focus();
+  document.execCommand('insertHTML',false,'<pre style="background:#111827;border:1px solid #2d3748;border-radius:7px;padding:10px 14px;font-family:Courier New,monospace;font-size:.82rem;color:#e2e8f0;margin:8px 0;white-space:pre-wrap">Código aqui</pre><p><br></p>');
+}
+
+// ── LINK DIALOG ───────────────────────────────────────────────────────────────
+function toggleLnkDialog(){
+  const d=document.getElementById('lnk-dialog');
+  document.querySelectorAll('.clr-palette.open,.tbl-popup.open').forEach(x=>x.classList.remove('open'));
+  // Pré-preenche texto se houver selecção
+  if(!d.classList.contains('open')){
+    const sel=window.getSelection();
+    const txt=sel&&!sel.isCollapsed?sel.toString():'';
+    document.getElementById('lnk-text').value=txt;
+    document.getElementById('lnk-url').value='https://';
+    d.classList.add('open');
+    setTimeout(()=>document.getElementById(txt?'lnk-url':'lnk-text').focus(),50);
+  } else {
+    d.classList.remove('open');
+  }
+}
+function closeLnkDialog(){document.getElementById('lnk-dialog').classList.remove('open');}
+function applyLnk(){
+  const url=document.getElementById('lnk-url').value.trim();
+  const txt=document.getElementById('lnk-text').value.trim();
+  if(!url||url==='https://')return;
+  if(_epSavedRange){const sel=window.getSelection();sel.removeAllRanges();sel.addRange(_epSavedRange);_epSavedRange=null;}
+  const body=document.getElementById('comp-body');body.focus();
+  const sel=window.getSelection();
+  if(txt&&sel&&sel.isCollapsed){
+    // Sem selecção: insere texto como link
+    document.execCommand('insertHTML',false,`<a href="${url.replace(/"/g,'&quot;')}" target="_blank">${txt}</a>`);
+  } else {
+    document.execCommand('createLink',false,url);
+    // Garante que abre em nova aba
+    body.querySelectorAll(`a[href="${url}"]`).forEach(a=>{a.target='_blank';});
+  }
+  closeLnkDialog();
+}
+
+// Fechar popups ao clicar fora
+document.addEventListener('mousedown',e=>{
+  if(!e.target.closest('#wrap-font-clr')&&!e.target.closest('#wrap-hl-clr'))
+    document.querySelectorAll('.clr-palette.open').forEach(p=>p.classList.remove('open'));
+  if(!e.target.closest('#tbl-wrap'))
+    document.querySelectorAll('.tbl-popup.open').forEach(p=>p.classList.remove('open'));
+  if(!e.target.closest('#lnk-wrap'))
+    document.querySelectorAll('.lnk-dialog.open').forEach(p=>p.classList.remove('open'));
+});
 
 function openOWA(){
   const to=encodeURIComponent(document.getElementById('comp-to')?.value||'');
