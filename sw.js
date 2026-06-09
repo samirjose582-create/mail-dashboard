@@ -1,5 +1,5 @@
 // ── Mail Dashboard Service Worker ─────────────────────────────────────────────
-const CACHE = 'mail-dashboard-v3';
+const CACHE = 'mail-dashboard-v4';
 // Paths relativos ao scope do SW (funciona em localhost E GitHub Pages)
 const CACHE_URLS = ['./Relatorio_email.html', './manifest.json', './icon.svg'];
 
