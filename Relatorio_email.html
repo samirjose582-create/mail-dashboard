@@ -813,7 +813,8 @@ function _showManualInstructions() {
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const CLIENT_ID    = '824bee9b-ef46-455a-bd6e-feb2541194b3';
 const TENANT_ID    = '279b025f-d911-4e9e-83ca-2bc53712b6d7';
-const SCOPES       = 'Mail.Read Mail.Send User.Read User.ReadBasic.All People.Read offline_access';
+const SCOPES       = 'Mail.Read Mail.Send User.Read User.ReadBasic.All People.Read Calendars.Read OnlineMeetings.Read offline_access';
+const SCOPES_VER   = 'cal1'; // bump sempre que scopes mudam, para forçar re-login
 
 // ── PKCE HELPERS ──────────────────────────────────────────────────────────────
 async function pkceVerifier() {
@@ -861,6 +862,7 @@ async function handleCallback() {
     localStorage.setItem('mail_token', data.access_token);
     localStorage.setItem('mail_token_exp', Date.now() + (data.expires_in||3600)*1000);
     if (data.refresh_token) localStorage.setItem('mail_refresh', data.refresh_token);
+    localStorage.setItem('mail_scopes_ver', SCOPES_VER); // marca que token tem os scopes actuais
     sessionStorage.removeItem('pkce_v');
     window.history.replaceState({}, '', REDIRECT_URI);
     return true;
@@ -908,14 +910,15 @@ function logout() {
   localStorage.removeItem('mail_token');
   localStorage.removeItem('mail_token_exp');
   localStorage.removeItem('mail_refresh');
+  localStorage.removeItem('mail_scopes_ver');
   window.location.href = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
 }
 
 function forceRelogin() {
-  // Limpa TODOS os tokens para forçar novo login com novos scopes
   localStorage.removeItem('mail_token');
   localStorage.removeItem('mail_token_exp');
   localStorage.removeItem('mail_refresh');
+  localStorage.removeItem('mail_scopes_ver');
   document.getElementById('app').style.display='none';
   document.getElementById('login-overlay').style.display='flex';
   const lb=document.getElementById('login-btn');
@@ -963,9 +966,6 @@ async function fetchEmails() {
 }
 
 async function fetchCalendarEvents(){
-  // Calendars.Read não está no scope actual (pendente aprovação admin)
-  window._calendarPermError = 'pending_admin';
-  return [];
   try{
     const token=await getToken();
     if(!token){console.warn('No token for calendar');return[];}
@@ -2845,6 +2845,17 @@ function hlMatch(text,q){
   // Check if already have a valid token
   const exp = parseInt(localStorage.getItem('mail_token_exp')||'0');
   if (localStorage.getItem('mail_token') && Date.now() < exp) {
+    // Verificar se o token foi obtido com os scopes actuais (inclui Calendars.Read)
+    if (localStorage.getItem('mail_scopes_ver') !== SCOPES_VER) {
+      // Token antigo sem permissões de calendário — forçar re-login silencioso
+      forceRelogin();
+      const err = document.getElementById('login-error');
+      if (err) {
+        err.textContent = '🗓️ Novas permissões de calendário disponíveis. Clique em "Entrar" para activar as reuniões Teams.';
+        err.style.display = 'block';
+      }
+      return;
+    }
     document.getElementById('login-overlay').style.display='none';
     showLoading('A carregar e-mails...');
     await loadEmails();
