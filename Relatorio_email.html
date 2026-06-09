@@ -117,6 +117,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .stat.s-responder::before{background:var(--yellow-dim);}
 .stat.s-reunioes::before{background:var(--purple-dim);}
 .stat.s-projetos::before{background:var(--green-dim);}
+.stat.s-fixados::before{background:var(--orange-dim);}
 .stat.s-todos::before{background:var(--surface3);}
 .stat:hover{border-color:var(--border2);transform:translateY(-1px);}
 .stat.active{transform:translateY(-1px);}
@@ -125,11 +126,13 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .stat.active.s-responder{border-color:rgba(251,191,36,.4);box-shadow:0 0 12px rgba(251,191,36,.18);}
 .stat.active.s-reunioes{border-color:rgba(192,132,252,.4);box-shadow:0 0 12px rgba(192,132,252,.18);}
 .stat.active.s-projetos{border-color:rgba(74,222,128,.4);box-shadow:0 0 12px rgba(74,222,128,.18);}
+.stat.active.s-fixados{border-color:rgba(251,146,60,.4);box-shadow:0 0 12px rgba(251,146,60,.18);}
 .stat-icon{font-size:1.1rem;position:relative;}
 .stat-info{position:relative;}
 .stat-label{font-size:.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;}
 .stat-value{font-size:1.25rem;font-weight:700;line-height:1;font-family:var(--mono);}
 .stat.s-urgencias .stat-value{color:var(--red);}
+.stat.s-fixados .stat-value{color:var(--orange);}
 .stat.s-unread .stat-value{color:var(--blue);}
 .stat.s-responder .stat-value{color:var(--yellow);}
 .stat.s-reunioes .stat-value{color:var(--purple);}
@@ -628,6 +631,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     <div class="stat s-responder" onclick="switchTab('responder')"><div class="stat-icon">💬</div><div class="stat-info"><div class="stat-label">Responder</div><div class="stat-value" id="s-responder">–</div></div></div>
     <div class="stat s-reunioes" onclick="switchTab('reunioes')"><div class="stat-icon">📅</div><div class="stat-info"><div class="stat-label">Reuniões</div><div class="stat-value" id="s-reunioes">–</div></div></div>
     <div class="stat s-projetos" onclick="switchTab('projetos')"><div class="stat-icon">🗂</div><div class="stat-info"><div class="stat-label">Projetos</div><div class="stat-value" id="s-projetos">–</div></div></div>
+    <div class="stat s-fixados" onclick="switchTab('fixados')"><div class="stat-icon">🚩</div><div class="stat-info"><div class="stat-label">Sinalizados</div><div class="stat-value" id="s-fixados">–</div></div></div>
     <div class="stat s-todos" onclick="switchTab('todos')"><div class="stat-icon">📋</div><div class="stat-info"><div class="stat-label">Total Hoje</div><div class="stat-value" id="s-todos">–</div></div></div>
     <div class="vol-chip"><span id="vol-arrow">📊</span><span style="color:var(--text-soft)">Volume:</span><span class="vol-num" id="vol-num">–</span><span class="vol-diff" id="vol-diff"></span></div>
   </div>
@@ -1077,8 +1081,8 @@ function showLoading(msg){document.getElementById('loading-text').textContent=ms
 function hideLoading(){document.getElementById('loading-overlay').style.display='none';}
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
-function emailCard(e){
-  const isU=!e.isRead,cls=e.importance==='high'?'high-prio':(isU?'unread':''),s=clean(e.summary),link=esc(e.webLink||'#');
+function emailCard(e, extraCls=''){
+  const isU=!e.isRead,base=e.importance==='high'?'high-prio':(isU?'unread':''),cls=[base,extraCls].filter(Boolean).join(' '),s=clean(e.summary),link=esc(e.webLink||'#');
   return `<div class="email-card ${cls}" onclick="window.open('${link}','_blank')" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${(e.sender||'').toLowerCase()}" data-summary="${s.toLowerCase()}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}">
     <div class="email-inner">
       <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
@@ -1103,7 +1107,7 @@ function renderAll(){
   renderMeetingCal();
   const keys=Object.keys(PROJETOS).sort();
   document.getElementById('panel-projetos').innerHTML=keys.length?sh('var(--green)','🗂 PROJECTOS',keys.length)+keys.map(proj=>{const emails=PROJETOS[proj],hasU=emails.some(e=>!e.isRead),uid='proj_'+proj.replace(/[^a-z0-9]/gi,'_');return `<div class="project-group" id="pg_${uid}"><div class="project-header" onclick="toggleProject('${uid}')"><span class="project-code">${proj}</span><span class="project-name">${emails[0]?.subject?.split('|').slice(2).join('|').trim().slice(0,55)||''}</span><span class="project-count">${emails.length} msg${hasU?` · <span style="color:var(--blue)">${emails.filter(e=>!e.isRead).length} unread</span>`:''}</span><span class="project-chevron">›</span></div><div class="project-emails" id="${uid}">${emails.map(emailCard).join('')}</div></div>`}).join(''):empty('🗂','Sem projectos','');
-  document.getElementById('panel-fixados').innerHTML=DATA.flagged.length?sh('var(--orange)','🚩 SINALIZADOS',DATA.flagged.length)+DATA.flagged.map(emailCard).join(''):empty('🚩','Nenhum sinalizado','Marque e-mails com 🚩 no Outlook para aparecerem aqui.');
+  document.getElementById('panel-fixados').innerHTML=DATA.flagged.length?sh('var(--orange)','🚩 SINALIZADOS',DATA.flagged.length)+DATA.flagged.map(e=>emailCard(e,'flagged')).join(''):empty('🚩','Nenhum sinalizado','Marque e-mails com 🚩 no Outlook para aparecerem aqui.');
   document.getElementById('panel-lidos').innerHTML=DATA.read.length?sh('var(--text-soft)','✓ LIDOS',DATA.read.length)+DATA.read.map(emailCard).join(''):empty('✓','Nenhum lido','');
   const allE=[...DATA.unread,...DATA.read];
   document.getElementById('panel-todos').innerHTML=allE.length?sh('var(--text-soft)','≡ TODOS',allE.length)+allE.map(emailCard).join(''):empty('📋','Vazio','');
