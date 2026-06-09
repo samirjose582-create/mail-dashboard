@@ -1723,8 +1723,7 @@ function renderWeekCalendar(){
       <div class="week-time-col">${timeCells}</div>
       <div class="week-days-area" style="height:${totalH}px">${dayCols}</div>
     </div>
-  </div>
-  <script>requestAnimationFrame(()=>{const b=document.getElementById('week-body');if(b)b.scrollTop=${scrollInit};});<\/script>`;
+  </div>`;
 }
 
 function renderMeetingCal(){
@@ -1817,7 +1816,12 @@ function renderMeetingCal(){
 
   if(calViewMode==='semana'){
     // ── Calendário semanal interativo ──────────────────────────────────────────
-    teamsHtml+=renderWeekCalendar();
+    try{
+      teamsHtml+=renderWeekCalendar();
+    }catch(err){
+      console.error('[WeekCal] render error:',err);
+      teamsHtml+=`<div style="padding:20px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text-muted);font-size:.78rem">⚠️ Erro ao renderizar calendário semanal: ${err.message||err}</div>`;
+    }
   } else {
     // ── Vista lista: filtros + cards ───────────────────────────────────────────
     teamsHtml+=filtersHtml;
@@ -1897,6 +1901,14 @@ function renderMeetingCal(){
   } // end lista/semana conditional
 
   panel.innerHTML=cal+teamsHtml;
+
+  // Scroll week-body to current time after DOM update
+  if(calViewMode==='semana'){
+    const HOUR_H=60,START_HOUR=7;
+    const nowH=parseInt(new Date().toLocaleTimeString('sv-SE',{timeZone:TZ,hour:'2-digit',minute:'2-digit'}).split(':')[0])||8;
+    const scrollY=Math.max(0,(nowH-START_HOUR-1))*HOUR_H;
+    setTimeout(()=>{const b=document.getElementById('week-body');if(b)b.scrollTop=scrollY;},50);
+  }
 }
 
 function calNav(dir){calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}calSelDay=null;if(calTeamsFilter==='dia')calTeamsFilter='hoje';renderMeetingCal();}
