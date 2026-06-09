@@ -423,19 +423,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .teams-meta{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
 .teams-meta-item{font-size:.68rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
 .teams-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
-.rsvp-group{display:flex;gap:5px;margin-left:auto;}
-.rsvp-btn{border:none;border-radius:6px;padding:4px 10px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s;display:inline-flex;align-items:center;gap:4px;opacity:.75;}
-.rsvp-btn:hover{opacity:1;transform:translateY(-1px);}
-.rsvp-btn.accept{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);color:#4ade80;}
-.rsvp-btn.accept:hover{background:rgba(74,222,128,.28);}
-.rsvp-btn.tentative{background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);color:#fbbf24;}
-.rsvp-btn.tentative:hover{background:rgba(251,191,36,.25);}
-.rsvp-btn.decline{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);color:#f87171;}
-.rsvp-btn.decline:hover{background:rgba(248,113,113,.25);}
-.rsvp-btn.active-accept{background:rgba(74,222,128,.3);border-color:rgba(74,222,128,.6);color:#4ade80;opacity:1;box-shadow:0 0 8px rgba(74,222,128,.25);}
-.rsvp-btn.active-tentative{background:rgba(251,191,36,.25);border-color:rgba(251,191,36,.5);color:#fbbf24;opacity:1;box-shadow:0 0 8px rgba(251,191,36,.2);}
-.rsvp-btn.active-decline{background:rgba(248,113,113,.25);border-color:rgba(248,113,113,.5);color:#f87171;opacity:1;box-shadow:0 0 8px rgba(248,113,113,.2);}
-.rsvp-sending{font-size:.64rem;color:var(--text-muted);font-style:italic;}
 .btn-join{background:linear-gradient(135deg,#5b5ea6,#464775);color:#fff;border:none;padding:6px 14px;border-radius:7px;cursor:pointer;font-size:.74rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .2s;text-decoration:none;font-family:'Inter',sans-serif;}
 .btn-join:hover{background:linear-gradient(135deg,#6f72c4,#5b5ea6);box-shadow:0 0 10px rgba(91,94,166,.4);}
 .btn-join-sm{background:var(--purple-dim);border:1px solid rgba(192,132,252,.25);color:var(--purple);padding:5px 11px;border-radius:6px;cursor:pointer;font-size:.71rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:all .15s;font-family:'Inter',sans-serif;}
@@ -885,8 +872,8 @@ function _showManualInstructions() {
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const CLIENT_ID    = '824bee9b-ef46-455a-bd6e-feb2541194b3';
 const TENANT_ID    = '279b025f-d911-4e9e-83ca-2bc53712b6d7';
-const SCOPES       = 'Mail.Read Mail.Send User.Read User.ReadBasic.All People.Read Calendars.Read Calendars.ReadWrite OnlineMeetings.Read offline_access';
-const SCOPES_VER   = 'cal2'; // bump sempre que scopes mudam, para forçar re-login
+const SCOPES       = 'Mail.Read Mail.Send User.Read User.ReadBasic.All People.Read Calendars.Read OnlineMeetings.Read offline_access';
+const SCOPES_VER   = 'cal1'; // bump sempre que scopes mudam, para forçar re-login
 
 // ── PKCE HELPERS ──────────────────────────────────────────────────────────────
 async function pkceVerifier() {
@@ -1048,7 +1035,7 @@ async function fetchCalendarEvents(){
     const todayMidnightSP=new Date(Math.floor((now.getTime()-spOffset)/(86400000))*86400000+spOffset);
     const start=todayMidnightSP.toISOString().replace(/\.\d+Z$/,'Z');
     const end=new Date(todayMidnightSP.getTime()+30*86400000).toISOString().replace(/\.\d+Z$/,'Z');
-    const sel='id,subject,start,end,organizer,onlineMeeting,webLink,bodyPreview,location,isOnlineMeeting,isCancelled,responseStatus';
+    const sel='id,subject,start,end,organizer,onlineMeeting,webLink,bodyPreview,location,isOnlineMeeting,isCancelled';
     const url=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${start}&endDateTime=${end}&$select=${sel}&$top=100`;
     console.log('[CalendarView] fetching',url);
     const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
@@ -1085,8 +1072,7 @@ async function fetchCalendarEvents(){
           isOnline:e.isOnlineMeeting||!!e.onlineMeeting?.joinUrl,
           webLink:e.webLink||'#',
           summary:e.bodyPreview||'',
-          location:e.location?.displayName||'',
-          responseStatus:e.responseStatus?.response||'none'
+          location:e.location?.displayName||''
         };
       });
   }catch(err){console.error('[Calendar] fetch error:',err);return[];}
@@ -1907,7 +1893,6 @@ function renderMeetingCal(){
                   ?`<a class="btn-join${live?' ':" "}" href="${esc(e.joinUrl)}" target="_blank" onclick="event.stopPropagation()">▶ Entrar no Teams</a>`
                   :`<span style="font-size:.72rem;color:var(--text-muted)">Sem link Teams</span>`}
                 <a class="btn-join-sm" href="${esc(e.webLink)}" target="_blank" onclick="event.stopPropagation()">↗ Calendário</a>
-                <div class="rsvp-group" onclick="event.stopPropagation()">${rsvpButtons(e.id,e.responseStatus)}</div>
               </div>
             </div>
           </div>`;
@@ -1930,67 +1915,6 @@ function renderMeetingCal(){
 
 function calNav(dir){calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}calSelDay=null;if(calTeamsFilter==='dia')calTeamsFilter='hoje';renderMeetingCal();}
 
-// ── RESPOSTA A REUNIÕES (aceitar / talvez / recusar) ──────────────────────────
-async function respondToMeeting(eventId, response, btnEl){
-  const map={accept:'accept',tentative:'tentativelyAccept',decline:'decline'};
-  const endpoint=map[response];
-  if(!endpoint)return;
-
-  // Feedback imediato no botão
-  const group=btnEl.closest('.rsvp-group');
-  if(group){
-    group.querySelectorAll('.rsvp-btn').forEach(b=>b.disabled=true);
-    const sending=group.querySelector('.rsvp-sending');
-    if(sending)sending.style.display='inline';
-  }
-
-  try{
-    const token=await getToken();
-    if(!token)throw new Error('Sem token');
-    const res=await fetch(`https://graph.microsoft.com/v1.0/me/events/${encodeURIComponent(eventId)}/${endpoint}`,{
-      method:'POST',
-      headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-      body:JSON.stringify({sendResponse:true})
-    });
-    if(!res.ok){
-      const txt=await res.text();
-      throw new Error(`${res.status}: ${txt}`);
-    }
-    // Actualiza estado local no array sem reload completo
-    const evt=CALENDAR_EVENTS.find(e=>e.id===eventId);
-    if(evt) evt.responseStatus=response==='accept'?'accepted':response==='tentative'?'tentativelyAccepted':'declined';
-    // Re-renderiza apenas os botões do card
-    if(group){
-      group.innerHTML=rsvpButtons(eventId, evt?.responseStatus||response);
-    }
-  }catch(err){
-    console.error('[RSVP] erro:',err);
-    if(group){
-      group.querySelectorAll('.rsvp-btn').forEach(b=>b.disabled=false);
-      const sending=group.querySelector('.rsvp-sending');
-      if(sending){sending.style.display='none';}
-      // Mostra erro breve
-      const errSpan=document.createElement('span');
-      errSpan.style.cssText='font-size:.62rem;color:var(--red)';
-      errSpan.textContent='⚠️ Erro ao responder';
-      group.appendChild(errSpan);
-      setTimeout(()=>errSpan.remove(),3000);
-    }
-  }
-}
-
-function rsvpButtons(eventId, responseStatus){
-  // Não mostrar botões se o utilizador é o organizador
-  if(responseStatus==='organizer') return '';
-  const isAccepted=responseStatus==='accepted';
-  const isTentative=responseStatus==='tentativelyAccepted';
-  const isDeclined=responseStatus==='declined';
-  const id=eventId.replace(/'/g,"\\'");
-  return `<span class="rsvp-sending" style="display:none;font-size:.64rem;color:var(--text-muted)">A enviar...</span>
-    <button class="rsvp-btn accept${isAccepted?' active-accept':''}" onclick="respondToMeeting('${id}','accept',this)" title="Aceitar">✓ Aceitar</button>
-    <button class="rsvp-btn tentative${isTentative?' active-tentative':''}" onclick="respondToMeeting('${id}','tentative',this)" title="Talvez">? Talvez</button>
-    <button class="rsvp-btn decline${isDeclined?' active-decline':''}" onclick="respondToMeeting('${id}','decline',this)" title="Recusar">✕ Recusar</button>`;
-}
 function calSelectDay(d){calSetTeamsFilterDay(d);}
 function calClear(){calSelDay=null;calTeamsFilter='hoje';renderMeetingCal();}
 
