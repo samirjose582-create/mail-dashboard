@@ -660,6 +660,95 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .tpl-edit-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:4px;}
 .btn-reset-tpl{background:none;border:1px solid var(--border);color:var(--text-muted);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.78rem;font-family:'Inter',sans-serif;margin-left:auto;transition:all .15s;}
 .btn-reset-tpl:hover{color:var(--orange);border-color:rgba(251,146,60,.4);}
+/* ── CHECKLIST SEMANAL ── */
+#panel-checklist{padding:0;background:transparent;}
+.ck-root{display:flex;flex-direction:column;height:100%;gap:0;font-family:'Inter',sans-serif;}
+.ck-hero{background:linear-gradient(135deg,#0a0f1e 0%,#0d1628 50%,#0a1229 100%);border:1px solid rgba(56,189,248,.15);border-radius:16px;padding:18px 22px 14px;margin-bottom:14px;position:relative;overflow:hidden;}
+.ck-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(56,189,248,.07) 0%,transparent 60%);pointer-events:none;}
+.ck-hero-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.ck-hero-title{font-size:1.05rem;font-weight:800;letter-spacing:.3px;background:linear-gradient(90deg,#38bdf8,#818cf8,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ck-week-label{font-size:.65rem;color:var(--text-muted);font-family:var(--mono);letter-spacing:.6px;margin-top:2px;}
+.ck-hero-actions{display:flex;gap:8px;align-items:center;}
+.ck-btn{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);color:#38bdf8;border-radius:8px;padding:5px 12px;font-size:.68rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;letter-spacing:.3px;white-space:nowrap;}
+.ck-btn:hover{background:rgba(56,189,248,.18);border-color:#38bdf8;box-shadow:0 0 10px rgba(56,189,248,.2);}
+.ck-btn.danger{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.3);color:#f87171;}
+.ck-btn.danger:hover{background:rgba(248,113,113,.18);box-shadow:0 0 10px rgba(248,113,113,.2);}
+.ck-global-prog{margin-top:14px;}
+.ck-gp-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.ck-gp-label{font-size:.63rem;color:var(--text-muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.ck-gp-pct{font-size:.75rem;font-weight:800;font-family:var(--mono);color:#38bdf8;}
+.ck-gp-bar{height:6px;background:rgba(255,255,255,.06);border-radius:10px;overflow:hidden;position:relative;}
+.ck-gp-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#38bdf8,#818cf8);transition:width .6s cubic-bezier(.4,0,.2,1);position:relative;}
+.ck-gp-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:20px;background:rgba(255,255,255,.3);border-radius:10px;animation:ck-shimmer 1.8s ease-in-out infinite;}
+@keyframes ck-shimmer{0%,100%{opacity:0}50%{opacity:1}}
+.ck-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;}
+.ck-stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;text-align:center;}
+.ck-stat-num{font-size:1.1rem;font-weight:800;font-family:var(--mono);}
+.ck-stat-lbl{font-size:.57rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+/* ── Day columns ── */
+.ck-days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;flex:1;min-height:0;}
+@media(max-width:900px){.ck-days{grid-template-columns:repeat(4,1fr);}}.ck-day{background:var(--surface);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;transition:border-color .2s,box-shadow .2s;position:relative;}
+.ck-day.today{border-color:rgba(56,189,248,.4);box-shadow:0 0 16px rgba(56,189,248,.1),inset 0 0 20px rgba(56,189,248,.03);}
+.ck-day.today .ck-day-hdr{background:linear-gradient(135deg,rgba(56,189,248,.12),rgba(129,140,248,.08));}
+.ck-day-hdr{background:rgba(255,255,255,.02);padding:8px 10px 6px;border-bottom:1px solid var(--border);position:relative;}
+.ck-day-name{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);}
+.ck-day-date{font-size:.95rem;font-weight:800;font-family:var(--mono);color:var(--text);line-height:1;margin-top:1px;}
+.ck-day-prog{margin-top:5px;height:3px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;}
+.ck-day-prog-fill{height:100%;border-radius:4px;transition:width .5s ease;background:linear-gradient(90deg,#38bdf8,#818cf8);}
+.ck-day-meta{font-size:.55rem;color:var(--text-muted);margin-top:3px;display:flex;justify-content:space-between;}
+.ck-day-body{flex:1;padding:6px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;scrollbar-width:thin;scrollbar-color:rgba(56,189,248,.2) transparent;}
+.ck-day-body::-webkit-scrollbar{width:3px}.ck-day-body::-webkit-scrollbar-thumb{background:rgba(56,189,248,.2);border-radius:4px;}
+.ck-day-add{padding:5px 6px;display:flex;align-items:center;gap:5px;border-top:1px solid rgba(255,255,255,.04);}
+.ck-day-add-btn{flex:1;background:rgba(56,189,248,.05);border:1px dashed rgba(56,189,248,.2);color:rgba(56,189,248,.6);border-radius:7px;font-size:.62rem;padding:5px 8px;cursor:pointer;text-align:left;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.ck-day-add-btn:hover{background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.4);color:#38bdf8;}
+.ck-mic-btn{background:none;border:1px solid rgba(255,255,255,.1);color:var(--text-muted);border-radius:7px;width:26px;height:26px;cursor:pointer;font-size:.7rem;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ck-mic-btn:hover{border-color:rgba(56,189,248,.4);color:#38bdf8;}
+.ck-mic-btn.recording{border-color:#f87171;color:#f87171;animation:ck-pulse 1s ease-in-out infinite;background:rgba(248,113,113,.08);}
+@keyframes ck-pulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.3)}50%{box-shadow:0 0 0 6px rgba(248,113,113,0)}}
+/* ── Task card ── */
+.ck-task{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:6px 8px;cursor:pointer;transition:all .15s;position:relative;display:flex;flex-direction:column;gap:3px;animation:ck-slide-in .25s ease;}
+@keyframes ck-slide-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.ck-task:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);}
+.ck-task.done{opacity:.45;}
+.ck-task.done .ck-task-text{text-decoration:line-through;color:var(--text-muted);}
+.ck-task-top{display:flex;align-items:flex-start;gap:5px;}
+.ck-chk{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--border);background:none;cursor:pointer;flex-shrink:0;margin-top:1px;transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.ck-chk.checked{background:linear-gradient(135deg,#38bdf8,#818cf8);border-color:transparent;box-shadow:0 0 8px rgba(56,189,248,.3);}
+.ck-chk.checked::after{content:'✓';font-size:.55rem;color:#fff;font-weight:900;}
+.ck-task-text{font-size:.68rem;flex:1;line-height:1.35;color:var(--text);word-break:break-word;}
+.ck-task-del{background:none;border:none;color:transparent;font-size:.7rem;cursor:pointer;padding:0 1px;transition:color .12s;line-height:1;flex-shrink:0;}
+.ck-task:hover .ck-task-del{color:rgba(248,113,113,.5);}
+.ck-task-del:hover{color:#f87171!important;}
+.ck-task-bottom{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.ck-prio{font-size:.52rem;font-weight:700;padding:1px 5px;border-radius:4px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;}
+.ck-prio.alta{background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.25);}
+.ck-prio.media{background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.2);}
+.ck-prio.baixa{background:rgba(56,189,248,.1);color:#38bdf8;border:1px solid rgba(56,189,248,.2);}
+.ck-prio.meta{background:rgba(192,132,252,.12);color:#c084fc;border:1px solid rgba(192,132,252,.2);}
+.ck-task-note{font-size:.58rem;color:var(--text-muted);line-height:1.3;font-style:italic;padding-left:19px;}
+/* ── Add task modal ── */
+.ck-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10100;display:flex;align-items:center;justify-content:center;animation:ck-fade-in .2s ease;backdrop-filter:blur(4px);}
+@keyframes ck-fade-in{from{opacity:0}to{opacity:1}}
+.ck-modal{background:linear-gradient(145deg,#0d1628,#111827);border:1px solid rgba(56,189,248,.2);border-radius:18px;padding:22px 24px;width:420px;max-width:95vw;box-shadow:0 24px 60px rgba(0,0,0,.7),0 0 40px rgba(56,189,248,.05);animation:ck-modal-in .25s cubic-bezier(.34,1.56,.64,1);}
+@keyframes ck-modal-in{from{opacity:0;transform:scale(.88) translateY(-10px)}to{opacity:1;transform:none}}
+.ck-modal-title{font-size:.82rem;font-weight:800;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ck-modal-title span{background:linear-gradient(90deg,#38bdf8,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ck-field{margin-bottom:11px;}
+.ck-field label{display:block;font-size:.62rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.ck-input,.ck-textarea,.ck-select{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:9px;padding:8px 11px;font-size:.76rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s,box-shadow .15s;box-sizing:border-box;}
+.ck-input:focus,.ck-textarea:focus,.ck-select:focus{border-color:rgba(56,189,248,.45);box-shadow:0 0 0 3px rgba(56,189,248,.08);}
+.ck-textarea{resize:vertical;min-height:60px;}
+.ck-select{appearance:none;cursor:pointer;}
+.ck-prio-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.ck-prio-opt{padding:6px 4px;border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:.62rem;font-weight:700;text-align:center;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.4px;}
+.ck-prio-opt[data-p="alta"]{color:#f87171;}.ck-prio-opt[data-p="alta"].sel,.ck-prio-opt[data-p="alta"]:hover{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.4);}
+.ck-prio-opt[data-p="media"]{color:#fb923c;}.ck-prio-opt[data-p="media"].sel,.ck-prio-opt[data-p="media"]:hover{background:rgba(251,146,60,.12);border-color:rgba(251,146,60,.35);}
+.ck-prio-opt[data-p="baixa"]{color:#38bdf8;}.ck-prio-opt[data-p="baixa"].sel,.ck-prio-opt[data-p="baixa"]:hover{background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.35);}
+.ck-prio-opt[data-p="meta"]{color:#c084fc;}.ck-prio-opt[data-p="meta"].sel,.ck-prio-opt[data-p="meta"]:hover{background:rgba(192,132,252,.12);border-color:rgba(192,132,252,.35);}
+.ck-modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+.ck-mic-modal{background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);color:#f87171;border-radius:8px;padding:5px 11px;font-size:.68rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.ck-mic-modal:hover,.ck-mic-modal.active{background:rgba(248,113,113,.15);border-color:#f87171;}
+.ck-mic-modal.active{animation:ck-pulse 1s ease-in-out infinite;}
 /* ── ANALYTICS SECTION (rodapé permanente) ── */
 .analytics-section{max-width:960px;margin:0 auto;padding:0 24px 32px;}
 .analytics-divider{display:flex;align-items:center;gap:12px;margin:8px 0 18px;padding-top:18px;border-top:1px solid var(--border);}
@@ -761,6 +850,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     <div class="stat s-projetos" onclick="switchTab('projetos')"><div class="stat-icon">🗂</div><div class="stat-info"><div class="stat-label">Projetos</div><div class="stat-value" id="s-projetos">–</div></div></div>
     <div class="stat s-todos" onclick="switchTab('todos')"><div class="stat-icon">📋</div><div class="stat-info"><div class="stat-label">Total Hoje</div><div class="stat-value" id="s-todos">–</div></div></div>
     <div class="vol-chip"><span id="vol-arrow">📊</span><span style="color:var(--text-soft)">Volume:</span><span class="vol-num" id="vol-num">–</span><span class="vol-diff" id="vol-diff"></span></div>
+    <div class="vol-chip" onclick="switchTab('checklist')" style="cursor:pointer;border-color:rgba(192,132,252,.3);color:#c084fc;gap:5px;" title="Checklist Semanal">⬡ Checklist</div>
   </div>
   <div class="tabs">
     <div class="tab t-urgencias active" id="tab-urgencias" onclick="switchTab('urgencias')">🔥 Urgências <span class="count" id="tc-urgencias">0</span></div>
@@ -772,6 +862,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
     <div class="tab t-lidos" id="tab-lidos" onclick="switchTab('lidos')">✓ Lidos <span class="count" id="tc-lidos">0</span></div>
     <div class="tab t-todos" id="tab-todos" onclick="switchTab('todos')">≡ Todos <span class="count" id="tc-todos">0</span></div>
     <div class="tab t-escrever" id="tab-escrever" onclick="switchTab('escrever')">✏️ Escrever</div>
+    <div class="tab t-checklist" id="tab-checklist" onclick="switchTab('checklist')" style="color:#c084fc;">⬡ Checklist</div>
   </div>
 </div>
 
@@ -792,6 +883,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
   <div class="email-panel" id="panel-lidos"></div>
   <div class="email-panel" id="panel-todos"></div>
   <div class="email-panel" id="panel-escrever"></div>
+  <div class="email-panel" id="panel-checklist"></div>
 </div>
 <div class="analytics-section" id="analytics-section"></div>
 <div class="page-footer" id="page-footer"></div>
@@ -1258,7 +1350,7 @@ function updateVolume(){
   if(prev&&prev!==today){const diff=today-prev,pct=Math.round(Math.abs(diff/prev)*100);const el=document.getElementById('vol-diff');el.textContent=` ${diff>0?'+':''}${diff} (${pct}%)`;el.className='vol-diff '+(diff>0?'vol-up':'vol-down');document.getElementById('vol-arrow').textContent=diff>0?'📈':'📉';}
 }
 
-const NO_SEARCH=['urgencias','responder','reunioes','projetos','fixados','escrever'];
+const NO_SEARCH=['urgencias','responder','reunioes','projetos','fixados','escrever','checklist'];
 function switchTab(tab){
   currentTab=tab;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+tab));
@@ -1270,6 +1362,7 @@ function switchTab(tab){
   if(!hide){document.getElementById('search-input').value='';currentFilter='all';document.querySelectorAll('.filter-btn').forEach((b,i)=>b.classList.toggle('active',i===0));applyFilters();}
   if(tab==='escrever'&&!document.getElementById('comp-body')){renderComposer();setTimeout(()=>{initBodyDrop();initImageEditing();initContactSearch();initComposerResize();_initTblBarEvents();},100);}
   else if(tab==='escrever'){setTimeout(()=>{initContactSearch();initComposerResize();if(!_peopleCache)loadPeople();},80);}
+  if(tab==='checklist'){renderChecklist();}
 }
 function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();}
 function applyFilters(){
@@ -1278,6 +1371,297 @@ function applyFilters(){
   let v=0;cards.forEach(c=>{const ms=!q||c.dataset.subject?.includes(q)||c.dataset.sender?.includes(q)||c.dataset.summary?.includes(q),mf=currentFilter==='all'||(currentFilter==='attach'&&c.dataset.attach==='true')||(currentFilter==='high'&&c.dataset.high==='true');const show=ms&&mf;c.style.display=show?'':'none';if(show)v++;});
   const map={unread:DATA.unread.length,lidos:DATA.read.length,todos:DATA.unread.length+DATA.read.length};
   document.getElementById('results-count').textContent=(q||currentFilter!=='all')?`${v} / ${map[currentTab]||0}`:map[currentTab]?`${map[currentTab]} e-mails`:'';}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHECKLIST SEMANAL
+// ══════════════════════════════════════════════════════════════════════════════
+(function(){
+  const STORE='ck_data_v1';
+  const DAYS=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+  const DAYS_S=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  let _ckWeekOffset=0;
+  let _ckModal=null;
+  let _ckModalDay=null;
+  let _ckEditId=null;
+  let _ckMicRec=null;
+  let _ckMicTarget=null;
+
+  function ckLoad(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch{return {};}}
+  function ckSave(d){localStorage.setItem(STORE,JSON.stringify(d));}
+
+  function ckWeekKey(offset){
+    const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7)+offset*7);
+    const jan1=new Date(d.getFullYear(),0,1);
+    const wn=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+    return `${d.getFullYear()}-W${String(wn).padStart(2,'0')}`;
+  }
+
+  function ckGetMonday(offset){
+    const d=new Date();
+    const dow=(d.getDay()+6)%7;
+    d.setDate(d.getDate()-dow+offset*7);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function ckWeekDays(offset){
+    const mon=ckGetMonday(offset);
+    return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(d.getDate()+i);return d;});
+  }
+
+  function ckIsToday(d){
+    const t=new Date();
+    return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear();
+  }
+
+  function ckFmtDate(d){return d.getDate()+'/'+(d.getMonth()+1);}
+
+  function ckTasksForDay(data,wk,di){
+    return (data[wk]||[]).filter(t=>t.di===di).sort((a,b)=>{
+      const po={alta:0,meta:1,media:2,baixa:3};
+      return (po[a.prio]??2)-(po[b.prio]??2);
+    });
+  }
+
+  function ckStats(data,wk){
+    const all=data[wk]||[];
+    const total=all.length,done=all.filter(t=>t.done).length;
+    const high=all.filter(t=>t.prio==='alta').length;
+    const meta=all.filter(t=>t.prio==='meta').length;
+    return{total,done,high,meta,pct:total?Math.round(done/total*100):0};
+  }
+
+  function ckPrioLabel(p){
+    return{alta:'Alta',media:'Média',baixa:'Baixa',meta:'Meta'}[p]||p;
+  }
+
+  function ckRenderTask(t,wk,di){
+    const pc=`ck-prio ${t.prio}`;
+    return `<div class="ck-task${t.done?' done':''}" id="ckt-${t.id}">
+      <div class="ck-task-top">
+        <div class="ck-chk${t.done?' checked':''}" onclick="ckToggle('${wk}',${di},'${t.id}')"></div>
+        <div class="ck-task-text" ondblclick="ckEdit('${wk}',${di},'${t.id}')">${t.text}</div>
+        <button class="ck-task-del" onclick="ckDel('${wk}',${di},'${t.id}')" title="Apagar">✕</button>
+      </div>
+      <div class="ck-task-bottom">
+        <span class="${pc}">${ckPrioLabel(t.prio)}</span>
+        ${t.note?`<span style="font-size:.55rem;color:var(--text-muted);font-style:italic">${t.note}</span>`:''}
+      </div>
+    </div>`;
+  }
+
+  function ckRenderDay(data,wk,days,di){
+    const d=days[di],tasks=ckTasksForDay(data,wk,di);
+    const done=tasks.filter(t=>t.done).length,total=tasks.length;
+    const pct=total?Math.round(done/total*100):0;
+    const isToday=ckIsToday(d);
+    return `<div class="ck-day${isToday?' today':''}">
+      <div class="ck-day-hdr">
+        <div class="ck-day-name">${DAYS_S[di]}</div>
+        <div class="ck-day-date">${ckFmtDate(d)}</div>
+        <div class="ck-day-prog"><div class="ck-day-prog-fill" style="width:${pct}%"></div></div>
+        <div class="ck-day-meta"><span>${done}/${total} tarefas</span><span>${pct}%</span></div>
+      </div>
+      <div class="ck-day-body" id="ck-day-${di}">
+        ${tasks.map(t=>ckRenderTask(t,wk,di)).join('')||`<div style="font-size:.6rem;color:rgba(255,255,255,.15);text-align:center;padding:12px 0;font-style:italic">Sem tarefas</div>`}
+      </div>
+      <div class="ck-day-add">
+        <button class="ck-day-add-btn" onclick="ckOpenModal('${wk}',${di})">+ Tarefa</button>
+        <button class="ck-mic-btn" id="ck-mic-day-${di}" onclick="ckVoiceDay('${wk}',${di})" title="Adicionar por voz">🎙</button>
+      </div>
+    </div>`;
+  }
+
+  window.renderChecklist=function(){
+    const panel=document.getElementById('panel-checklist');
+    if(!panel)return;
+    const data=ckLoad(),wk=ckWeekKey(_ckWeekOffset),days=ckWeekDays(_ckWeekOffset);
+    const st=ckStats(data,wk);
+    const mon=days[0],sun=days[6];
+    const wkLabel=`${ckFmtDate(mon)} – ${ckFmtDate(sun)} ${sun.getFullYear()}`;
+    const isCurrentWk=_ckWeekOffset===0;
+
+    panel.innerHTML=`<div class="ck-root">
+      <div class="ck-hero">
+        <div class="ck-hero-top">
+          <div>
+            <div class="ck-hero-title">⬡ Checklist Semanal</div>
+            <div class="ck-week-label">${wk} · ${wkLabel}</div>
+          </div>
+          <div class="ck-hero-actions">
+            <button class="ck-btn" onclick="ckNavWeek(-1)">◀ Anterior</button>
+            ${!isCurrentWk?`<button class="ck-btn" onclick="ckNavWeek(0)">⊙ Hoje</button>`:''}
+            <button class="ck-btn" onclick="ckNavWeek(1)">Próxima ▶</button>
+            <button class="ck-btn danger" onclick="ckClearWeek('${wk}')" title="Limpar semana">🗑</button>
+          </div>
+        </div>
+        <div class="ck-global-prog">
+          <div class="ck-gp-row">
+            <span class="ck-gp-label">Progresso Semanal</span>
+            <span class="ck-gp-pct">${st.pct}%</span>
+          </div>
+          <div class="ck-gp-bar"><div class="ck-gp-fill" style="width:${st.pct}%"></div></div>
+        </div>
+        <div class="ck-stats-row">
+          <div class="ck-stat"><div class="ck-stat-num" style="color:#38bdf8">${st.total}</div><div class="ck-stat-lbl">Total</div></div>
+          <div class="ck-stat"><div class="ck-stat-num" style="color:#4ade80">${st.done}</div><div class="ck-stat-lbl">Concluídas</div></div>
+          <div class="ck-stat"><div class="ck-stat-num" style="color:#f87171">${st.high}</div><div class="ck-stat-lbl">Alta Prio.</div></div>
+          <div class="ck-stat"><div class="ck-stat-num" style="color:#c084fc">${st.meta}</div><div class="ck-stat-lbl">Metas</div></div>
+        </div>
+      </div>
+      <div class="ck-days">
+        ${Array.from({length:7},(_,i)=>ckRenderDay(data,wk,days,i)).join('')}
+      </div>
+    </div>`;
+  };
+
+  window.ckNavWeek=function(dir){
+    if(dir===0)_ckWeekOffset=0;else _ckWeekOffset+=dir;
+    renderChecklist();
+  };
+
+  window.ckToggle=function(wk,di,id){
+    const data=ckLoad();
+    const t=(data[wk]||[]).find(x=>x.id===id);
+    if(t){t.done=!t.done;ckSave(data);}
+    renderChecklist();
+  };
+
+  window.ckDel=function(wk,di,id){
+    const data=ckLoad();
+    if(data[wk])data[wk]=data[wk].filter(x=>x.id!==id);
+    ckSave(data);renderChecklist();
+  };
+
+  window.ckClearWeek=function(wk){
+    if(!confirm('Limpar todas as tarefas desta semana?'))return;
+    const data=ckLoad();delete data[wk];ckSave(data);renderChecklist();
+  };
+
+  window.ckOpenModal=function(wk,di,editId){
+    _ckModalDay=di;_ckEditId=editId||null;
+    const data=ckLoad();
+    let t=null;
+    if(editId)t=(data[wk]||[]).find(x=>x.id===editId);
+    const days=ckWeekDays(_ckWeekOffset);
+    const dayLabel=DAYS[di]+' '+ckFmtDate(days[di]);
+
+    const bg=document.createElement('div');
+    bg.className='ck-modal-bg';bg.id='ck-modal-bg';
+    bg.onclick=e=>{if(e.target===bg)ckCloseModal();};
+    bg.innerHTML=`<div class="ck-modal">
+      <div class="ck-modal-title">✦ <span>${t?'Editar':'Nova'} Tarefa</span> <span style="font-size:.65rem;color:var(--text-muted);font-weight:400;margin-left:auto">${dayLabel}</span></div>
+      <div class="ck-field">
+        <label>Tarefa</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input class="ck-input" id="ck-inp-text" placeholder="Descreva a tarefa..." value="${t?t.text.replace(/"/g,'&quot;'):''}" autocomplete="off">
+          <button class="ck-mic-modal" id="ck-mic-modal-btn" onclick="ckVoiceModal()" title="Ditar por voz">🎙 Voz</button>
+        </div>
+      </div>
+      <div class="ck-field">
+        <label>Nota (opcional)</label>
+        <textarea class="ck-textarea" id="ck-inp-note" placeholder="Detalhes, contexto, link...">${t?t.note||'':''}</textarea>
+      </div>
+      <div class="ck-field">
+        <label>Prioridade</label>
+        <div class="ck-prio-row">
+          <div class="ck-prio-opt${(!t||t.prio==='media')?' sel':''}" data-p="media" onclick="ckSelPrio(this)">Média</div>
+          <div class="ck-prio-opt${t&&t.prio==='alta'?' sel':''}" data-p="alta" onclick="ckSelPrio(this)">Alta</div>
+          <div class="ck-prio-opt${t&&t.prio==='baixa'?' sel':''}" data-p="baixa" onclick="ckSelPrio(this)">Baixa</div>
+          <div class="ck-prio-opt${t&&t.prio==='meta'?' sel':''}" data-p="meta" onclick="ckSelPrio(this)">Meta</div>
+        </div>
+      </div>
+      <div class="ck-modal-footer">
+        <button class="ck-btn danger" onclick="ckCloseModal()">Cancelar</button>
+        <button class="ck-btn" onclick="ckSaveModal('${wk}')">✓ ${t?'Salvar':'Adicionar'}</button>
+      </div>
+    </div>`;
+    document.body.appendChild(bg);
+    _ckModal=bg;
+    setTimeout(()=>document.getElementById('ck-inp-text')?.focus(),80);
+    document.getElementById('ck-inp-text').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ckSaveModal(wk);}if(e.key==='Escape')ckCloseModal();});
+  };
+
+  window.ckSelPrio=function(el){
+    el.closest('.ck-prio-row').querySelectorAll('.ck-prio-opt').forEach(o=>o.classList.remove('sel'));
+    el.classList.add('sel');
+  };
+
+  window.ckSaveModal=function(wk){
+    const txt=document.getElementById('ck-inp-text')?.value.trim();
+    if(!txt)return document.getElementById('ck-inp-text')?.focus();
+    const note=document.getElementById('ck-inp-note')?.value.trim();
+    const prioEl=document.querySelector('.ck-prio-opt.sel');
+    const prio=prioEl?prioEl.dataset.p:'media';
+    const data=ckLoad();
+    if(!data[wk])data[wk]=[];
+    if(_ckEditId){
+      const t=data[wk].find(x=>x.id===_ckEditId);
+      if(t){t.text=txt;t.note=note;t.prio=prio;}
+    } else {
+      data[wk].push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),di:_ckModalDay,text:txt,note,prio,done:false,created:Date.now()});
+    }
+    ckSave(data);ckCloseModal();renderChecklist();
+  };
+
+  window.ckCloseModal=function(){
+    ckStopVoice();
+    if(_ckModal){_ckModal.remove();_ckModal=null;}
+  };
+
+  window.ckEdit=function(wk,di,id){ckOpenModal(wk,di,id);};
+
+  // ── VOZ ──────────────────────────────────────────────────────────────────────
+  function ckStopVoice(){
+    if(_ckMicRec){try{_ckMicRec.stop();}catch{}}_ckMicRec=null;
+    if(_ckMicTarget){_ckMicTarget.classList.remove('recording','active');_ckMicTarget=null;}
+  }
+
+  function ckStartVoice(inputId,btnEl){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){alert('Reconhecimento de voz não suportado neste browser.');return;}
+    if(_ckMicRec){ckStopVoice();return;}
+    ckStopVoice();
+    const inp=document.getElementById(inputId);if(!inp)return;
+    _ckMicTarget=btnEl;btnEl.classList.add('recording','active');
+    const rec=new SR();rec.lang='pt-BR';rec.continuous=false;rec.interimResults=true;
+    rec.onresult=e=>{
+      let interim='',final='';
+      for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
+      if(final){inp.value=(inp.value+' '+final).trim();}
+      else if(interim){inp.placeholder=interim;}
+    };
+    rec.onend=()=>{ckStopVoice();if(inp)inp.placeholder=inp.id==='ck-inp-text'?'Descreva a tarefa...':'Detalhes, contexto, link...';};
+    rec.onerror=()=>{ckStopVoice();};
+    rec.start();_ckMicRec=rec;
+  }
+
+  window.ckVoiceModal=function(){
+    ckStartVoice('ck-inp-text',document.getElementById('ck-mic-modal-btn'));
+  };
+
+  window.ckVoiceDay=function(wk,di){
+    // Quick-add via voice — opens modal pre-filled after recognition
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){alert('Reconhecimento de voz não suportado neste browser.');return;}
+    const btn=document.getElementById(`ck-mic-day-${di}`);
+    if(!btn)return;
+    if(_ckMicRec){ckStopVoice();return;}
+    btn.classList.add('recording');
+    const rec=new SR();rec.lang='pt-BR';rec.continuous=false;rec.interimResults=false;
+    rec.onresult=e=>{
+      const txt=[...e.results].map(r=>r[0].transcript).join(' ').trim();
+      ckStopVoice();
+      if(txt){
+        ckOpenModal(wk,di);
+        setTimeout(()=>{const inp=document.getElementById('ck-inp-text');if(inp)inp.value=txt;},80);
+      }
+    };
+    rec.onend=()=>{btn.classList.remove('recording');if(_ckMicRec===rec)_ckMicRec=null;};
+    rec.onerror=()=>{btn.classList.remove('recording');if(_ckMicRec===rec)_ckMicRec=null;};
+    rec.start();_ckMicRec=rec;
+  };
+})();
 
 function downloadPDF(){
   const now=new Date(),ur=DATA.unread,fl=DATA.flagged;
