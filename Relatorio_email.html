@@ -1363,6 +1363,7 @@ function switchTab(tab){
   if(tab==='escrever'&&!document.getElementById('comp-body')){renderComposer();setTimeout(()=>{initBodyDrop();initImageEditing();initContactSearch();initComposerResize();_initTblBarEvents();},100);}
   else if(tab==='escrever'){setTimeout(()=>{initContactSearch();initComposerResize();if(!_peopleCache)loadPeople();},80);}
   if(tab==='checklist'){renderChecklist();}
+  document.getElementById('analytics-section').style.display=tab==='checklist'?'none':'';
 }
 function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();}
 function applyFilters(){
