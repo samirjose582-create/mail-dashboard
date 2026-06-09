@@ -2824,6 +2824,13 @@ function _initTblBarEvents(){
       if(!body.contains(active)&&!bar?.contains(active)) hideTblBar();
     },200);
   });
+  // Impede que cliques na barra tirem o foco do comp-body (inputs/selects mantêm comportamento normal)
+  setTimeout(()=>{
+    const bar=document.getElementById('tbl-bar');
+    if(bar) bar.addEventListener('mousedown',e=>{
+      if(!['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) e.preventDefault();
+    });
+  },0);
   initTableResize(body);
 }
 
