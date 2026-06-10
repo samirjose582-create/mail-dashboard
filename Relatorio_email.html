@@ -1604,7 +1604,6 @@ function applyFilters(){
           <div class="ck-day-prog"><div class="ck-day-prog-fill" style="width:${pct}%"></div></div>
           <div class="ck-day-meta"><span>${done}/${total}</span><span>${pct}%</span>${isOverload?`<span class="ck-overload-badge">⚠ ${overloadCnt}</span>`:''}</div>
         </div>
-        <button class="ck-day-expand-btn" draggable="false" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();ckOpenDayView('${wk}',${di})" title="Expandir dia">⤢</button>
       </div>
       <div class="ck-day-body" id="ck-day-${di}">
         ${tasks.map(t=>ckRenderTask(t,wk,di)).join('')||`<div style="font-size:.58rem;color:rgba(255,255,255,.12);text-align:center;padding:18px 0;font-style:italic">vazio</div>`}
