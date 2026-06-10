@@ -698,6 +698,8 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-day.today.selected{border-color:rgba(56,189,248,.6);box-shadow:0 0 18px rgba(56,189,248,.2),0 0 8px rgba(192,132,252,.2),inset 0 0 20px rgba(56,189,248,.04);}
 .ck-day.drag-over{border-color:#38bdf8!important;box-shadow:0 0 0 2px rgba(56,189,248,.35)!important;}
 .ck-day.dragging{opacity:.35;transform:scale(.97);transition:opacity .15s,transform .15s;}
+.ck-day.task-drop-over{border-color:rgba(129,140,248,.6)!important;box-shadow:0 0 0 2px rgba(129,140,248,.3)!important;background:rgba(129,140,248,.04)!important;}
+.ck-day.task-drop-over .ck-day-body{background:rgba(129,140,248,.05);border-radius:6px;}
 /* ── Resize handle between columns (vertical) ── */
 .ck-rz-col{width:8px;flex-shrink:0;cursor:col-resize;position:relative;z-index:5;display:flex;align-items:stretch;}
 .ck-rz-col::after{content:'';position:absolute;left:3px;top:12px;bottom:12px;width:2px;background:rgba(56,189,248,.12);border-radius:2px;transition:background .15s,left .15s,width .15s;}
@@ -746,7 +748,9 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-q-detail:hover{border-color:rgba(56,189,248,.35);color:#38bdf8;}
 @keyframes ck-pulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.3)}50%{box-shadow:0 0 0 5px rgba(248,113,113,0)}}
 /* ── Task card ── */
-.ck-task{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:5px 7px;transition:all .15s;position:relative;display:flex;flex-direction:column;gap:2px;animation:ck-slide-in .2s ease;}
+.ck-task{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:5px 7px;transition:all .15s;position:relative;display:flex;flex-direction:column;gap:2px;animation:ck-slide-in .2s ease;cursor:grab;}
+.ck-task:active{cursor:grabbing;}
+.ck-task.task-dragging{opacity:.35;transform:scale(.96);box-shadow:none;}
 @keyframes ck-slide-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 .ck-task:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);}
 .ck-task.done{opacity:.4;}
@@ -1599,6 +1603,7 @@ function applyFilters(){
   let _ckCellWidths={};
   let _ckRowHeights={};
   let _ckDragFrom=null;
+  let _ckTaskDrag=null;
   let _ckSelected=new Set();
   let _ckCurrentWk='';
   let _ckExpDi=-1;
@@ -1670,7 +1675,8 @@ function applyFilters(){
 
   function ckRenderTask(t,wk,di){
     const pc=`ck-prio ${t.prio}`;
-    return `<div class="ck-task${t.done?' done':''}" id="ckt-${t.id}">
+    return `<div class="ck-task${t.done?' done':''}" id="ckt-${t.id}" draggable="true"
+      ondragstart="ckTaskDragStart('${wk}',${di},'${t.id}',event)" ondragend="ckTaskDragEnd()">
       <div class="ck-task-top">
         <div class="ck-chk${t.done?' checked':''}" onclick="ckToggle('${wk}',${di},'${t.id}')"></div>
         <div class="ck-task-text" ondblclick="ckEdit('${wk}',${di},'${t.id}')" title="Duplo-clique para editar">${t.text}</div>
@@ -1869,16 +1875,41 @@ function applyFilters(){
   window.ckDragOver=function(ri,ci,e){
     e.preventDefault();e.stopPropagation();
     e.dataTransfer.dropEffect='move';
+    if(_ckTaskDrag){
+      document.querySelectorAll('.ck-day').forEach(c=>c.classList.remove('task-drop-over'));
+      const toDi=_ckLayout[ri]?.[ci];
+      if(toDi!==undefined&&toDi!==_ckTaskDrag.fromDi)
+        document.getElementById(`ck-col-${ri}-${ci}`)?.classList.add('task-drop-over');
+      return;
+    }
     if(!_ckDragFrom||(_ckDragFrom.ri===ri&&_ckDragFrom.ci===ci))return;
     document.querySelectorAll('.ck-day').forEach(c=>c.classList.remove('drag-over'));
     document.getElementById(`ck-col-${ri}-${ci}`)?.classList.add('drag-over');
   };
   window.ckDragLeave=function(e){
-    if(!e.currentTarget.contains(e.relatedTarget))e.currentTarget.classList.remove('drag-over');
+    if(!e.currentTarget.contains(e.relatedTarget)){
+      e.currentTarget.classList.remove('drag-over');
+      e.currentTarget.classList.remove('task-drop-over');
+    }
   };
   window.ckDrop=function(ri,ci,e){
     e.preventDefault();e.stopPropagation();
     document.getElementById('ck-new-row')?.classList.remove('drag-over');
+    document.querySelectorAll('.ck-day').forEach(c=>c.classList.remove('task-drop-over'));
+    if(_ckTaskDrag){
+      const{id,fromDi,wk}=_ckTaskDrag;
+      _ckTaskDrag=null;
+      const toDi=_ckLayout[ri]?.[ci];
+      if(toDi===undefined||toDi===fromDi)return;
+      const data=ckLoad();
+      if(!data[wk])return;
+      const task=(data[wk]).find(t=>t.id===id);
+      if(!task)return;
+      task.di=toDi;
+      ckSave(data);
+      renderChecklist();
+      return;
+    }
     if(!_ckDragFrom)return;
     const{ri:fri,ci:fci}=_ckDragFrom;
     _ckDragFrom=null;
@@ -1895,6 +1926,18 @@ function applyFilters(){
     }
     _ckLayout=nl;_ckCellWidths={};_ckRowHeights={};
     renderChecklist();
+  };
+  window.ckTaskDragStart=function(wk,fromDi,id,e){
+    e.stopPropagation();
+    _ckTaskDrag={id,fromDi,wk};
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain','task:'+id);
+    setTimeout(()=>document.getElementById('ckt-'+id)?.classList.add('task-dragging'),0);
+  };
+  window.ckTaskDragEnd=function(){
+    _ckTaskDrag=null;
+    document.querySelectorAll('.ck-task.task-dragging').forEach(el=>el.classList.remove('task-dragging'));
+    document.querySelectorAll('.ck-day.task-drop-over').forEach(el=>el.classList.remove('task-drop-over'));
   };
   window.ckDragEnd=function(){
     _ckDragFrom=null;
