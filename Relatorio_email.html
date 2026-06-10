@@ -1607,6 +1607,17 @@ function applyFilters(){
   function ckLoad(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch{return {};}}
   function ckSave(d){localStorage.setItem(STORE,JSON.stringify(d));}
 
+  // Formata texto de voz: capitaliza início de frase e após pontuação
+  function ckFmtVoice(txt){
+    if(!txt)return txt;
+    txt=txt.trim().replace(/\s{2,}/g,' ');
+    // Capitaliza 1.ª letra
+    txt=txt.charAt(0).toUpperCase()+txt.slice(1);
+    // Capitaliza após . ! ?
+    txt=txt.replace(/([.!?]\s+)([a-záàâãéèêíóúçñ])/gi,(_,sep,ch)=>sep+ch.toUpperCase());
+    return txt;
+  }
+
   function ckWeekKey(offset){
     const d=new Date();d.setDate(d.getDate()-((d.getDay()+6)%7)+offset*7);
     const jan1=new Date(d.getFullYear(),0,1);
@@ -2124,7 +2135,7 @@ function applyFilters(){
     if(_ckMicRec){ckStopVoice();return;}
     btn.classList.add('recording');
     const rec=new SR();rec.lang='pt-BR';rec.continuous=false;rec.interimResults=true;
-    rec.onresult=e=>{let f='',i='';for(let r=e.resultIndex;r<e.results.length;r++){if(e.results[r].isFinal)f+=e.results[r][0].transcript;else i+=e.results[r][0].transcript;}if(f){inp.value=(inp.value+' '+f).trim();}else if(i)inp.placeholder=i;};
+    rec.onresult=e=>{let f='',i='';for(let r=e.resultIndex;r<e.results.length;r++){if(e.results[r].isFinal)f+=e.results[r][0].transcript;else i+=e.results[r][0].transcript;}if(f){inp.value=ckFmtVoice((inp.value+' '+f).trim());}else if(i)inp.placeholder=i;};
     rec.onend=()=>{btn.classList.remove('recording');if(_ckMicRec===rec)_ckMicRec=null;inp.placeholder='Nova tarefa… Enter para adicionar';if(inp.value.trim())ckExpAdd(wk,di);};
     rec.onerror=()=>{btn.classList.remove('recording');if(_ckMicRec===rec)_ckMicRec=null;};
     rec.start();_ckMicRec=rec;
@@ -2265,7 +2276,7 @@ function applyFilters(){
     rec.onresult=e=>{
       let interim='',final='';
       for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)final+=e.results[i][0].transcript;else interim+=e.results[i][0].transcript;}
-      if(final){inp.value=(inp.value+' '+final).trim();}
+      if(final){inp.value=ckFmtVoice((inp.value+' '+final).trim());}
       else if(interim){inp.placeholder=interim;}
     };
     rec.onend=()=>{ckStopVoice();if(inp)inp.placeholder=inp.id==='ck-inp-text'?'Descreva a tarefa...':'Detalhes, contexto, link...';};
@@ -2322,7 +2333,7 @@ function applyFilters(){
         if(e.results[i].isFinal)final+=e.results[i][0].transcript;
         else interim+=e.results[i][0].transcript;
       }
-      if(final){inp.value=(inp.value+' '+final).trim();}
+      if(final){inp.value=ckFmtVoice((inp.value+' '+final).trim());}
       else if(interim){inp.placeholder=interim;}
     };
     rec.onend=()=>{
