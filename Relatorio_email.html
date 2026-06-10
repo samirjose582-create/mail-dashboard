@@ -1536,6 +1536,7 @@ function applyFilters(){
   let _ckSelected=new Set();
   let _ckCurrentWk='';
   let _ckExpDi=-1;
+  const _ckQPrio={};
   let _ckMicTarget=null;
 
   function ckLoad(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch{return {};}}
@@ -2209,9 +2210,6 @@ function applyFilters(){
   window.ckVoiceModal=function(){
     ckStartVoice('ck-inp-text',document.getElementById('ck-mic-modal-btn'));
   };
-
-  // Prioridade do quick-add por coluna (padrão: media)
-  const _ckQPrio={};
 
   window.ckSetPrio=function(di,prio){
     _ckQPrio[di]=prio;
