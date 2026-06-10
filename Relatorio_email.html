@@ -893,9 +893,12 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-exp-inp-field::placeholder{color:rgba(255,255,255,.2);}
 .ck-exp-footer{display:flex;gap:8px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.04);justify-content:space-between;flex-shrink:0;background:rgba(0,0,0,.1);}
 /* ── Monthly Calendar ── */
-.ck-calendar{margin-top:14px;animation:ck-exp-in .3s cubic-bezier(.22,1,.36,1);}
+.ck-calendar{position:fixed;bottom:0;left:0;right:0;z-index:500;margin:0;padding:0!important;}
 .ck-calendar:empty{display:none;}
-.ck-cal-inner{background:linear-gradient(135deg,rgba(140,155,190,.08),rgba(110,130,170,.05));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(200,215,235,.11);border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);}
+.ck-cal-inner{background:rgba(10,14,26,.92);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(200,215,235,.11);border-bottom:none;border-radius:14px 14px 0 0;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);}
+.ck-cal-body{max-height:0;overflow:hidden;transition:max-height .38s cubic-bezier(.4,0,.2,1);}
+.ck-calendar.ck-cal-open .ck-cal-body{max-height:62vh;overflow-y:auto;}
+body.ck-active{padding-bottom:54px;}
 .ck-cal-header{display:flex;align-items:center;gap:6px;padding:12px 18px 10px;border-bottom:1px solid rgba(255,255,255,.05);}
 .ck-cal-title{flex:1;text-align:center;font-size:.78rem;font-weight:800;background:linear-gradient(90deg,#38bdf8,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.3px;}
 .ck-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:rgba(255,255,255,.035);padding-bottom:2px;}
@@ -1061,7 +1064,7 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
   <div class="email-panel" id="panel-checklist"></div>
 </div>
 <div class="analytics-section" id="analytics-section"></div>
-<div id="ck-calendar" class="ck-calendar" style="display:none;max-width:960px;margin:0 auto;padding:0 24px 32px;"></div>
+<div id="ck-calendar" class="ck-calendar" style="display:none;"></div>
 <div class="page-footer" id="page-footer"></div>
 <div class="print-section"><div id="print-content"></div></div>
 </div>
@@ -1573,6 +1576,7 @@ function applyFilters(){
   const _ckQPrio={};
   let _ckCalYear=new Date().getFullYear();
   let _ckCalMonth=new Date().getMonth();
+  let _ckCalCollapsed=true;
   let _ckMicTarget=null;
 
   function ckLoad(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch{return {};}}
@@ -2361,26 +2365,40 @@ function applyFilters(){
     }
     const mPct=mTotal?Math.round(mDone/mTotal*100):0;
     el.innerHTML=`<div class="ck-cal-inner">
-      <div class="ck-cal-header">
-        <button class="ck-btn" onclick="ckCalNav(-1)">◀</button>
+      <div class="ck-cal-header" onclick="ckCalToggle()" style="cursor:pointer;">
+        <button class="ck-btn" onclick="event.stopPropagation();ckCalNav(-1)">◀</button>
         <div class="ck-cal-title">${MONTHS[mo]} ${yr}</div>
-        <button class="ck-btn" onclick="ckCalToday()">Hoje</button>
-        <button class="ck-btn" onclick="ckCalNav(1)">▶</button>
+        <div class="ck-cal-ms" style="flex:1;text-align:center;">${mTotal>0?`<span style="color:rgba(255,255,255,.45)">${mDone}/${mTotal} · ${mPct}%</span>`:''}</div>
+        <button class="ck-btn" onclick="event.stopPropagation();ckCalToday()">Hoje</button>
+        <button class="ck-btn" onclick="event.stopPropagation();ckCalNav(1)">▶</button>
+        <button class="ck-btn" id="ck-cal-toggle-btn" onclick="event.stopPropagation();ckCalToggle()" title="Expandir/Recolher" style="font-size:.6rem;padding:3px 8px;">${_ckCalCollapsed?'▲':'▼'}</button>
       </div>
-      <div class="ck-cal-grid">
-        ${['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d=>`<div class="ck-cal-wday">${d}</div>`).join('')}
-        ${cells}
-      </div>
-      <div class="ck-cal-month-stats">
-        <div class="ck-cal-ms">Total mês: <span>${mTotal}</span></div>
-        <div class="ck-cal-ms">Feitas: <span>${mDone}</span></div>
-        <div class="ck-cal-ms">Progresso: <span>${mPct}%</span></div>
-        ${mHigh>0?`<div class="ck-cal-ms">🔴 Alta pendente: <span>${mHigh}</span></div>`:'<div class="ck-cal-ms">✅ <span>Sem alta pendente</span></div>'}
+      <div class="ck-cal-body">
+        <div class="ck-cal-grid">
+          ${['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d=>`<div class="ck-cal-wday">${d}</div>`).join('')}
+          ${cells}
+        </div>
+        <div class="ck-cal-month-stats">
+          <div class="ck-cal-ms">Total mês: <span>${mTotal}</span></div>
+          <div class="ck-cal-ms">Feitas: <span>${mDone}</span></div>
+          <div class="ck-cal-ms">Progresso: <span>${mPct}%</span></div>
+          ${mHigh>0?`<div class="ck-cal-ms">🔴 Alta pendente: <span>${mHigh}</span></div>`:'<div class="ck-cal-ms">✅ <span>Sem alta pendente</span></div>'}
+        </div>
       </div>
     </div>`;
+    el.classList.toggle('ck-cal-open',!_ckCalCollapsed);
   }
 
   window.ckNavWeekAbs=function(offset){_ckWeekOffset=offset;renderChecklist();};
+
+  window.ckCalToggle=function(){
+    _ckCalCollapsed=!_ckCalCollapsed;
+    const el=document.getElementById('ck-calendar');
+    if(!el)return;
+    el.classList.toggle('ck-cal-open',!_ckCalCollapsed);
+    const btn=document.getElementById('ck-cal-toggle-btn');
+    if(btn)btn.textContent=_ckCalCollapsed?'▲':'▼';
+  };
 
   window.ckCalNav=function(dir){
     _ckCalMonth+=dir;
