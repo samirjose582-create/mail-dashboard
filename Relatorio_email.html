@@ -1607,14 +1607,14 @@ function applyFilters(){
   function ckLoad(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch{return {};}}
   function ckSave(d){localStorage.setItem(STORE,JSON.stringify(d));}
 
-  // Formata texto de voz: capitaliza início de frase e após pontuação
+  // Formata texto de voz: capitaliza início e após pontuação forte
   function ckFmtVoice(txt){
-    if(!txt)return txt;
+    if(!txt||!txt.trim())return txt;
     txt=txt.trim().replace(/\s{2,}/g,' ');
-    // Capitaliza 1.ª letra
-    txt=txt.charAt(0).toUpperCase()+txt.slice(1);
-    // Capitaliza após . ! ?
-    txt=txt.replace(/([.!?]\s+)([a-záàâãéèêíóúçñ])/gi,(_,sep,ch)=>sep+ch.toUpperCase());
+    // Capitaliza sempre a 1.ª letra (independente de encoding)
+    txt=txt[0].toLocaleUpperCase('pt-BR')+txt.slice(1);
+    // Capitaliza a 1.ª letra após ". " "! " "? "
+    txt=txt.replace(/([.!?]\s+)(.)/g,(_,sep,ch)=>sep+ch.toLocaleUpperCase('pt-BR'));
     return txt;
   }
 
