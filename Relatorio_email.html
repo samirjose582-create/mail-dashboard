@@ -812,9 +812,11 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-day-expand-btn{background:none;border:none;color:rgba(255,255,255,.15);font-size:.68rem;cursor:pointer;transition:color .15s;padding:0 1px;flex-shrink:0;line-height:1;}
 .ck-day-hdr:hover .ck-day-expand-btn,.ck-day-expand-btn:hover{color:#38bdf8!important;}
 /* ── Vista expandida do dia ── */
-.ck-day-exp-bg{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);animation:ck-fade-in .2s ease;}
-.ck-day-exp{background:linear-gradient(150deg,rgba(180,190,210,.07),rgba(200,210,230,.05) 55%,rgba(160,175,200,.06));backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background-image:repeating-linear-gradient(rgba(200,215,235,.025) 0,rgba(200,215,235,.025) 1px,transparent 1px,transparent 44px),repeating-linear-gradient(90deg,rgba(200,215,235,.025) 0,rgba(200,215,235,.025) 1px,transparent 1px,transparent 44px);border:1px solid rgba(200,215,235,.18);border-radius:22px;width:min(660px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 50px 120px rgba(0,0,0,.85),0 0 60px rgba(180,200,230,.06),inset 0 1px 0 rgba(255,255,255,.08);animation:ck-modal-in .28s cubic-bezier(.34,1.56,.64,1);overflow:hidden;}
-.ck-day-exp.today{border-color:rgba(56,189,248,.4);box-shadow:0 40px 100px rgba(0,0,0,.85),0 0 50px rgba(56,189,248,.08);}
+.ck-day-exp-bg{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.38);display:flex;flex-direction:column;justify-content:flex-end;animation:ck-fade-in .18s ease;}
+.ck-day-exp{background:linear-gradient(180deg,rgba(160,175,200,.1) 0%,rgba(140,158,190,.08) 100%);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);background-image:repeating-linear-gradient(rgba(200,215,235,.022) 0,rgba(200,215,235,.022) 1px,transparent 1px,transparent 44px),repeating-linear-gradient(90deg,rgba(200,215,235,.022) 0,rgba(200,215,235,.022) 1px,transparent 1px,transparent 44px);border:1px solid rgba(200,215,235,.14);border-bottom:none;border-radius:22px 22px 0 0;width:100%;max-height:74vh;display:flex;flex-direction:column;box-shadow:0 -16px 50px rgba(0,0,0,.55),0 -1px 0 rgba(255,255,255,.06),inset 0 1px 0 rgba(255,255,255,.07);animation:ck-slide-up .32s cubic-bezier(.22,1,.36,1);overflow:hidden;}
+@keyframes ck-slide-up{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.ck-exp-drag-handle{width:40px;height:4px;background:rgba(255,255,255,.16);border-radius:4px;margin:10px auto 2px;flex-shrink:0;cursor:grab;}
+.ck-day-exp.today{border-color:rgba(56,189,248,.3);box-shadow:0 -16px 50px rgba(0,0,0,.55),0 -1px 0 rgba(56,189,248,.15);}
 .ck-exp-hdr{display:flex;align-items:center;gap:16px;padding:18px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
 .ck-exp-hdr-info{flex:1;min-width:0;}
 .ck-exp-dayname{font-size:1.1rem;font-weight:800;background:linear-gradient(90deg,#e0f2fe,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
@@ -1940,6 +1942,7 @@ function applyFilters(){
     const prioLabels={alta:'Alta',media:'Média',baixa:'Baixa',meta:'Meta'};
 
     bg.innerHTML=`<div class="ck-day-exp${isToday?' today':''}">
+      <div class="ck-exp-drag-handle"></div>
       <div class="ck-exp-hdr">
         <div class="ck-exp-hdr-info">
           <div class="ck-exp-dayname">${DAYS[di]}</div>
