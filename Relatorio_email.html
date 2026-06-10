@@ -1593,7 +1593,7 @@ function applyFilters(){
     const overloadCnt=tasks.filter(t=>!t.done&&t.prio==='alta').length;
     const isOverload=overloadCnt>=3;
     return `<div class="ck-day${isToday?' today':''}${isSel?' selected':''}${isOverload?' overload':''}${isRetro?' ck-retro-mode':''}" id="ck-col-${ri}-${ci}"
-        onclick="ckToggleSel(${di},event)"
+        onclick="ckToggleSel(${di},event)" ondblclick="if(!event.target.closest('input,button,.ck-chk'))ckOpenDayView('${wk}',${di})"
         ondragover="ckDragOver(${ri},${ci},event)" ondrop="ckDrop(${ri},${ci},event)" ondragleave="ckDragLeave(event)">
       <div class="ck-day-hdr" draggable="true"
           ondragstart="ckDragStart(${ri},${ci},event)" ondragend="ckDragEnd()">
