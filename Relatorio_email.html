@@ -687,8 +687,9 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-btn:hover{background:rgba(56,189,248,.18);border-color:#38bdf8;box-shadow:0 0 8px rgba(56,189,248,.2);}
 .ck-btn.danger{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.25);color:#f87171;}
 .ck-btn.danger:hover{background:rgba(248,113,113,.18);box-shadow:0 0 8px rgba(248,113,113,.2);}
-/* ── Day columns ── */
-.ck-days{display:flex;gap:0;align-items:stretch;overflow-x:auto;}
+/* ── Day matrix ── */
+.ck-days{display:flex;flex-direction:column;gap:0;}
+.ck-row{display:flex;gap:0;align-items:stretch;overflow-x:auto;}
 .ck-day{flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border);border-radius:13px;display:flex;flex-direction:column;overflow:hidden;transition:border-color .2s,box-shadow .2s;position:relative;}
 .ck-day.today{border-color:rgba(56,189,248,.4);box-shadow:0 0 14px rgba(56,189,248,.1),inset 0 0 18px rgba(56,189,248,.025);}
 .ck-day.today .ck-day-hdr{background:linear-gradient(135deg,rgba(56,189,248,.1),rgba(129,140,248,.06));}
@@ -697,10 +698,17 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-day.today.selected{border-color:rgba(56,189,248,.6);box-shadow:0 0 18px rgba(56,189,248,.2),0 0 8px rgba(192,132,252,.2),inset 0 0 20px rgba(56,189,248,.04);}
 .ck-day.drag-over{border-color:#38bdf8!important;box-shadow:0 0 0 2px rgba(56,189,248,.35)!important;}
 .ck-day.dragging{opacity:.35;transform:scale(.97);transition:opacity .15s,transform .15s;}
-/* ── Resize handle between columns ── */
+/* ── Resize handle between columns (vertical) ── */
 .ck-rz-col{width:8px;flex-shrink:0;cursor:col-resize;position:relative;z-index:5;display:flex;align-items:stretch;}
 .ck-rz-col::after{content:'';position:absolute;left:3px;top:12px;bottom:12px;width:2px;background:rgba(56,189,248,.12);border-radius:2px;transition:background .15s,left .15s,width .15s;}
 .ck-rz-col:hover::after,.ck-rz-col.active::after{background:rgba(56,189,248,.55);left:2px;width:4px;box-shadow:0 0 8px rgba(56,189,248,.4);}
+/* ── Resize handle between rows (horizontal) ── */
+.ck-rz-row{height:8px;flex-shrink:0;cursor:row-resize;position:relative;z-index:5;}
+.ck-rz-row::after{content:'';position:absolute;top:3px;left:12px;right:12px;height:2px;background:rgba(56,189,248,.12);border-radius:2px;transition:background .15s,top .15s,height .15s;}
+.ck-rz-row:hover::after,.ck-rz-row.active::after{background:rgba(56,189,248,.55);top:2px;height:4px;box-shadow:0 0 8px rgba(56,189,248,.4);}
+/* ── New row drop zone ── */
+.ck-new-row{margin-top:8px;border:1px dashed rgba(56,189,248,.15);border-radius:10px;padding:9px;text-align:center;font-size:.6rem;color:rgba(56,189,248,.3);cursor:default;transition:all .2s;letter-spacing:.4px;font-weight:600;text-transform:uppercase;}
+.ck-new-row.drag-over{border-color:rgba(56,189,248,.5);color:#38bdf8;background:rgba(56,189,248,.05);box-shadow:0 0 14px rgba(56,189,248,.1);}
 /* ── Drag handle ── */
 .ck-day-hdr{background:rgba(255,255,255,.02);padding:5px 8px 5px 5px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:4px;cursor:grab;}
 .ck-day-hdr:active{cursor:grabbing;}
@@ -1416,9 +1424,10 @@ function applyFilters(){
   let _ckModalDay=null;
   let _ckEditId=null;
   let _ckMicRec=null;
-  let _ckColOrder=[0,1,2,3,4,5,6];
-  let _ckColWidths=[];
-  let _ckDragFrom=null;
+  let _ckLayout=[[0,1,2,3,4,5,6]]; // 2D: array of rows, each row = array of day indices
+  let _ckCellWidths={};  // "ri-ci" -> px
+  let _ckRowHeights={}; // ri -> px
+  let _ckDragFrom=null;  // {ri,ci}
   let _ckSelected=new Set();
   let _ckMicTarget=null;
 
@@ -1486,7 +1495,7 @@ function applyFilters(){
     </div>`;
   }
 
-  function ckRenderDay(data,wk,days,di,pos){
+  function ckRenderDay(data,wk,days,di,ri,ci){
     const d=days[di],tasks=ckTasksForDay(data,wk,di);
     const done=tasks.filter(t=>t.done).length,total=tasks.length;
     const pct=total?Math.round(done/total*100):0;
@@ -1494,11 +1503,11 @@ function applyFilters(){
     const curPrio=_ckQPrio[di]||'media';
     const prioLabels={alta:'Alta',media:'Média',baixa:'Baixa',meta:'Meta'};
     const isSel=_ckSelected.has(di);
-    return `<div class="ck-day${isToday?' today':''}${isSel?' selected':''}" id="ck-col-${pos}"
+    return `<div class="ck-day${isToday?' today':''}${isSel?' selected':''}" id="ck-col-${ri}-${ci}"
         onclick="ckToggleSel(${di},event)"
-        ondragover="ckDragOver(${pos},event)" ondrop="ckDrop(${pos},event)" ondragleave="ckDragLeave(event)">
+        ondragover="ckDragOver(${ri},${ci},event)" ondrop="ckDrop(${ri},${ci},event)" ondragleave="ckDragLeave(event)">
       <div class="ck-day-hdr" draggable="true"
-          ondragstart="ckDragStart(${pos},event)" ondragend="ckDragEnd()">
+          ondragstart="ckDragStart(${ri},${ci},event)" ondragend="ckDragEnd()">
         <span class="ck-drag-grip">⠿</span>
         <div class="ck-day-hdr-info">
           <div class="ck-day-name">${DAYS_S[di]}</div>
@@ -1534,9 +1543,13 @@ function applyFilters(){
     const wkLabel=`${ckFmtDate(mon)} – ${ckFmtDate(sun)} ${sun.getFullYear()}`;
     const isCurrentWk=_ckWeekOffset===0;
 
-    const colsHtml=_ckColOrder.map((di,pos)=>{
-      const handle=pos>0?`<div class="ck-rz-col" data-pos="${pos-1}" title="Arrastar para redimensionar"></div>`:'';
-      return handle+ckRenderDay(data,wk,days,di,pos);
+    const rowsHtml=_ckLayout.map((row,ri)=>{
+      const rowHandle=ri>0?`<div class="ck-rz-row" data-ri="${ri-1}"></div>`:'';
+      const colsHtml=row.map((di,ci)=>{
+        const colHandle=ci>0?`<div class="ck-rz-col" data-ri="${ri}" data-ci="${ci-1}"></div>`:'';
+        return colHandle+ckRenderDay(data,wk,days,di,ri,ci);
+      }).join('');
+      return rowHandle+`<div class="ck-row" id="ck-row-${ri}">${colsHtml}</div>`;
     }).join('');
 
     panel.innerHTML=`<div class="ck-root">
@@ -1563,102 +1576,146 @@ function applyFilters(){
           </div>
         </div>
       </div>
-      <div class="ck-days" id="ck-days">${colsHtml}</div>
+      <div class="ck-days" id="ck-days">
+        ${rowsHtml}
+        <div class="ck-new-row" id="ck-new-row"
+          ondragover="ckNewRowOver(event)" ondragleave="ckNewRowLeave(event)" ondrop="ckDropNewRow(event)">
+          ↓ Soltar aqui para criar nova linha
+        </div>
+      </div>
     </div>`;
 
-    ckApplyWidths();
+    ckApplyDimensions();
     ckInitResize();
   };
 
-  function ckApplyWidths(){
-    const cols=[...document.querySelectorAll('#ck-days .ck-day')];
-    _ckColWidths.forEach((w,i)=>{if(w!=null&&cols[i])cols[i].style.flex=`0 0 ${w}px`;});
+  function ckApplyDimensions(){
+    Object.entries(_ckCellWidths).forEach(([key,w])=>{
+      const [ri,ci]=key.split('-').map(Number);
+      const row=document.getElementById(`ck-row-${ri}`);
+      if(!row)return;
+      const cols=[...row.querySelectorAll(':scope > .ck-day')];
+      if(cols[ci])cols[ci].style.flex=`0 0 ${w}px`;
+    });
+    Object.entries(_ckRowHeights).forEach(([ri,h])=>{
+      const row=document.getElementById(`ck-row-${ri}`);
+      if(row)row.style.minHeight=`${h}px`;
+    });
   }
 
   function ckInitResize(){
+    // ── Column width resize ──────────────────────────────────────────────────
     document.querySelectorAll('.ck-rz-col').forEach(h=>{
       h.addEventListener('mousedown',e=>{
         e.preventDefault();
-        const pos=parseInt(h.dataset.pos);
-        const cols=[...document.querySelectorAll('#ck-days .ck-day')];
-        const c1=cols[pos],c2=cols[pos+1];
+        const ri=parseInt(h.dataset.ri),ci=parseInt(h.dataset.ci);
+        const row=document.getElementById(`ck-row-${ri}`);
+        if(!row)return;
+        const cols=[...row.querySelectorAll(':scope > .ck-day')];
+        const c1=cols[ci],c2=cols[ci+1];
         if(!c1||!c2)return;
-        const sx=e.clientX;
-        const w1=c1.getBoundingClientRect().width;
-        const w2=c2.getBoundingClientRect().width;
+        const sx=e.clientX,w1=c1.getBoundingClientRect().width,w2=c2.getBoundingClientRect().width;
         h.classList.add('active');
-        document.body.style.cursor='col-resize';
-        document.body.style.userSelect='none';
+        document.body.style.cssText+='cursor:col-resize;user-select:none;';
         const onMove=ev=>{
           const dx=ev.clientX-sx;
-          const nw1=Math.max(80,w1+dx);
-          const nw2=Math.max(80,w2-dx);
-          c1.style.flex=`0 0 ${nw1}px`;
-          c2.style.flex=`0 0 ${nw2}px`;
-          _ckColWidths[pos]=nw1;
-          _ckColWidths[pos+1]=nw2;
+          const nw1=Math.max(80,w1+dx),nw2=Math.max(80,w2-dx);
+          c1.style.flex=`0 0 ${nw1}px`;c2.style.flex=`0 0 ${nw2}px`;
+          _ckCellWidths[`${ri}-${ci}`]=nw1;_ckCellWidths[`${ri}-${ci+1}`]=nw2;
         };
-        const onUp=()=>{
-          h.classList.remove('active');
-          document.body.style.cursor='';
-          document.body.style.userSelect='';
-          document.removeEventListener('mousemove',onMove);
-          document.removeEventListener('mouseup',onUp);
+        const onUp=()=>{h.classList.remove('active');document.body.style.cursor='';document.body.style.userSelect='';document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
+        document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
+      });
+    });
+    // ── Row height resize ────────────────────────────────────────────────────
+    document.querySelectorAll('.ck-rz-row').forEach(h=>{
+      h.addEventListener('mousedown',e=>{
+        e.preventDefault();
+        const ri=parseInt(h.dataset.ri);
+        const row=document.getElementById(`ck-row-${ri}`);
+        if(!row)return;
+        const sy=e.clientY,h0=row.getBoundingClientRect().height;
+        h.classList.add('active');
+        document.body.style.cssText+='cursor:row-resize;user-select:none;';
+        const onMove=ev=>{
+          const nh=Math.max(60,h0+(ev.clientY-sy));
+          row.style.minHeight=`${nh}px`;_ckRowHeights[ri]=nh;
         };
-        document.addEventListener('mousemove',onMove);
-        document.addEventListener('mouseup',onUp);
+        const onUp=()=>{h.classList.remove('active');document.body.style.cursor='';document.body.style.userSelect='';document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
+        document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
       });
     });
   }
 
   window.ckToggleSel=function(di,e){
-    // Ignore clicks on interactive elements inside the column
-    if(e.target.closest('input,button,.ck-chk,.ck-task-del,.ck-q-dot,.ck-rz-col'))return;
-    if(_ckSelected.has(di))_ckSelected.delete(di);
-    else _ckSelected.add(di);
-    // Apply/remove class directly without full re-render
+    if(e.target.closest('input,button,.ck-chk,.ck-task-del,.ck-q-dot,.ck-rz-col,.ck-rz-row'))return;
+    if(_ckSelected.has(di))_ckSelected.delete(di);else _ckSelected.add(di);
     document.querySelectorAll('#ck-days .ck-day').forEach(col=>{
       const colDi=parseInt(col.querySelector('[id^="ck-day-"]')?.id.replace('ck-day-',''));
       if(!isNaN(colDi))col.classList.toggle('selected',_ckSelected.has(colDi));
     });
   };
 
-  window.ckDragStart=function(pos,e){
-    _ckDragFrom=pos;
+  window.ckDragStart=function(ri,ci,e){
+    _ckDragFrom={ri,ci};
     e.dataTransfer.effectAllowed='move';
-    e.dataTransfer.setData('text/plain',pos);
-    setTimeout(()=>document.getElementById(`ck-col-${pos}`)?.classList.add('dragging'),0);
+    e.dataTransfer.setData('text/plain',`${ri}-${ci}`);
+    setTimeout(()=>document.getElementById(`ck-col-${ri}-${ci}`)?.classList.add('dragging'),0);
   };
-  window.ckDragOver=function(pos,e){
-    e.preventDefault();
+  window.ckDragOver=function(ri,ci,e){
+    e.preventDefault();e.stopPropagation();
     e.dataTransfer.dropEffect='move';
-    if(pos===_ckDragFrom)return;
+    if(!_ckDragFrom||(_ckDragFrom.ri===ri&&_ckDragFrom.ci===ci))return;
     document.querySelectorAll('.ck-day').forEach(c=>c.classList.remove('drag-over'));
-    document.getElementById(`ck-col-${pos}`)?.classList.add('drag-over');
+    document.getElementById(`ck-col-${ri}-${ci}`)?.classList.add('drag-over');
   };
   window.ckDragLeave=function(e){
-    if(!e.currentTarget.contains(e.relatedTarget))
-      e.currentTarget.classList.remove('drag-over');
+    if(!e.currentTarget.contains(e.relatedTarget))e.currentTarget.classList.remove('drag-over');
   };
-  window.ckDrop=function(pos,e){
-    e.preventDefault();
-    if(_ckDragFrom===null||_ckDragFrom===pos)return;
-    const o=[..._ckColOrder];
-    const [moved]=o.splice(_ckDragFrom,1);
-    o.splice(pos,0,moved);
-    _ckColOrder=o;
-    _ckColWidths=[];
+  window.ckDrop=function(ri,ci,e){
+    e.preventDefault();e.stopPropagation();
+    document.getElementById('ck-new-row')?.classList.remove('drag-over');
+    if(!_ckDragFrom)return;
+    const{ri:fri,ci:fci}=_ckDragFrom;
     _ckDragFrom=null;
+    if(fri===ri&&fci===ci)return;
+    const nl=_ckLayout.map(r=>[...r]);
+    const[movedDi]=nl[fri].splice(fci,1);
+    const adjCi=(fri===ri&&ci>fci)?ci-1:ci;
+    if(nl[fri].length===0){
+      nl.splice(fri,1);
+      const adjRi=ri>fri?ri-1:ri;
+      nl[adjRi].splice(adjCi,0,movedDi);
+    } else {
+      nl[ri].splice(adjCi,0,movedDi);
+    }
+    _ckLayout=nl;_ckCellWidths={};_ckRowHeights={};
     renderChecklist();
   };
   window.ckDragEnd=function(){
     _ckDragFrom=null;
     document.querySelectorAll('.ck-day').forEach(c=>c.classList.remove('dragging','drag-over'));
   };
-  window.ckResetLayout=function(){
-    _ckColOrder=[0,1,2,3,4,5,6];
-    _ckColWidths=[];
+  window.ckNewRowOver=function(e){
+    e.preventDefault();document.getElementById('ck-new-row')?.classList.add('drag-over');
+  };
+  window.ckNewRowLeave=function(e){
+    document.getElementById('ck-new-row')?.classList.remove('drag-over');
+  };
+  window.ckDropNewRow=function(e){
+    e.preventDefault();
+    document.getElementById('ck-new-row')?.classList.remove('drag-over');
+    if(!_ckDragFrom)return;
+    const{ri:fri,ci:fci}=_ckDragFrom;_ckDragFrom=null;
+    const nl=_ckLayout.map(r=>[...r]);
+    const[movedDi]=nl[fri].splice(fci,1);
+    if(nl[fri].length===0)nl.splice(fri,1);
+    nl.push([movedDi]);
+    _ckLayout=nl;_ckCellWidths={};_ckRowHeights={};
     renderChecklist();
+  };
+  window.ckResetLayout=function(){
+    _ckLayout=[[0,1,2,3,4,5,6]];_ckCellWidths={};_ckRowHeights={};renderChecklist();
   };
 
   window.ckNavWeek=function(dir){
