@@ -902,11 +902,11 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
   border:1px solid rgba(56,189,248,.22);border-bottom:none;border-radius:14px 14px 0 0;
   overflow:hidden;
   box-shadow:0 -8px 40px rgba(0,0,0,.65),inset 0 1px 0 rgba(56,189,248,.18);
-  transform:translateY(0);transition:transform .5s cubic-bezier(.34,1.18,.64,1),box-shadow .45s ease;
+  transform:translateY(0);transition:transform .85s cubic-bezier(.34,1.12,.64,1),box-shadow .7s ease;
   position:relative;
 }
 .ck-cal-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(56,189,248,.7) 30%,rgba(167,139,250,.8) 50%,rgba(56,189,248,.7) 70%,transparent 100%);z-index:3;pointer-events:none;}
-.ck-cal-body{max-height:0;overflow:hidden;transition:max-height .52s cubic-bezier(.22,1,.36,1);}
+.ck-cal-body{max-height:0;overflow:hidden;transition:max-height .85s cubic-bezier(.22,1,.36,1);}
 .ck-calendar.ck-cal-open .ck-cal-body{max-height:64vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(56,189,248,.25) transparent;}
 .ck-calendar.ck-cal-open .ck-cal-body::-webkit-scrollbar{width:3px;}
 .ck-calendar.ck-cal-open .ck-cal-body::-webkit-scrollbar-thumb{background:rgba(56,189,248,.25);border-radius:4px;}
@@ -2436,7 +2436,7 @@ function applyFilters(){
     const near=e.clientY>=el.getBoundingClientRect().top||(window.innerHeight-e.clientY)<110;
     if(near){
       clearTimeout(_calCloseTimer);_calCloseTimer=null;
-      if(!_calIsOpen&&!_calOpenTimer)_calOpenTimer=setTimeout(()=>{_calOpenTimer=null;_calOpen();},400);
+      if(!_calIsOpen&&!_calOpenTimer)_calOpenTimer=setTimeout(()=>{_calOpenTimer=null;_calOpen();},650);
     } else {
       clearTimeout(_calOpenTimer);_calOpenTimer=null;
       if(_calIsOpen&&!_calCloseTimer)_calCloseTimer=setTimeout(()=>{_calCloseTimer=null;_calClose();},500);
