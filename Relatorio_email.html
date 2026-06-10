@@ -808,6 +808,9 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-btn.tpl:hover{background:rgba(192,132,252,.08);border-color:rgba(192,132,252,.55);}
 .ck-btn.exp{border-color:rgba(74,222,128,.3);color:#4ade80;}
 .ck-btn.exp:hover{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.55);}
+.ck-btn.wknd{border-color:rgba(251,146,60,.3);color:rgba(251,146,60,.65);}
+.ck-btn.wknd:hover{background:rgba(251,146,60,.08);border-color:rgba(251,146,60,.55);color:#fb923c;}
+.ck-btn.wknd.active{background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.5);color:#fb923c;}
 /* ── Expand button no cabeçalho do dia ── */
 .ck-day-expand-btn{background:none;border:none;color:rgba(255,255,255,.15);font-size:.68rem;cursor:pointer;transition:color .15s;padding:0 1px;flex-shrink:0;line-height:1;}
 .ck-day-hdr:hover .ck-day-expand-btn,.ck-day-expand-btn:hover{color:#38bdf8!important;}
@@ -1592,6 +1595,7 @@ function applyFilters(){
   let _ckEditId=null;
   let _ckMicRec=null;
   let _ckLayout=[[0,1,2,3,4,5,6]];
+  let _ckHideWeekend=localStorage.getItem('ck_hide_wknd')==='1';
   let _ckCellWidths={};
   let _ckRowHeights={};
   let _ckDragFrom=null;
@@ -1735,6 +1739,7 @@ function applyFilters(){
     const rowsHtml=_ckLayout.map((row,ri)=>{
       const rowHandle=ri>0?`<div class="ck-rz-row" data-ri="${ri-1}"></div>`:'';
       const colsHtml=row.map((di,ci)=>{
+        if(_ckHideWeekend&&di>=5)return '';
         const colHandle=ci>0?`<div class="ck-rz-col" data-ri="${ri}" data-ci="${ci-1}"></div>`:'';
         return colHandle+ckRenderDay(data,wk,days,di,ri,ci,isRetro);
       }).join('');
@@ -1764,6 +1769,7 @@ function applyFilters(){
             <button class="ck-btn tpl" onclick="ckSaveTemplate('${wk}')" title="Salvar semana como template">💾 Tpl</button>
             ${hasTpl&&isCurrentWk?`<button class="ck-btn tpl" onclick="ckApplyTemplate('${wk}')" title="Aplicar template nesta semana">📋 Aplicar</button>`:''}
             <button class="ck-btn exp" onclick="ckExport('${wk}')" title="Exportar semana como HTML">📤</button>
+            <button class="ck-btn wknd${_ckHideWeekend?' active':''}" onclick="ckToggleWeekend()" title="${_ckHideWeekend?'Mostrar fim de semana':'Ocultar fim de semana'}">${_ckHideWeekend?'⊞ Fds':'⊟ Fds'}</button>
             <button class="ck-btn" onclick="ckResetLayout()" title="Repor layout">⊞</button>
             <button class="ck-btn danger" onclick="ckClearWeek('${wk}')" title="Limpar semana">🗑</button>
           </div>
@@ -2426,6 +2432,12 @@ function applyFilters(){
   }
 
   window.ckNavWeekAbs=function(offset){_ckWeekOffset=offset;renderChecklist();};
+
+  window.ckToggleWeekend=function(){
+    _ckHideWeekend=!_ckHideWeekend;
+    localStorage.setItem('ck_hide_wknd',_ckHideWeekend?'1':'0');
+    renderChecklist();
+  };
 
   // ── Calendar proximity hover ──────────────────────────────────────────────
   let _calOpenTimer=null,_calCloseTimer=null,_calIsOpen=false;
