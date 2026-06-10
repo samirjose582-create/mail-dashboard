@@ -812,11 +812,29 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-day-expand-btn{background:none;border:none;color:rgba(255,255,255,.15);font-size:.68rem;cursor:pointer;transition:color .15s;padding:0 1px;flex-shrink:0;line-height:1;}
 .ck-day-hdr:hover .ck-day-expand-btn,.ck-day-expand-btn:hover{color:#38bdf8!important;}
 /* ── Vista expandida do dia ── */
-.ck-day-exp-bg{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.38);display:flex;flex-direction:column;justify-content:flex-end;animation:ck-fade-in .18s ease;}
-.ck-day-exp{background:linear-gradient(180deg,rgba(160,175,200,.1) 0%,rgba(140,158,190,.08) 100%);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);background-image:repeating-linear-gradient(rgba(200,215,235,.022) 0,rgba(200,215,235,.022) 1px,transparent 1px,transparent 44px),repeating-linear-gradient(90deg,rgba(200,215,235,.022) 0,rgba(200,215,235,.022) 1px,transparent 1px,transparent 44px);border:1px solid rgba(200,215,235,.14);border-bottom:none;border-radius:22px 22px 0 0;width:100%;max-height:74vh;display:flex;flex-direction:column;box-shadow:0 -16px 50px rgba(0,0,0,.55),0 -1px 0 rgba(255,255,255,.06),inset 0 1px 0 rgba(255,255,255,.07);animation:ck-slide-up .32s cubic-bezier(.22,1,.36,1);overflow:hidden;}
-@keyframes ck-slide-up{from{transform:translateY(100%);}to{transform:translateY(0);}}
-.ck-exp-drag-handle{width:40px;height:4px;background:rgba(255,255,255,.16);border-radius:4px;margin:10px auto 2px;flex-shrink:0;cursor:grab;}
-.ck-day-exp.today{border-color:rgba(56,189,248,.3);box-shadow:0 -16px 50px rgba(0,0,0,.55),0 -1px 0 rgba(56,189,248,.15);}
+/* ── Inline expanded day panel ── */
+.ck-exp-inline-wrap{margin-top:10px;overflow:hidden;}
+.ck-exp-inline-wrap:empty{display:none;}
+.ck-exp-inline{display:grid;grid-template-columns:185px 1fr;min-height:300px;max-height:58vh;background:linear-gradient(135deg,rgba(155,170,205,.09) 0%,rgba(120,140,180,.06) 100%);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);background-image:repeating-linear-gradient(rgba(200,215,235,.02) 0,rgba(200,215,235,.02) 1px,transparent 1px,transparent 44px),repeating-linear-gradient(90deg,rgba(200,215,235,.02) 0,rgba(200,215,235,.02) 1px,transparent 1px,transparent 44px);border:1px solid rgba(200,215,235,.13);border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07);animation:ck-exp-in .3s cubic-bezier(.22,1,.36,1);}
+@keyframes ck-exp-in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.ck-exp-inline.today{border-color:rgba(56,189,248,.28);}
+.ck-exp-il-left{padding:16px 14px 12px;border-right:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.15);display:flex;flex-direction:column;gap:8px;overflow:hidden;flex-shrink:0;}
+.ck-exp-il-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;}
+.ck-exp-il-ring{display:flex;justify-content:center;margin:0;}
+.ck-exp-il-stats{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.ck-exp-il-stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:6px 4px;text-align:center;position:relative;overflow:hidden;}
+.ck-exp-il-stat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;opacity:.65;}
+.ck-exp-il-stat:nth-child(1)::after{background:#f87171;}.ck-exp-il-stat:nth-child(2)::after{background:#fb923c;}.ck-exp-il-stat:nth-child(3)::after{background:#38bdf8;}.ck-exp-il-stat:nth-child(4)::after{background:#c084fc;}
+.ck-exp-il-sn{font-size:.92rem;font-weight:800;font-family:var(--mono);display:block;line-height:1;}
+.ck-exp-il-sl{font-size:.43rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-top:2px;}
+.ck-exp-il-nav{display:flex;gap:4px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);margin-top:auto;}
+.ck-exp-il-nav .ck-btn{flex:1;text-align:center;padding:5px 2px;font-size:.55rem;}
+.ck-exp-il-right{display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.ck-exp-il-tasks{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin;scrollbar-color:rgba(56,189,248,.2) transparent;}
+.ck-exp-il-tasks::-webkit-scrollbar{width:3px;}.ck-exp-il-tasks::-webkit-scrollbar-thumb{background:rgba(56,189,248,.2);border-radius:4px;}
+.ck-exp-il-empty{text-align:center;padding:32px 20px;font-size:.68rem;color:rgba(255,255,255,.18);font-style:italic;}
+.ck-exp-il-add{padding:14px 16px 12px;border-top:1px solid rgba(56,189,248,.07);background:linear-gradient(180deg,rgba(0,0,0,.2),rgba(56,189,248,.015));flex-shrink:0;}
+@media(max-width:600px){.ck-exp-inline{grid-template-columns:1fr;}.ck-exp-il-left{border-right:none;border-bottom:1px solid rgba(255,255,255,.06);max-height:160px;}}
 .ck-exp-hdr{display:flex;align-items:center;gap:16px;padding:18px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
 .ck-exp-hdr-info{flex:1;min-width:0;}
 .ck-exp-dayname{font-size:1.1rem;font-weight:800;background:linear-gradient(90deg,#e0f2fe,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
@@ -1517,6 +1535,7 @@ function applyFilters(){
   let _ckDragFrom=null;
   let _ckSelected=new Set();
   let _ckCurrentWk='';
+  let _ckExpDi=-1;
   let _ckMicTarget=null;
 
   function ckLoad(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch{return {};}}
@@ -1679,6 +1698,7 @@ function applyFilters(){
           ondragover="ckNewRowOver(event)" ondragleave="ckNewRowLeave(event)" ondrop="ckDropNewRow(event)">
           ↓ Soltar aqui para criar nova linha
         </div>
+        <div id="ck-day-exp-inline" class="ck-exp-inline-wrap"></div>
       </div>
     </div>`;
 
@@ -1686,8 +1706,7 @@ function applyFilters(){
     ckApplyDimensions();
     ckInitResize();
     // Refresh expanded day view if it's open
-    const expBg=document.getElementById('ck-day-exp-bg');
-    if(expBg) _ckBuildExpContent(expBg,wk,parseInt(expBg.dataset.di));
+    if(_ckExpDi>=0){const ep=document.getElementById('ck-day-exp-inline');if(ep)_ckBuildExpContent(ep,wk,_ckExpDi);}
   };
 
   function ckApplyDimensions(){
@@ -1941,76 +1960,81 @@ function applyFilters(){
     const curPrio=_ckQPrio[di]||'media';
     const prioLabels={alta:'Alta',media:'Média',baixa:'Baixa',meta:'Meta'};
 
-    bg.innerHTML=`<div class="ck-day-exp${isToday?' today':''}">
-      <div class="ck-exp-drag-handle"></div>
-      <div class="ck-exp-hdr">
-        <div class="ck-exp-hdr-info">
-          <div class="ck-exp-dayname">${DAYS[di]}</div>
-          <div class="ck-exp-date">${d.getDate()} de ${months[d.getMonth()]} ${d.getFullYear()}</div>
-          ${isToday?'<span class="ck-exp-today-badge">Hoje</span>':''}
-        </div>
-        <svg viewBox="0 0 100 100" width="78" height="78" class="ck-exp-ring">
-          <defs><linearGradient id="ck-rg" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#818cf8"/>
-          </linearGradient></defs>
-          <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="5"/>
-          <circle cx="50" cy="50" r="46" fill="none" stroke="url(#ck-rg)" stroke-width="5"
-            stroke-dasharray="${pct/100*circ} ${circ}" stroke-linecap="round" transform="rotate(-90 50 50)"/>
-          <text x="50" y="47" text-anchor="middle" fill="#38bdf8" font-size="18" font-weight="800" font-family="monospace">${pct}%</text>
-          <text x="50" y="62" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="8" font-family="Inter,sans-serif">${done}/${total}</text>
-        </svg>
-        <button class="ck-exp-close" onclick="ckCloseDayView()">✕</button>
-      </div>
-      <div class="ck-exp-stats">
-        <div class="ck-exp-stat"><span class="ck-exp-sn" style="color:#f87171">${bp.alta}</span><span class="ck-exp-sl">Alta</span></div>
-        <div class="ck-exp-stat"><span class="ck-exp-sn" style="color:#fb923c">${bp.media}</span><span class="ck-exp-sl">Média</span></div>
-        <div class="ck-exp-stat"><span class="ck-exp-sn" style="color:#38bdf8">${bp.baixa}</span><span class="ck-exp-sl">Baixa</span></div>
-        <div class="ck-exp-stat"><span class="ck-exp-sn" style="color:#c084fc">${bp.meta}</span><span class="ck-exp-sl">Meta</span></div>
-        <div class="ck-exp-stat"><span class="ck-exp-sn" style="color:#4ade80">${done}</span><span class="ck-exp-sl">Feitas</span></div>
-        <div class="ck-exp-stat"><span class="ck-exp-sn" style="color:var(--text-soft)">${total-done}</span><span class="ck-exp-sl">Pendentes</span></div>
-      </div>
-      <div class="ck-exp-tasks" id="ck-exp-tasks">
-        ${tasks.length?tasks.map(t=>_ckExpTaskCard(t,wk,di)).join(''):'<div class="ck-exp-empty">Nenhuma tarefa para este dia</div>'}
-      </div>
-      <div class="ck-exp-add">
-        <div class="ck-exp-add-label">Nova Tarefa</div>
-        <div class="ck-exp-prio-row">
-          ${['alta','media','baixa','meta'].map(p=>`<button class="ck-exp-prio-chip ${p}${p===curPrio?' sel':''}" data-p="${p}"
-            onclick="ckExpSetPrio(${di},'${p}')">${p==='alta'?'▲ Alta':p==='media'?'● Média':p==='baixa'?'▼ Baixa':'★ Meta'}</button>`).join('')}
-        </div>
-        <div class="ck-exp-inp-row">
-          <div class="ck-exp-inp-wrap">
-            <input class="ck-exp-inp-field" id="ck-exp-inp" placeholder="Descreva a tarefa…"
-              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ckExpAdd('${wk}',${di});}">
+    container.innerHTML=`<div class="ck-exp-inline${isToday?' today':''}">
+      <div class="ck-exp-il-left">
+        <div class="ck-exp-il-hdr">
+          <div>
+            <div class="ck-exp-dayname">${DAYS[di]}</div>
+            <div class="ck-exp-date">${d.getDate()} de ${months[d.getMonth()]} ${d.getFullYear()}</div>
+            ${isToday?'<span class="ck-exp-today-badge">Hoje</span>':''}
           </div>
-          <button class="ck-q-mic" id="ck-exp-mic" onclick="ckExpVoice('${wk}',${di})" title="Voz">🎙</button>
-          <button class="ck-q-detail" onclick="ckOpenModal('${wk}',${di})" title="Detalhes">⋯</button>
+          <button class="ck-exp-close" onclick="ckCloseDayView()">✕</button>
+        </div>
+        <div class="ck-exp-il-ring">
+          <svg viewBox="0 0 100 100" width="92" height="92" class="ck-exp-ring">
+            <defs><linearGradient id="ck-rg-il" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#818cf8"/>
+            </linearGradient></defs>
+            <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/>
+            <circle cx="50" cy="50" r="46" fill="none" stroke="url(#ck-rg-il)" stroke-width="6"
+              stroke-dasharray="${pct/100*circ} ${circ}" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+            <text x="50" y="46" text-anchor="middle" fill="#38bdf8" font-size="20" font-weight="800" font-family="monospace">${pct}%</text>
+            <text x="50" y="61" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="9" font-family="Inter,sans-serif">${done}/${total}</text>
+          </svg>
+        </div>
+        <div class="ck-exp-il-stats">
+          <div class="ck-exp-il-stat"><span class="ck-exp-il-sn" style="color:#f87171">${bp.alta}</span><span class="ck-exp-il-sl">Alta</span></div>
+          <div class="ck-exp-il-stat"><span class="ck-exp-il-sn" style="color:#fb923c">${bp.media}</span><span class="ck-exp-il-sl">Média</span></div>
+          <div class="ck-exp-il-stat"><span class="ck-exp-il-sn" style="color:#38bdf8">${bp.baixa}</span><span class="ck-exp-il-sl">Baixa</span></div>
+          <div class="ck-exp-il-stat"><span class="ck-exp-il-sn" style="color:#c084fc">${bp.meta}</span><span class="ck-exp-il-sl">Meta</span></div>
+        </div>
+        <div class="ck-exp-il-nav">
+          <button class="ck-btn" onclick="ckExpNav('${wk}',${di},-1)" title="Anterior">◀</button>
+          <button class="ck-btn danger" onclick="ckCloseDayView()" title="Fechar">✕</button>
+          <button class="ck-btn" onclick="ckExpNav('${wk}',${di},1)" title="Próximo">▶</button>
         </div>
       </div>
-      <div class="ck-exp-footer">
-        <button class="ck-btn" onclick="ckExpNav('${wk}',${di},-1)">◀ Anterior</button>
-        <button class="ck-btn danger" onclick="ckCloseDayView()">Fechar</button>
-        <button class="ck-btn" onclick="ckExpNav('${wk}',${di},1)">Próximo ▶</button>
+      <div class="ck-exp-il-right">
+        <div class="ck-exp-il-tasks" id="ck-exp-tasks">
+          ${tasks.length?tasks.map(t=>_ckExpTaskCard(t,wk,di)).join(''):'<div class="ck-exp-il-empty">Nenhuma tarefa para este dia</div>'}
+        </div>
+        <div class="ck-exp-il-add">
+          <div class="ck-exp-add-label">Nova Tarefa</div>
+          <div class="ck-exp-prio-row">
+            ${['alta','media','baixa','meta'].map(p=>`<button class="ck-exp-prio-chip ${p}${p===curPrio?' sel':''}" data-p="${p}"
+              onclick="ckExpSetPrio(${di},'${p}')">${p==='alta'?'▲ Alta':p==='media'?'● Média':p==='baixa'?'▼ Baixa':'★ Meta'}</button>`).join('')}
+          </div>
+          <div class="ck-exp-inp-row">
+            <div class="ck-exp-inp-wrap">
+              <input class="ck-exp-inp-field" id="ck-exp-inp" placeholder="Descreva a tarefa…"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ckExpAdd('${wk}',${di});}">
+            </div>
+            <button class="ck-q-mic" id="ck-exp-mic" onclick="ckExpVoice('${wk}',${di})" title="Voz">🎙</button>
+            <button class="ck-q-detail" onclick="ckOpenModal('${wk}',${di})" title="Detalhes">⋯</button>
+          </div>
+        </div>
       </div>
     </div>`;
     setTimeout(()=>document.getElementById('ck-exp-inp')?.focus(),60);
   }
 
   window.ckOpenDayView=function(wk,di){
-    let bg=document.getElementById('ck-day-exp-bg');
-    if(!bg){bg=document.createElement('div');bg.className='ck-day-exp-bg';bg.id='ck-day-exp-bg';
-      bg.onclick=e=>{if(e.target===bg)ckCloseDayView();};document.body.appendChild(bg);}
-    bg.dataset.di=di;bg.dataset.wk=wk;
-    _ckBuildExpContent(bg,wk,di);
+    _ckExpDi=di;
+    const ep=document.getElementById('ck-day-exp-inline');
+    if(!ep)return;
+    _ckBuildExpContent(ep,wk,di);
+    ep.scrollIntoView({behavior:'smooth',block:'nearest'});
   };
 
   window.ckCloseDayView=function(){
-    document.getElementById('ck-day-exp-bg')?.remove();
+    _ckExpDi=-1;
+    const ep=document.getElementById('ck-day-exp-inline');
+    if(ep)ep.innerHTML='';
   };
 
   window.ckExpSetPrio=function(di,prio){
     ckSetPrio(di,prio);
-    document.querySelectorAll('#ck-day-exp-bg .ck-exp-prio-chip').forEach(c=>c.classList.toggle('sel',c.dataset.p===prio));
+    document.querySelectorAll('.ck-exp-prio-chip').forEach(c=>c.classList.toggle('sel',c.dataset.p===prio));
   };
 
   window.ckExpAdd=function(wk,di){
@@ -2041,10 +2065,9 @@ function applyFilters(){
 
   window.ckExpNav=function(wk,di,dir){
     const newDi=((di+dir)+7)%7;
-    const bg=document.getElementById('ck-day-exp-bg');
-    if(!bg)return;
-    bg.dataset.di=newDi;bg.dataset.wk=wk;
-    _ckBuildExpContent(bg,wk,newDi);
+    _ckExpDi=newDi;
+    const ep=document.getElementById('ck-day-exp-inline');
+    if(ep)_ckBuildExpContent(ep,wk,newDi);
   };
 
   window.ckNavWeek=function(dir){
