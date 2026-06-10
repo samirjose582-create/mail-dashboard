@@ -688,12 +688,22 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-btn.danger{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.25);color:#f87171;}
 .ck-btn.danger:hover{background:rgba(248,113,113,.18);box-shadow:0 0 8px rgba(248,113,113,.2);}
 /* ── Day columns ── */
-.ck-days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:stretch;}
-@media(max-width:900px){.ck-days{grid-template-columns:repeat(4,1fr);}}
-.ck-day{background:var(--surface);border:1px solid var(--border);border-radius:13px;display:flex;flex-direction:column;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
+.ck-days{display:flex;gap:0;align-items:stretch;overflow-x:auto;}
+.ck-day{flex:1;min-width:90px;background:var(--surface);border:1px solid var(--border);border-radius:13px;display:flex;flex-direction:column;overflow:hidden;transition:border-color .2s,box-shadow .2s;position:relative;}
 .ck-day.today{border-color:rgba(56,189,248,.4);box-shadow:0 0 14px rgba(56,189,248,.1),inset 0 0 18px rgba(56,189,248,.025);}
 .ck-day.today .ck-day-hdr{background:linear-gradient(135deg,rgba(56,189,248,.1),rgba(129,140,248,.06));}
-.ck-day-hdr{background:rgba(255,255,255,.02);padding:7px 9px 5px;border-bottom:1px solid var(--border);}
+.ck-day.drag-over{border-color:#38bdf8!important;box-shadow:0 0 0 2px rgba(56,189,248,.35)!important;}
+.ck-day.dragging{opacity:.35;transform:scale(.97);transition:opacity .15s,transform .15s;}
+/* ── Resize handle between columns ── */
+.ck-rz-col{width:8px;flex-shrink:0;cursor:col-resize;position:relative;z-index:5;display:flex;align-items:stretch;}
+.ck-rz-col::after{content:'';position:absolute;left:3px;top:12px;bottom:12px;width:2px;background:rgba(56,189,248,.12);border-radius:2px;transition:background .15s,left .15s,width .15s;}
+.ck-rz-col:hover::after,.ck-rz-col.active::after{background:rgba(56,189,248,.55);left:2px;width:4px;box-shadow:0 0 8px rgba(56,189,248,.4);}
+/* ── Drag handle ── */
+.ck-day-hdr{background:rgba(255,255,255,.02);padding:5px 8px 5px 5px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:4px;cursor:grab;}
+.ck-day-hdr:active{cursor:grabbing;}
+.ck-drag-grip{color:rgba(255,255,255,.15);font-size:.6rem;line-height:1;flex-shrink:0;margin-top:2px;letter-spacing:-1px;transition:color .15s;user-select:none;}
+.ck-day-hdr:hover .ck-drag-grip{color:rgba(56,189,248,.5);}
+.ck-day-hdr-info{flex:1;min-width:0;}
 .ck-day-name{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);}
 .ck-day-date{font-size:.9rem;font-weight:800;font-family:var(--mono);color:var(--text);line-height:1;margin-top:1px;}
 .ck-day-prog{margin-top:4px;height:2px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;}
@@ -1403,6 +1413,9 @@ function applyFilters(){
   let _ckModalDay=null;
   let _ckEditId=null;
   let _ckMicRec=null;
+  let _ckColOrder=[0,1,2,3,4,5,6];
+  let _ckColWidths=[];
+  let _ckDragFrom=null;
   let _ckMicTarget=null;
 
   function ckLoad(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch{return {};}}
@@ -1469,34 +1482,38 @@ function applyFilters(){
     </div>`;
   }
 
-  function ckRenderDay(data,wk,days,di){
+  function ckRenderDay(data,wk,days,di,pos){
     const d=days[di],tasks=ckTasksForDay(data,wk,di);
     const done=tasks.filter(t=>t.done).length,total=tasks.length;
     const pct=total?Math.round(done/total*100):0;
     const isToday=ckIsToday(d);
-    return `<div class="ck-day${isToday?' today':''}">
-      <div class="ck-day-hdr">
-        <div class="ck-day-name">${DAYS_S[di]}</div>
-        <div class="ck-day-date">${ckFmtDate(d)}</div>
-        <div class="ck-day-prog"><div class="ck-day-prog-fill" style="width:${pct}%"></div></div>
-        <div class="ck-day-meta"><span>${done}/${total}</span><span>${pct}%</span></div>
+    const curPrio=_ckQPrio[di]||'media';
+    const prioLabels={alta:'Alta',media:'Média',baixa:'Baixa',meta:'Meta'};
+    return `<div class="ck-day${isToday?' today':''}" id="ck-col-${pos}"
+        ondragover="ckDragOver(${pos},event)" ondrop="ckDrop(${pos},event)" ondragleave="ckDragLeave(event)">
+      <div class="ck-day-hdr" draggable="true"
+          ondragstart="ckDragStart(${pos},event)" ondragend="ckDragEnd()">
+        <span class="ck-drag-grip">⠿</span>
+        <div class="ck-day-hdr-info">
+          <div class="ck-day-name">${DAYS_S[di]}</div>
+          <div class="ck-day-date">${ckFmtDate(d)}</div>
+          <div class="ck-day-prog"><div class="ck-day-prog-fill" style="width:${pct}%"></div></div>
+          <div class="ck-day-meta"><span>${done}/${total}</span><span>${pct}%</span></div>
+        </div>
       </div>
       <div class="ck-day-body" id="ck-day-${di}">
         ${tasks.map(t=>ckRenderTask(t,wk,di)).join('')||`<div style="font-size:.58rem;color:rgba(255,255,255,.12);text-align:center;padding:18px 0;font-style:italic">vazio</div>`}
       </div>
       <div class="ck-quick" id="ck-quick-${di}">
         <div class="ck-q-prios">
-          <div class="ck-q-dot sel" data-p="media" id="ck-dot-${di}-media" onclick="ckSetPrio(${di},'media')" title="Média"></div>
-          <div class="ck-q-dot" data-p="alta"  id="ck-dot-${di}-alta"  onclick="ckSetPrio(${di},'alta')"  title="Alta"></div>
-          <div class="ck-q-dot" data-p="baixa" id="ck-dot-${di}-baixa" onclick="ckSetPrio(${di},'baixa')" title="Baixa"></div>
-          <div class="ck-q-dot" data-p="meta"  id="ck-dot-${di}-meta"  onclick="ckSetPrio(${di},'meta')"  title="Meta"></div>
-          <span class="ck-q-dot-lbl" id="ck-prio-lbl-${di}">Média</span>
+          ${['media','alta','baixa','meta'].map(p=>`<div class="ck-q-dot${p===curPrio?' sel':''}" data-p="${p}" id="ck-dot-${di}-${p}" onclick="ckSetPrio(${di},'${p}')" title="${prioLabels[p]}"></div>`).join('')}
+          <span class="ck-q-dot-lbl" id="ck-prio-lbl-${di}">${prioLabels[curPrio]}</span>
         </div>
         <div class="ck-q-row">
-          <input class="ck-q-inp" id="ck-q-inp-${di}" placeholder="Nova tarefa… Enter para adicionar"
+          <input class="ck-q-inp" id="ck-q-inp-${di}" placeholder="Nova tarefa… Enter"
             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ckQuickAdd('${wk}',${di});}">
-          <button class="ck-q-mic" id="ck-q-mic-${di}" onclick="ckVoiceDay('${wk}',${di})" title="Ditar por voz">🎙</button>
-          <button class="ck-q-detail" onclick="ckOpenModal('${wk}',${di})" title="Adicionar com detalhes">⋯</button>
+          <button class="ck-q-mic" id="ck-q-mic-${di}" onclick="ckVoiceDay('${wk}',${di})" title="Voz">🎙</button>
+          <button class="ck-q-detail" onclick="ckOpenModal('${wk}',${di})" title="Detalhes">⋯</button>
         </div>
       </div>
     </div>`;
@@ -1510,6 +1527,11 @@ function applyFilters(){
     const mon=days[0],sun=days[6];
     const wkLabel=`${ckFmtDate(mon)} – ${ckFmtDate(sun)} ${sun.getFullYear()}`;
     const isCurrentWk=_ckWeekOffset===0;
+
+    const colsHtml=_ckColOrder.map((di,pos)=>{
+      const handle=pos>0?`<div class="ck-rz-col" data-pos="${pos-1}" title="Arrastar para redimensionar"></div>`:'';
+      return handle+ckRenderDay(data,wk,days,di,pos);
+    }).join('');
 
     panel.innerHTML=`<div class="ck-root">
       <div class="ck-hero">
@@ -1530,14 +1552,95 @@ function applyFilters(){
             <button class="ck-btn" onclick="ckNavWeek(-1)">◀</button>
             ${!isCurrentWk?`<button class="ck-btn" onclick="ckNavWeek(0)">⊙</button>`:''}
             <button class="ck-btn" onclick="ckNavWeek(1)">▶</button>
+            <button class="ck-btn" onclick="ckResetLayout()" title="Repor layout">⊞</button>
             <button class="ck-btn danger" onclick="ckClearWeek('${wk}')" title="Limpar semana">🗑</button>
           </div>
         </div>
       </div>
-      <div class="ck-days">
-        ${Array.from({length:7},(_,i)=>ckRenderDay(data,wk,days,i)).join('')}
-      </div>
+      <div class="ck-days" id="ck-days">${colsHtml}</div>
     </div>`;
+
+    ckApplyWidths();
+    ckInitResize();
+  };
+
+  function ckApplyWidths(){
+    const cols=[...document.querySelectorAll('#ck-days .ck-day')];
+    _ckColWidths.forEach((w,i)=>{if(w!=null&&cols[i])cols[i].style.flex=`0 0 ${w}px`;});
+  }
+
+  function ckInitResize(){
+    document.querySelectorAll('.ck-rz-col').forEach(h=>{
+      h.addEventListener('mousedown',e=>{
+        e.preventDefault();
+        const pos=parseInt(h.dataset.pos);
+        const cols=[...document.querySelectorAll('#ck-days .ck-day')];
+        const c1=cols[pos],c2=cols[pos+1];
+        if(!c1||!c2)return;
+        const sx=e.clientX;
+        const w1=c1.getBoundingClientRect().width;
+        const w2=c2.getBoundingClientRect().width;
+        h.classList.add('active');
+        document.body.style.cursor='col-resize';
+        document.body.style.userSelect='none';
+        const onMove=ev=>{
+          const dx=ev.clientX-sx;
+          const nw1=Math.max(80,w1+dx);
+          const nw2=Math.max(80,w2-dx);
+          c1.style.flex=`0 0 ${nw1}px`;
+          c2.style.flex=`0 0 ${nw2}px`;
+          _ckColWidths[pos]=nw1;
+          _ckColWidths[pos+1]=nw2;
+        };
+        const onUp=()=>{
+          h.classList.remove('active');
+          document.body.style.cursor='';
+          document.body.style.userSelect='';
+          document.removeEventListener('mousemove',onMove);
+          document.removeEventListener('mouseup',onUp);
+        };
+        document.addEventListener('mousemove',onMove);
+        document.addEventListener('mouseup',onUp);
+      });
+    });
+  }
+
+  window.ckDragStart=function(pos,e){
+    _ckDragFrom=pos;
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain',pos);
+    setTimeout(()=>document.getElementById(`ck-col-${pos}`)?.classList.add('dragging'),0);
+  };
+  window.ckDragOver=function(pos,e){
+    e.preventDefault();
+    e.dataTransfer.dropEffect='move';
+    if(pos===_ckDragFrom)return;
+    document.querySelectorAll('.ck-day').forEach(c=>c.classList.remove('drag-over'));
+    document.getElementById(`ck-col-${pos}`)?.classList.add('drag-over');
+  };
+  window.ckDragLeave=function(e){
+    if(!e.currentTarget.contains(e.relatedTarget))
+      e.currentTarget.classList.remove('drag-over');
+  };
+  window.ckDrop=function(pos,e){
+    e.preventDefault();
+    if(_ckDragFrom===null||_ckDragFrom===pos)return;
+    const o=[..._ckColOrder];
+    const [moved]=o.splice(_ckDragFrom,1);
+    o.splice(pos,0,moved);
+    _ckColOrder=o;
+    _ckColWidths=[];
+    _ckDragFrom=null;
+    renderChecklist();
+  };
+  window.ckDragEnd=function(){
+    _ckDragFrom=null;
+    document.querySelectorAll('.ck-day').forEach(c=>c.classList.remove('dragging','drag-over'));
+  };
+  window.ckResetLayout=function(){
+    _ckColOrder=[0,1,2,3,4,5,6];
+    _ckColWidths=[];
+    renderChecklist();
   };
 
   window.ckNavWeek=function(dir){
