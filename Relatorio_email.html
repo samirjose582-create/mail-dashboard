@@ -759,6 +759,11 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-task-del{background:none;border:none;color:transparent;font-size:.65rem;cursor:pointer;padding:0;transition:color .12s;line-height:1;flex-shrink:0;}
 .ck-task:hover .ck-task-del{color:rgba(248,113,113,.45);}
 .ck-task-del:hover{color:#f87171!important;}
+.ck-task-edit{background:none;border:none;color:transparent;font-size:.62rem;cursor:pointer;padding:0;transition:color .12s;line-height:1;flex-shrink:0;}
+.ck-task:hover .ck-task-edit{color:rgba(56,189,248,.4);}
+.ck-task-edit:hover{color:#38bdf8!important;}
+.ck-prio{cursor:pointer;transition:opacity .12s,filter .12s;}
+.ck-prio:hover{opacity:.75;filter:brightness(1.3);}
 .ck-task-bottom{display:flex;align-items:center;gap:4px;}
 .ck-prio{font-size:.49rem;font-weight:700;padding:1px 4px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;}
 .ck-prio.alta{background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.22);}
@@ -1485,12 +1490,13 @@ function applyFilters(){
     return `<div class="ck-task${t.done?' done':''}" id="ckt-${t.id}">
       <div class="ck-task-top">
         <div class="ck-chk${t.done?' checked':''}" onclick="ckToggle('${wk}',${di},'${t.id}')"></div>
-        <div class="ck-task-text" ondblclick="ckEdit('${wk}',${di},'${t.id}')">${t.text}</div>
+        <div class="ck-task-text" ondblclick="ckEdit('${wk}',${di},'${t.id}')" title="Duplo-clique para editar">${t.text}</div>
+        <button class="ck-task-edit" onclick="ckEdit('${wk}',${di},'${t.id}')" title="Editar">✎</button>
         <button class="ck-task-del" onclick="ckDel('${wk}',${di},'${t.id}')" title="Apagar">✕</button>
       </div>
       <div class="ck-task-bottom">
-        <span class="${pc}">${ckPrioLabel(t.prio)}</span>
-        ${t.note?`<span style="font-size:.55rem;color:var(--text-muted);font-style:italic">${t.note}</span>`:''}
+        <span class="${pc}" onclick="ckCyclePrio('${wk}',${di},'${t.id}')" title="Clique para mudar prioridade">${ckPrioLabel(t.prio)}</span>
+        ${t.note?`<span style="font-size:.55rem;color:var(--text-muted);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px" title="${t.note}">${t.note}</span>`:''}
       </div>
     </div>`;
   }
@@ -1813,6 +1819,21 @@ function applyFilters(){
   };
 
   window.ckEdit=function(wk,di,id){ckOpenModal(wk,di,id);};
+
+  window.ckCyclePrio=function(wk,di,id){
+    const order=['media','alta','baixa','meta'];
+    const data=ckLoad();
+    const t=(data[wk]||[]).find(x=>x.id===id);
+    if(!t)return;
+    t.prio=order[(order.indexOf(t.prio)+1)%order.length];
+    ckSave(data);
+    // Update DOM directly — no full re-render needed
+    const el=document.getElementById(`ckt-${id}`);
+    if(el){
+      const sp=el.querySelector('.ck-prio');
+      if(sp){sp.className=`ck-prio ${t.prio}`;sp.textContent=ckPrioLabel(t.prio);}
+    }
+  };
 
   // ── VOZ ──────────────────────────────────────────────────────────────────────
   function ckStopVoice(){
