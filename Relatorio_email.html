@@ -1062,6 +1062,7 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 </div>
 <div class="analytics-section" id="analytics-section"></div>
 <div class="page-footer" id="page-footer"></div>
+<div id="ck-calendar" class="ck-calendar" style="display:none;max-width:960px;margin:0 auto;padding:0 24px 32px;"></div>
 <div class="print-section"><div id="print-content"></div></div>
 </div>
 
@@ -1539,6 +1540,7 @@ function switchTab(tab){
   else if(tab==='escrever'){setTimeout(()=>{initContactSearch();initComposerResize();if(!_peopleCache)loadPeople();},80);}
   document.body.classList.toggle('ck-active',tab==='checklist');
   if(tab==='checklist'){renderChecklist();}
+  document.getElementById('ck-calendar').style.display=tab==='checklist'?'':'none';
   document.getElementById('analytics-section').style.display=tab==='checklist'?'none':'';
 }
 function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();}
@@ -1735,7 +1737,6 @@ function applyFilters(){
         </div>
         <div id="ck-day-exp-inline" class="ck-exp-inline-wrap"></div>
       </div>
-      <div id="ck-calendar" class="ck-calendar"></div>
     </div>`;
 
     _ckCurrentWk=wk;
