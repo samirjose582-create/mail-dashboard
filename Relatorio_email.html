@@ -813,7 +813,7 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-day-hdr:hover .ck-day-expand-btn,.ck-day-expand-btn:hover{color:#38bdf8!important;}
 /* ── Vista expandida do dia ── */
 .ck-day-exp-bg{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);animation:ck-fade-in .2s ease;}
-.ck-day-exp{background:linear-gradient(150deg,#07101f,#0b1525 55%,#09122a);border:1px solid rgba(56,189,248,.2);border-radius:22px;width:min(640px,96vw);max-height:90vh;display:flex;flex-direction:column;box-shadow:0 40px 100px rgba(0,0,0,.85),0 0 80px rgba(56,189,248,.04);animation:ck-modal-in .28s cubic-bezier(.34,1.56,.64,1);overflow:hidden;}
+.ck-day-exp{background:linear-gradient(150deg,#060d1b,#091422 55%,#070f20);background-image:repeating-linear-gradient(rgba(56,189,248,.018) 0,rgba(56,189,248,.018) 1px,transparent 1px,transparent 44px),repeating-linear-gradient(90deg,rgba(56,189,248,.018) 0,rgba(56,189,248,.018) 1px,transparent 1px,transparent 44px);border:1px solid rgba(56,189,248,.25);border-radius:22px;width:min(660px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 50px 120px rgba(0,0,0,.9),0 0 100px rgba(56,189,248,.05),inset 0 1px 0 rgba(255,255,255,.04);animation:ck-modal-in .28s cubic-bezier(.34,1.56,.64,1);overflow:hidden;}
 .ck-day-exp.today{border-color:rgba(56,189,248,.4);box-shadow:0 40px 100px rgba(0,0,0,.85),0 0 50px rgba(56,189,248,.08);}
 .ck-exp-hdr{display:flex;align-items:center;gap:16px;padding:18px 22px 14px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
 .ck-exp-hdr-info{flex:1;min-width:0;}
@@ -822,10 +822,13 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-exp-today-badge{font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:2px 7px;border-radius:4px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:#38bdf8;display:inline-block;margin-top:4px;}
 .ck-exp-close{background:none;border:1px solid rgba(255,255,255,.1);color:var(--text-muted);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:.7rem;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .ck-exp-close:hover{border-color:rgba(248,113,113,.4);color:#f87171;background:rgba(248,113,113,.04);}
-.ck-exp-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0;}
-.ck-exp-stat{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:6px 4px;text-align:center;}
-.ck-exp-sn{font-size:.95rem;font-weight:800;font-family:var(--mono);display:block;}
-.ck-exp-sl{font-size:.49rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-top:1px;}
+.ck-exp-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0;}
+.ck-exp-stat{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:9px 4px 7px;text-align:center;position:relative;overflow:hidden;transition:border-color .2s,background .2s;}
+.ck-exp-stat:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);}
+.ck-exp-stat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;opacity:.6;}
+.ck-exp-stat:nth-child(1)::after{background:#f87171;}.ck-exp-stat:nth-child(2)::after{background:#fb923c;}.ck-exp-stat:nth-child(3)::after{background:#38bdf8;}.ck-exp-stat:nth-child(4)::after{background:#c084fc;}.ck-exp-stat:nth-child(5)::after{background:#4ade80;}.ck-exp-stat:nth-child(6)::after{background:#64748b;}
+.ck-exp-sn{font-size:1.05rem;font-weight:800;font-family:var(--mono);display:block;line-height:1;}
+.ck-exp-sl{font-size:.46rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-top:3px;}
 .ck-exp-tasks{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:6px;min-height:80px;scrollbar-width:thin;scrollbar-color:rgba(56,189,248,.2) transparent;}
 .ck-exp-tasks::-webkit-scrollbar{width:3px}.ck-exp-tasks::-webkit-scrollbar-thumb{background:rgba(56,189,248,.2);border-radius:4px;}
 .ck-exp-empty{text-align:center;padding:36px 20px;font-size:.7rem;color:rgba(255,255,255,.18);font-style:italic;}
@@ -843,8 +846,32 @@ body.ck-active .content{max-width:100%;padding:8px 16px;}
 .ck-exp-tk-btn.del:hover{border-color:rgba(248,113,113,.4);color:#f87171;}
 .ck-exp-tk-bottom{display:flex;align-items:center;gap:6px;padding-left:24px;}
 .ck-exp-tk-note{font-size:.65rem;color:var(--text-muted);font-style:italic;}
-.ck-exp-add{padding:10px 14px 8px;border-top:1px solid rgba(255,255,255,.05);background:rgba(0,0,0,.1);flex-shrink:0;}
-.ck-exp-footer{display:flex;gap:8px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.05);justify-content:space-between;flex-shrink:0;}
+/* ── Priority-colored task left borders ── */
+.ck-exp-task[data-p="alta"]{border-left:2px solid rgba(248,113,113,.45)!important;padding-left:10px;}
+.ck-exp-task[data-p="media"]{border-left:2px solid rgba(251,146,60,.45)!important;padding-left:10px;}
+.ck-exp-task[data-p="baixa"]{border-left:2px solid rgba(56,189,248,.45)!important;padding-left:10px;}
+.ck-exp-task[data-p="meta"]{border-left:2px solid rgba(192,132,252,.45)!important;padding-left:10px;}
+/* ── Redesigned add section ── */
+.ck-exp-add{padding:18px 20px 14px;border-top:1px solid rgba(56,189,248,.08);background:linear-gradient(180deg,rgba(0,0,0,.25) 0%,rgba(56,189,248,.02) 100%);flex-shrink:0;}
+.ck-exp-add-label{font-size:.48rem;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;color:rgba(56,189,248,.4);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.ck-exp-add-label::before,.ck-exp-add-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.12),transparent);}
+.ck-exp-prio-row{display:flex;gap:6px;margin-bottom:14px;}
+.ck-exp-prio-chip{flex:1;padding:7px 2px;border-radius:9px;border:1px solid transparent;background:rgba(255,255,255,.025);cursor:pointer;text-align:center;transition:all .2s;font-size:.52rem;font-weight:700;letter-spacing:.4px;text-transform:uppercase;font-family:'Inter',sans-serif;}
+.ck-exp-prio-chip.alta{border-color:rgba(248,113,113,.15);color:rgba(248,113,113,.4);}
+.ck-exp-prio-chip.alta.sel,.ck-exp-prio-chip.alta:hover{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.55);color:#f87171;box-shadow:0 0 14px rgba(248,113,113,.12),inset 0 1px 0 rgba(248,113,113,.1);}
+.ck-exp-prio-chip.media{border-color:rgba(251,146,60,.15);color:rgba(251,146,60,.4);}
+.ck-exp-prio-chip.media.sel,.ck-exp-prio-chip.media:hover{background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.55);color:#fb923c;box-shadow:0 0 14px rgba(251,146,60,.12),inset 0 1px 0 rgba(251,146,60,.1);}
+.ck-exp-prio-chip.baixa{border-color:rgba(56,189,248,.15);color:rgba(56,189,248,.4);}
+.ck-exp-prio-chip.baixa.sel,.ck-exp-prio-chip.baixa:hover{background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.55);color:#38bdf8;box-shadow:0 0 14px rgba(56,189,248,.12),inset 0 1px 0 rgba(56,189,248,.1);}
+.ck-exp-prio-chip.meta{border-color:rgba(192,132,252,.15);color:rgba(192,132,252,.4);}
+.ck-exp-prio-chip.meta.sel,.ck-exp-prio-chip.meta:hover{background:rgba(192,132,252,.1);border-color:rgba(192,132,252,.55);color:#c084fc;box-shadow:0 0 14px rgba(192,132,252,.12),inset 0 1px 0 rgba(192,132,252,.1);}
+.ck-exp-inp-row{display:flex;gap:8px;align-items:center;}
+.ck-exp-inp-wrap{flex:1;position:relative;display:flex;align-items:center;}
+.ck-exp-inp-wrap::before{content:'›';position:absolute;left:13px;color:rgba(56,189,248,.38);font-size:1.15rem;line-height:1;pointer-events:none;z-index:1;}
+.ck-exp-inp-field{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(56,189,248,.14);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:.8rem;padding:11px 12px 11px 30px;outline:none;transition:border-color .2s,box-shadow .2s;}
+.ck-exp-inp-field:focus{border-color:rgba(56,189,248,.45);box-shadow:0 0 0 3px rgba(56,189,248,.07),0 0 24px rgba(56,189,248,.06);}
+.ck-exp-inp-field::placeholder{color:rgba(255,255,255,.2);}
+.ck-exp-footer{display:flex;gap:8px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.04);justify-content:space-between;flex-shrink:0;background:rgba(0,0,0,.1);}
 /* ── ANALYTICS SECTION (rodapé permanente) ── */
 .analytics-section{max-width:960px;margin:0 auto;padding:0 24px 32px;}
 .analytics-divider{display:flex;align-items:center;gap:12px;margin:8px 0 18px;padding-top:18px;border-top:1px solid var(--border);}
@@ -1885,7 +1912,7 @@ function applyFilters(){
   // ── VISTA EXPANDIDA DO DIA ─────────────────────────────────────────────────
   function _ckExpTaskCard(t,wk,di){
     const labels={alta:'Alta',media:'Média',baixa:'Baixa',meta:'Meta'};
-    return `<div class="ck-exp-task${t.done?' done':''}" id="ck-exp-t-${t.id}">
+    return `<div class="ck-exp-task${t.done?' done':''}" id="ck-exp-t-${t.id}" data-p="${t.prio}">
       <div class="ck-exp-tk-top">
         <div class="ck-exp-chk${t.done?' checked':''}" onclick="ckToggle('${wk}',${di},'${t.id}')"></div>
         <div class="ck-exp-tk-text">${t.text}</div>
@@ -1944,14 +1971,16 @@ function applyFilters(){
         ${tasks.length?tasks.map(t=>_ckExpTaskCard(t,wk,di)).join(''):'<div class="ck-exp-empty">Nenhuma tarefa para este dia</div>'}
       </div>
       <div class="ck-exp-add">
-        <div class="ck-q-prios">
-          ${['media','alta','baixa','meta'].map(p=>`<div class="ck-q-dot${p===curPrio?' sel':''}" data-p="${p}"
-            id="ck-edot-${p}" onclick="ckExpSetPrio(${di},'${p}')" title="${prioLabels[p]}"></div>`).join('')}
-          <span class="ck-q-dot-lbl" id="ck-exp-prio-lbl">${prioLabels[curPrio]}</span>
+        <div class="ck-exp-add-label">Nova Tarefa</div>
+        <div class="ck-exp-prio-row">
+          ${['alta','media','baixa','meta'].map(p=>`<button class="ck-exp-prio-chip ${p}${p===curPrio?' sel':''}" data-p="${p}"
+            onclick="ckExpSetPrio(${di},'${p}')">${p==='alta'?'▲ Alta':p==='media'?'● Média':p==='baixa'?'▼ Baixa':'★ Meta'}</button>`).join('')}
         </div>
-        <div class="ck-q-row">
-          <input class="ck-q-inp" id="ck-exp-inp" placeholder="Nova tarefa… Enter para adicionar"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ckExpAdd('${wk}',${di});}">
+        <div class="ck-exp-inp-row">
+          <div class="ck-exp-inp-wrap">
+            <input class="ck-exp-inp-field" id="ck-exp-inp" placeholder="Descreva a tarefa…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ckExpAdd('${wk}',${di});}">
+          </div>
           <button class="ck-q-mic" id="ck-exp-mic" onclick="ckExpVoice('${wk}',${di})" title="Voz">🎙</button>
           <button class="ck-q-detail" onclick="ckOpenModal('${wk}',${di})" title="Detalhes">⋯</button>
         </div>
@@ -1979,9 +2008,7 @@ function applyFilters(){
 
   window.ckExpSetPrio=function(di,prio){
     ckSetPrio(di,prio);
-    const labels={alta:'Alta',media:'Média',baixa:'Baixa',meta:'Meta'};
-    document.querySelectorAll('#ck-day-exp-bg .ck-q-dot').forEach(d=>d.classList.toggle('sel',d.dataset.p===prio));
-    const lbl=document.getElementById('ck-exp-prio-lbl');if(lbl)lbl.textContent=labels[prio]||prio;
+    document.querySelectorAll('#ck-day-exp-bg .ck-exp-prio-chip').forEach(c=>c.classList.toggle('sel',c.dataset.p===prio));
   };
 
   window.ckExpAdd=function(wk,di){
