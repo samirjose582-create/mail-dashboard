@@ -532,9 +532,6 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .eact{background:none;border:1px solid var(--border);color:var(--text-muted);padding:4px 11px;border-radius:6px;cursor:pointer;font-size:.69rem;font-weight:600;transition:all .15s;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;}
 .eact.reply:hover{background:var(--blue-dim);border-color:rgba(56,189,248,.3);color:var(--blue);}
 .eact.reply-all:hover{background:var(--green-dim);border-color:rgba(74,222,128,.3);color:var(--green);}
-.eact.unflag{border-color:rgba(251,146,60,.25);color:rgba(251,146,60,.7);}
-.eact.unflag:hover{background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.5);color:#fb923c;}
-.eact.unflag:disabled{opacity:.4;cursor:default;}
 .eact.fwd:hover{background:var(--orange-dim);border-color:rgba(251,146,60,.3);color:var(--orange);}
 .eact:disabled{opacity:.4;cursor:not-allowed;}
 .reply-ctx{display:flex;align-items:center;gap:9px;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:.75rem;color:var(--text-soft);}
@@ -1244,8 +1241,8 @@ function _showManualInstructions() {
 const REDIRECT_URI = window.location.origin + window.location.pathname;
 const CLIENT_ID    = '824bee9b-ef46-455a-bd6e-feb2541194b3';
 const TENANT_ID    = '279b025f-d911-4e9e-83ca-2bc53712b6d7';
-const SCOPES       = 'Mail.Read Mail.ReadWrite Mail.Send User.Read User.ReadBasic.All People.Read Calendars.Read OnlineMeetings.Read offline_access';
-const SCOPES_VER   = 'cal2'; // bump sempre que scopes mudam, para forçar re-login
+const SCOPES       = 'Mail.Read Mail.Send User.Read User.ReadBasic.All People.Read Calendars.Read OnlineMeetings.Read offline_access';
+const SCOPES_VER   = 'cal1'; // bump sempre que scopes mudam, para forçar re-login
 
 // ── PKCE HELPERS ──────────────────────────────────────────────────────────────
 async function pkceVerifier() {
@@ -1366,18 +1363,6 @@ async function graphGet(url, base='https://graph.microsoft.com/v1.0') {
   if (res.status === 401) { await getToken(); return null; }
   if (!res.ok) throw new Error(`Graph ${res.status}: ${await res.text()}`);
   return res.json();
-}
-
-async function graphPatch(url, body) {
-  const token = await getToken();
-  if (!token) return null;
-  const res = await fetch('https://graph.microsoft.com/v1.0' + url, {
-    method: 'PATCH',
-    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) throw new Error(`Graph PATCH ${res.status}: ${await res.text()}`);
-  return res.status === 204 ? null : res.json();
 }
 
 function mapMsg(m) {
@@ -1540,24 +1525,8 @@ function emailCard(e, extraCls=''){
       <button class="eact reply"     onclick="openReply('${esc(e.id)}','reply')"    >↩ Responder</button>
       <button class="eact reply-all" onclick="openReply('${esc(e.id)}','replyAll')" >↩↩ Resp. Todos</button>
       <button class="eact fwd"       onclick="openReply('${esc(e.id)}','forward')"  >➡ Encaminhar</button>
-      ${extraCls==='flagged'?`<button class="eact unflag" onclick="unflagEmail('${esc(e.id)}',this)">🚩 Remover sinalização</button>`:''}
     </div>
   </div>`;}
-
-async function unflagEmail(id, btn) {
-  btn.disabled = true;
-  btn.textContent = '…';
-  try {
-    await graphPatch(`/me/messages/${encodeURIComponent(id)}`, { flag: { flagStatus: 'notFlagged' } });
-    const card = btn.closest('.email-card');
-    if (card) { card.style.transition='opacity .3s'; card.style.opacity='0'; setTimeout(()=>card.remove(),300); }
-    DATA.flagged = DATA.flagged.filter(e => e.id !== id);
-  } catch(err) {
-    btn.disabled = false;
-    btn.textContent = '🚩 Remover sinalização';
-    alert('Erro ao remover sinalização: ' + err.message);
-  }
-}
 
 function sh(color,label,count){return `<div class="section-heading"><div class="sh-line"></div><h2 style="color:${color}">${label}</h2><span class="sh-count">${count}</span><div class="sh-line"></div></div>`;}
 function empty(icon,title,msg){return `<div class="empty"><div class="icon">${icon}</div><h3>${title}</h3><p>${msg}</p></div>`;}
