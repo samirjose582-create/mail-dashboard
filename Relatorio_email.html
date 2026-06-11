@@ -535,6 +535,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .eact.unflag{border-color:rgba(251,146,60,.25);color:rgba(251,146,60,.7);}
 .eact.unflag:hover{background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.5);color:#fb923c;}
 .eact.unflag:disabled{opacity:.4;cursor:default;}
+.eact.flag{border-color:rgba(251,146,60,.2);color:rgba(255,255,255,.35);}
+.eact.flag:hover{background:rgba(251,146,60,.09);border-color:rgba(251,146,60,.45);color:#fb923c;}
+.eact.flag:disabled{opacity:.4;cursor:default;}
 .eact.fwd:hover{background:var(--orange-dim);border-color:rgba(251,146,60,.3);color:var(--orange);}
 .eact:disabled{opacity:.4;cursor:not-allowed;}
 .reply-ctx{display:flex;align-items:center;gap:9px;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:.75rem;color:var(--text-soft);}
@@ -1540,9 +1543,30 @@ function emailCard(e, extraCls=''){
       <button class="eact reply"     onclick="openReply('${esc(e.id)}','reply')"    >↩ Responder</button>
       <button class="eact reply-all" onclick="openReply('${esc(e.id)}','replyAll')" >↩↩ Resp. Todos</button>
       <button class="eact fwd"       onclick="openReply('${esc(e.id)}','forward')"  >➡ Encaminhar</button>
-      ${extraCls==='flagged'?`<button class="eact unflag" onclick="unflagEmail('${esc(e.id)}',this)">🚩 Remover sinalização</button>`:''}
+      ${extraCls==='flagged'
+        ? `<button class="eact unflag" onclick="unflagEmail('${esc(e.id)}',this)">🚩 Remover sinalização</button>`
+        : `<button class="eact flag"   onclick="flagEmail('${esc(e.id)}',this)">🚩 Sinalizar</button>`
+      }
     </div>
   </div>`;}
+
+async function flagEmail(id, btn) {
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    await graphPatch(`/me/messages/${encodeURIComponent(id)}`, { flag: { flagStatus: 'flagged' } });
+    btn.textContent = '🚩 Sinalizado';
+    btn.classList.add('unflag');
+    btn.classList.remove('flag');
+    btn.onclick = () => unflagEmail(id, btn);
+    btn.disabled = false;
+    btn.textContent = '🚩 Remover sinalização';
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = '🚩 Sinalizar';
+    alert('Erro ao sinalizar: ' + err.message);
+  }
+}
 
 async function unflagEmail(id, btn) {
   btn.disabled = true;
