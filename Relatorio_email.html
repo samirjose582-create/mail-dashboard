@@ -3473,6 +3473,7 @@ function renderMeetingCal(){
   filtersHtml+=`</div>`;
 
   // ── Filtra eventos conforme aba seleccionada ─────────────────────────────────
+  const nowTs=Date.now();
   let filtered=[];
   if(calTeamsFilter==='hoje') filtered=CALENDAR_EVENTS.filter(e=>spDateStr(e.startDt)===todaySP);
   else if(calTeamsFilter==='amanha') filtered=CALENDAR_EVENTS.filter(e=>spDateStr(e.startDt)===tomorrowStr);
@@ -3482,6 +3483,8 @@ function renderMeetingCal(){
     const selStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(calSelDay).padStart(2,'0')}`;
     filtered=CALENDAR_EVENTS.filter(e=>spDateStr(e.startDt)===selStr);
   }
+  // Remove meetings that have already ended (list view only)
+  if(calViewMode==='lista') filtered=filtered.filter(e=>!e.endDt||new Date(e.endDt).getTime()>nowTs);
 
   // ── Header com status ────────────────────────────────────────────────────────
   let teamsHtml=`<div class="teams-header">
