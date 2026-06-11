@@ -2010,10 +2010,7 @@ function applyFilters(){
   function ckFmtDate(d){return d.getDate()+'/'+(d.getMonth()+1);}
 
   function ckTasksForDay(data,wk,di){
-    return (data[wk]||[]).filter(t=>t.di===di).sort((a,b)=>{
-      const po={alta:0,meta:1,media:2,baixa:3};
-      return (po[a.prio]??2)-(po[b.prio]??2);
-    });
+    return (data[wk]||[]).filter(t=>t.di===di);
   }
 
   function ckStats(data,wk){
