@@ -1630,7 +1630,7 @@ function emailCard(e, extraCls=''){
       <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}${isPinned?'<span class="pin-badge">FIXADO</span>':''}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
       <div class="email-from">De: <strong>${sn(e)}</strong> · <span style="font-family:var(--mono);font-size:.68rem">${e.sender||''}</span></div>
       ${s?`<div class="email-summary">${s}</div>`:''}
-      <div class="email-footer">${isU?'<span class="tag unread">UNREAD</span>':'<span class="tag read">READ</span>'}${e.hasAttachments?'<span class="tag attach">ANEXO</span>':''}${e.importance==='high'?'<span class="tag high">HIGH</span>':''}<a class="open-btn" href="${e.webLink||'#'}" target="_blank" onclick="event.stopPropagation()">↗ Abrir</a></div>
+      <div class="email-footer">${isU?'<span class="tag unread">UNREAD</span>':'<span class="tag read">READ</span>'}${e.hasAttachments?'<span class="tag attach">ANEXO</span>':''}${e.importance==='high'?'<span class="tag high">HIGH</span>':''}<span style="margin-left:auto;font-size:.68rem;color:var(--text-muted);font-family:var(--mono)">clique para ler ›</span></div>
     </div>
     <div class="email-actions" onclick="event.stopPropagation()">
       <button class="eact reply"     onclick="openReply('${esc(e.id)}','reply')"    >↩ Responder</button>
