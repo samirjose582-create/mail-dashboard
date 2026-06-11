@@ -177,6 +177,14 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .email-card.unread::before{background:var(--blue);}
 .email-card.high-prio::before{background:var(--red);}
 .email-card.flagged::before{background:var(--orange);}
+.email-card.pinned::before{background:#facc15;}
+.email-card.pinned{border-color:rgba(250,204,21,.25);}
+.pin-badge{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.03em;color:#facc15;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.3);border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle;}
+.eact.pin{border-color:rgba(250,204,21,.2);color:rgba(255,255,255,.35);}
+.eact.pin:hover{background:rgba(250,204,21,.09);border-color:rgba(250,204,21,.45);color:#facc15;}
+.eact.unpin{border-color:rgba(250,204,21,.3);color:rgba(250,204,21,.75);}
+.eact.unpin:hover{background:rgba(250,204,21,.12);border-color:rgba(250,204,21,.6);color:#facc15;}
+.eact.pin:disabled,.eact.unpin:disabled{opacity:.4;cursor:default;}
 .email-card:hover{border-color:var(--border2);background:var(--surface2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.4);}
 .email-inner{padding:13px 16px 13px 19px;}
 .email-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px;}
@@ -1499,6 +1507,10 @@ let currentTab='urgencias',currentFilter='all';
 let DATA={unread:[],read:[],flagged:[],total:0};
 let URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[];
 let refreshTimer=null;
+const PINNED_KEY='pinned_email_ids';
+let PINNED_IDS=new Set(JSON.parse(localStorage.getItem(PINNED_KEY)||'[]'));
+function savePinned(){localStorage.setItem(PINNED_KEY,JSON.stringify([...PINNED_IDS]));}
+function sortPinnedFirst(arr){return [...arr].sort((a,b)=>(PINNED_IDS.has(b.id)?1:0)-(PINNED_IDS.has(a.id)?1:0));}
 
 function buildDerived(){
   const all=[...DATA.unread,...DATA.read];
@@ -1537,10 +1549,10 @@ function hideLoading(){document.getElementById('loading-overlay').style.display=
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function emailCard(e, extraCls=''){
-  const isU=!e.isRead,base=e.importance==='high'?'high-prio':(isU?'unread':''),cls=[base,extraCls].filter(Boolean).join(' '),s=clean(e.summary),link=esc(e.webLink||'#');
+  const isU=!e.isRead,isPinned=PINNED_IDS.has(e.id),base=e.importance==='high'?'high-prio':(isU?'unread':''),cls=[base,extraCls,isPinned?'pinned':''].filter(Boolean).join(' '),s=clean(e.summary),link=esc(e.webLink||'#');
   return `<div class="email-card ${cls}" onclick="window.open('${link}','_blank')" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${(e.sender||'').toLowerCase()}" data-summary="${s.toLowerCase()}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}">
     <div class="email-inner">
-      <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
+      <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}${isPinned?'<span class="pin-badge">FIXADO</span>':''}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
       <div class="email-from">De: <strong>${sn(e)}</strong> · <span style="font-family:var(--mono);font-size:.68rem">${e.sender||''}</span></div>
       ${s?`<div class="email-summary">${s}</div>`:''}
       <div class="email-footer">${isU?'<span class="tag unread">UNREAD</span>':'<span class="tag read">READ</span>'}${e.hasAttachments?'<span class="tag attach">ANEXO</span>':''}${e.importance==='high'?'<span class="tag high">HIGH</span>':''}<a class="open-btn" href="${e.webLink||'#'}" target="_blank" onclick="event.stopPropagation()">↗ Abrir</a></div>
@@ -1552,6 +1564,10 @@ function emailCard(e, extraCls=''){
       ${extraCls==='flagged'
         ? `<button class="eact unflag" onclick="unflagEmail('${esc(e.id)}',this)">🚩 Remover sinalização</button>`
         : `<button class="eact flag"   onclick="flagEmail('${esc(e.id)}',this)">🚩 Sinalizar</button>`
+      }
+      ${isPinned
+        ? `<button class="eact unpin" onclick="unpinEmail('${esc(e.id)}',this)">📌 Desafixar</button>`
+        : `<button class="eact pin"   onclick="pinEmail('${esc(e.id)}',this)">📌 Fixar</button>`
       }
     </div>
   </div>`;}
@@ -1589,19 +1605,42 @@ async function unflagEmail(id, btn) {
   }
 }
 
+function pinEmail(id, btn) {
+  PINNED_IDS.add(id);
+  savePinned();
+  btn.className='eact unpin';
+  btn.onclick=()=>unpinEmail(id,btn);
+  btn.textContent='📌 Desafixar';
+  const card=btn.closest('.email-card');
+  if(card){card.classList.add('pinned');let sub=card.querySelector('.email-subject');if(sub&&!sub.querySelector('.pin-badge')){const b=document.createElement('span');b.className='pin-badge';b.textContent='FIXADO';sub.appendChild(b);}}
+  // move card to top of its panel
+  const panel=card?.closest('.email-panel');
+  if(panel&&card){const ref=panel.querySelector('.email-card');if(ref&&ref!==card)panel.insertBefore(card,ref);}
+}
+
+function unpinEmail(id, btn) {
+  PINNED_IDS.delete(id);
+  savePinned();
+  btn.className='eact pin';
+  btn.onclick=()=>pinEmail(id,btn);
+  btn.textContent='📌 Fixar';
+  const card=btn.closest('.email-card');
+  if(card){card.classList.remove('pinned');const badge=card.querySelector('.pin-badge');if(badge)badge.remove();}
+}
+
 function sh(color,label,count){return `<div class="section-heading"><div class="sh-line"></div><h2 style="color:${color}">${label}</h2><span class="sh-count">${count}</span><div class="sh-line"></div></div>`;}
 function empty(icon,title,msg){return `<div class="empty"><div class="icon">${icon}</div><h3>${title}</h3><p>${msg}</p></div>`;}
 
 function renderAll(){
   document.getElementById('panel-urgencias').innerHTML=URGENCIAS.length?sh('var(--red)','🔥 URGÊNCIAS DO DIA',URGENCIAS.length)+URGENCIAS.map(e=>`<div class="urgency-card" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`).join(''):empty('✓','Sem urgências','Nenhum e-mail crítico. Bom dia!');
-  document.getElementById('panel-unread').innerHTML=DATA.unread.length?sh('var(--blue)','📥 NÃO LIDOS',DATA.unread.length)+DATA.unread.map(emailCard).join(''):empty('📭','Inbox limpo','Nenhum e-mail não lido.');
+  document.getElementById('panel-unread').innerHTML=DATA.unread.length?sh('var(--blue)','📥 NÃO LIDOS',DATA.unread.length)+sortPinnedFirst(DATA.unread).map(emailCard).join(''):empty('📭','Inbox limpo','Nenhum e-mail não lido.');
   document.getElementById('panel-responder').innerHTML=RESPONDER.length?sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',RESPONDER.length)+RESPONDER.map(e=>`<div class="reply-card" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="reply-inner"><div class="reply-reason">↩ AGUARDA RESPOSTA</div><div class="reply-subject">${e.subject||''}</div><div class="reply-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="reply-snippet">${clean(e.summary)}</div><a class="reply-btn" href="${e.webLink||'#'}" target="_blank" onclick="event.stopPropagation()">↩ Responder</a></div></div>`).join(''):empty('✓','Nada a responder','');
   renderMeetingCal();
   const keys=Object.keys(PROJETOS).sort();
   document.getElementById('panel-projetos').innerHTML=keys.length?sh('var(--green)','🗂 PROJECTOS',keys.length)+keys.map(proj=>{const emails=PROJETOS[proj],hasU=emails.some(e=>!e.isRead),uid='proj_'+proj.replace(/[^a-z0-9]/gi,'_');return `<div class="project-group" id="pg_${uid}"><div class="project-header" onclick="toggleProject('${uid}')"><span class="project-code">${proj}</span><span class="project-name">${emails[0]?.subject?.split('|').slice(2).join('|').trim().slice(0,55)||''}</span><span class="project-count">${emails.length} msg${hasU?` · <span style="color:var(--blue)">${emails.filter(e=>!e.isRead).length} unread</span>`:''}</span><span class="project-chevron">›</span></div><div class="project-emails" id="${uid}">${emails.map(emailCard).join('')}</div></div>`}).join(''):empty('🗂','Sem projectos','');
-  document.getElementById('panel-fixados').innerHTML=DATA.flagged.length?sh('var(--orange)','🚩 SINALIZADOS',DATA.flagged.length)+DATA.flagged.map(e=>emailCard(e,'flagged')).join(''):empty('🚩','Nenhum sinalizado','Marque e-mails com 🚩 no Outlook para aparecerem aqui.');
-  document.getElementById('panel-lidos').innerHTML=DATA.read.length?sh('var(--text-soft)','✓ LIDOS',DATA.read.length)+DATA.read.map(emailCard).join(''):empty('✓','Nenhum lido','');
-  const allE=[...DATA.unread,...DATA.read];
+  document.getElementById('panel-fixados').innerHTML=DATA.flagged.length?sh('var(--orange)','🚩 SINALIZADOS',DATA.flagged.length)+sortPinnedFirst(DATA.flagged).map(e=>emailCard(e,'flagged')).join(''):empty('🚩','Nenhum sinalizado','Marque e-mails com 🚩 no Outlook para aparecerem aqui.');
+  document.getElementById('panel-lidos').innerHTML=DATA.read.length?sh('var(--text-soft)','✓ LIDOS',DATA.read.length)+sortPinnedFirst(DATA.read).map(emailCard).join(''):empty('✓','Nenhum lido','');
+  const allE=sortPinnedFirst([...DATA.unread,...DATA.read]);
   document.getElementById('panel-todos').innerHTML=allE.length?sh('var(--text-soft)','≡ TODOS',allE.length)+allE.map(emailCard).join(''):empty('📋','Vazio','');
   applyFilters();
   setTimeout(renderAnalytics,80);
