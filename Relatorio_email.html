@@ -193,6 +193,49 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .eact.unpin{border-color:rgba(250,204,21,.3);color:rgba(250,204,21,.75);}
 .eact.unpin:hover{background:rgba(250,204,21,.12);border-color:rgba(250,204,21,.6);color:#facc15;}
 .eact.pin:disabled,.eact.unpin:disabled{opacity:.4;cursor:default;}
+/* ── EMAIL READER MODAL ─────────────────────────────────────────────────── */
+#email-reader-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.78);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:16px;}
+#email-reader{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:860px;height:92vh;max-height:920px;display:flex;flex-direction:column;box-shadow:0 32px 100px rgba(0,0,0,.7);overflow:hidden;position:relative;animation:erSlideUp .22s cubic-bezier(.34,1.12,.64,1);}
+@keyframes erSlideUp{from{opacity:0;transform:translateY(28px) scale(.97);}to{opacity:1;transform:none;}}
+#email-reader::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--purple),var(--blue));background-size:200%;animation:shimmer 3s linear infinite;z-index:1;}
+.er-header{padding:16px 20px 13px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;flex-shrink:0;}
+.er-subject{flex:1;font-size:1rem;font-weight:700;color:var(--text);line-height:1.4;word-break:break-word;}
+.er-close{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);font-size:.9rem;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;margin-top:1px;}
+.er-close:hover{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.4);color:#ef4444;}
+.er-meta{padding:10px 20px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:5px;background:rgba(0,0,0,.18);flex-shrink:0;}
+.er-meta-row{display:flex;align-items:baseline;gap:8px;font-size:.76rem;}
+.er-meta-label{color:var(--text-muted);font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;min-width:30px;flex-shrink:0;}
+.er-meta-val{color:var(--text);line-height:1.45;flex:1;}
+.er-meta-date{color:var(--text-muted);font-family:var(--mono);font-size:.68rem;white-space:nowrap;margin-left:auto;padding-left:12px;}
+.er-tagrow{padding:7px 20px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:rgba(0,0,0,.1);flex-shrink:0;}
+.er-body{flex:1;overflow:hidden;position:relative;min-height:0;}
+#er-iframe{width:100%;height:100%;border:none;background:#fff;display:none;}
+.er-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--surface);}
+.er-loading-spinner{width:36px;height:36px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .75s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.er-loading-text{color:var(--text-muted);font-size:.78rem;font-family:var(--mono);letter-spacing:.04em;}
+.er-error{color:var(--red,#ef4444);font-family:var(--mono);font-size:.78rem;text-align:center;padding:20px;}
+.er-attachments{border-top:1px solid var(--border);padding:9px 20px;display:none;gap:7px;flex-wrap:wrap;align-items:center;flex-shrink:0;background:rgba(0,0,0,.1);}
+.er-attachments.visible{display:flex;}
+.er-att-label{color:var(--text-muted);font-size:.7rem;font-family:var(--mono);letter-spacing:.05em;flex-shrink:0;}
+.er-att-chip{background:rgba(99,179,237,.07);border:1px solid rgba(99,179,237,.2);border-radius:6px;padding:3px 10px;font-size:.72rem;color:var(--blue);display:flex;align-items:center;gap:5px;}
+.er-att-chip span{opacity:.5;font-family:var(--mono);font-size:.66rem;}
+.er-actions{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:7px;flex-wrap:wrap;align-items:center;background:rgba(0,0,0,.12);flex-shrink:0;}
+.er-act{background:none;border:1px solid var(--border);border-radius:7px;color:var(--text-muted);font-size:.75rem;font-weight:600;padding:6px 13px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.er-act:hover{border-color:var(--border2);color:var(--text);background:rgba(255,255,255,.04);}
+.er-act.er-primary{border-color:rgba(99,179,237,.3);color:rgba(99,179,237,.85);}
+.er-act.er-primary:hover{background:rgba(99,179,237,.08);border-color:rgba(99,179,237,.55);color:var(--blue);}
+.er-act.er-flag{border-color:rgba(251,146,60,.25);color:rgba(251,146,60,.75);}
+.er-act.er-flag:hover{background:rgba(251,146,60,.08);border-color:rgba(251,146,60,.5);color:#fb923c;}
+.er-act.er-unflag{border-color:rgba(251,146,60,.4);color:#fb923c;}
+.er-act.er-unflag:hover{background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.6);}
+.er-act.er-pin{border-color:rgba(250,204,21,.25);color:rgba(250,204,21,.75);}
+.er-act.er-pin:hover{background:rgba(250,204,21,.08);border-color:rgba(250,204,21,.5);color:#facc15;}
+.er-act.er-unpin{border-color:rgba(250,204,21,.4);color:#facc15;}
+.er-act.er-unpin:hover{background:rgba(250,204,21,.1);border-color:rgba(250,204,21,.6);}
+.er-act.er-ext{margin-left:auto;font-size:.7rem;opacity:.6;}
+.er-act.er-ext:hover{opacity:1;}
+.er-act:disabled{opacity:.35;cursor:default;}
 .email-card:hover{border-color:var(--border2);background:var(--surface2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.4);}
 .email-inner{padding:13px 16px 13px 19px;}
 .email-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px;}
@@ -1121,6 +1164,27 @@ body.ck-active{padding-bottom:54px;}
 <div id="ck-calendar" class="ck-calendar" style="display:none;"></div>
 <div class="page-footer" id="page-footer"></div>
 <div class="print-section"><div id="print-content"></div></div>
+
+<!-- EMAIL READER MODAL -->
+<div id="email-reader-overlay" onclick="if(event.target===this)closeEmailReader()">
+  <div id="email-reader">
+    <div class="er-header">
+      <div class="er-subject" id="er-subject">A carregar...</div>
+      <button class="er-close" onclick="closeEmailReader()" title="Fechar (Esc)">✕</button>
+    </div>
+    <div class="er-meta" id="er-meta"></div>
+    <div class="er-tagrow" id="er-tagrow" style="display:none"></div>
+    <div class="er-body">
+      <div class="er-loading" id="er-loading">
+        <div class="er-loading-spinner"></div>
+        <div class="er-loading-text">A carregar e-mail...</div>
+      </div>
+      <iframe id="er-iframe" sandbox="allow-same-origin allow-popups" title="Conteúdo do e-mail"></iframe>
+    </div>
+    <div class="er-attachments" id="er-attachments"></div>
+    <div class="er-actions" id="er-actions"></div>
+  </div>
+</div>
 </div>
 
 <script>
@@ -1519,6 +1583,9 @@ const PINNED_KEY='pinned_email_ids';
 let PINNED_IDS=new Set(JSON.parse(localStorage.getItem(PINNED_KEY)||'[]'));
 function savePinned(){localStorage.setItem(PINNED_KEY,JSON.stringify([...PINNED_IDS]));}
 function sortPinnedFirst(arr){return [...arr].sort((a,b)=>(PINNED_IDS.has(b.id)?1:0)-(PINNED_IDS.has(a.id)?1:0));}
+let _emailMap={};
+let _erCurrentEmail=null;
+function _buildEmailMap(){_emailMap={};const seen=new Set();for(const e of[...DATA.unread,...DATA.read,...DATA.flagged]){if(!seen.has(e.id)){_emailMap[e.id]=e;seen.add(e.id);}}}
 
 function buildDerived(){
   const all=[...DATA.unread,...DATA.read];
@@ -1558,7 +1625,7 @@ function hideLoading(){document.getElementById('loading-overlay').style.display=
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function emailCard(e, extraCls=''){
   const isU=!e.isRead,isPinned=PINNED_IDS.has(e.id),base=e.importance==='high'?'high-prio':(isU?'unread':''),cls=[base,extraCls,isPinned?'pinned':''].filter(Boolean).join(' '),s=clean(e.summary),link=esc(e.webLink||'#');
-  return `<div class="email-card ${cls}" onclick="window.open('${link}','_blank')" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${(e.sender||'').toLowerCase()}" data-summary="${s.toLowerCase()}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}">
+  return `<div class="email-card ${cls}" onclick="openEmailReader('${esc(e.id)}')" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${(e.sender||'').toLowerCase()}" data-summary="${s.toLowerCase()}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}">
     <div class="email-inner">
       <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}${isPinned?'<span class="pin-badge">FIXADO</span>':''}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
       <div class="email-from">De: <strong>${sn(e)}</strong> · <span style="font-family:var(--mono);font-size:.68rem">${e.sender||''}</span></div>
@@ -1640,6 +1707,7 @@ function sh(color,label,count){return `<div class="section-heading"><div class="
 function empty(icon,title,msg){return `<div class="empty"><div class="icon">${icon}</div><h3>${title}</h3><p>${msg}</p></div>`;}
 
 function renderAll(){
+  _buildEmailMap();
   document.getElementById('panel-urgencias').innerHTML=URGENCIAS.length?sh('var(--red)','🔥 URGÊNCIAS DO DIA',URGENCIAS.length)+URGENCIAS.map(e=>`<div class="urgency-card" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`).join(''):empty('✓','Sem urgências','Nenhum e-mail crítico. Bom dia!');
   {
     const pinnedAll=(()=>{const seen=new Set(),arr=[...DATA.unread,...DATA.read,...DATA.flagged];return arr.filter(e=>PINNED_IDS.has(e.id)&&!seen.has(e.id)&&seen.add(e.id));})();
@@ -1672,6 +1740,165 @@ function switchUnreadSub(tab, btn){
   document.getElementById('usub-pinned').style.display=tab==='pinned'?'':'none';
 }
 function toggleProject(uid){const el=document.getElementById(uid),pg=document.getElementById('pg_'+uid);if(el){el.classList.toggle('open');if(pg)pg.classList.toggle('open');}}
+
+// ── EMAIL READER ──────────────────────────────────────────────────────────────
+async function openEmailReader(id){
+  const cached=_emailMap[id]||{id};
+  _erCurrentEmail={...cached};
+  const overlay=document.getElementById('email-reader-overlay');
+  overlay.style.display='flex';
+  // reset state
+  const iframeEl=document.getElementById('er-iframe');
+  iframeEl.style.display='none';
+  try{const d=iframeEl.contentDocument||iframeEl.contentWindow?.document;if(d){d.open();d.write('');d.close();}}catch(e){}
+  document.getElementById('er-loading').style.display='flex';
+  document.getElementById('er-loading').innerHTML='<div class="er-loading-spinner"></div><div class="er-loading-text">A carregar e-mail...</div>';
+  document.getElementById('er-tagrow').style.display='none';
+  document.getElementById('er-tagrow').innerHTML='';
+  document.getElementById('er-attachments').className='er-attachments';
+  document.getElementById('er-attachments').innerHTML='';
+  // show cached info immediately
+  document.getElementById('er-subject').textContent=(cached.importance==='high'?'⚠ ':'')+(cached.subject||'A carregar...');
+  document.getElementById('er-meta').innerHTML=cached.senderName||cached.sender?`
+    <div class="er-meta-row">
+      <span class="er-meta-label">DE</span>
+      <span class="er-meta-val"><strong>${cached.senderName||''}</strong>${cached.senderName&&cached.sender?` <span style="opacity:.5;font-family:var(--mono);font-size:.68rem">&lt;${cached.sender}&gt;</span>`:cached.sender||''}</span>
+      <span class="er-meta-date">${fmtTime(cached.receivedDateTime)}</span>
+    </div>`:'';
+  _erRenderActions(cached,null);
+  // fetch full message
+  try{
+    const msg=await graphGet(`/me/messages/${encodeURIComponent(id)}?$select=id,subject,from,toRecipients,ccRecipients,body,receivedDateTime,hasAttachments,importance,isRead,flag,webLink`);
+    _erCurrentEmail={...cached,...msg};
+    // subject
+    document.getElementById('er-subject').textContent=(msg.importance==='high'?'⚠ ':'')+(msg.subject||'(sem assunto)');
+    // meta
+    const from=msg.from?.emailAddress;
+    const toList=(msg.toRecipients||[]).map(r=>r.emailAddress?.name||r.emailAddress?.address||'').filter(Boolean).join(', ');
+    const ccList=(msg.ccRecipients||[]).map(r=>r.emailAddress?.name||r.emailAddress?.address||'').filter(Boolean).join(', ');
+    const dt=new Date(msg.receivedDateTime);
+    const dtStr=dt.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric',timeZone:'America/Sao_Paulo'})+' · '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
+    document.getElementById('er-meta').innerHTML=`
+      <div class="er-meta-row">
+        <span class="er-meta-label">DE</span>
+        <span class="er-meta-val"><strong>${from?.name||from?.address||''}</strong>${from?.name?` <span style="opacity:.5;font-family:var(--mono);font-size:.68rem">&lt;${from?.address||''}&gt;</span>`:''}</span>
+        <span class="er-meta-date">${dtStr}</span>
+      </div>
+      ${toList?`<div class="er-meta-row"><span class="er-meta-label">PARA</span><span class="er-meta-val">${toList}</span></div>`:''}
+      ${ccList?`<div class="er-meta-row"><span class="er-meta-label">CC</span><span class="er-meta-val">${ccList}</span></div>`:''}`;
+    // tags
+    const tags=[];
+    if(!msg.isRead)tags.push('<span class="tag unread">UNREAD</span>');
+    if(msg.importance==='high')tags.push('<span class="tag high">HIGH</span>');
+    if(msg.hasAttachments)tags.push('<span class="tag attach">📎 ANEXO</span>');
+    if(msg.flag?.flagStatus==='flagged')tags.push('<span class="tag" style="background:rgba(251,146,60,.1);color:#fb923c;border-color:rgba(251,146,60,.3)">🚩 SINALIZADO</span>');
+    if(PINNED_IDS.has(id))tags.push('<span class="tag" style="background:rgba(250,204,21,.1);color:#facc15;border-color:rgba(250,204,21,.3)">📌 FIXADO</span>');
+    if(tags.length){const tr=document.getElementById('er-tagrow');tr.style.display='flex';tr.innerHTML=tags.join('');}
+    // actions
+    _erRenderActions(msg,msg.flag?.flagStatus==='flagged');
+    // attachments
+    if(msg.hasAttachments){
+      try{
+        const att=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments?$select=name,size,contentType`);
+        const files=(att.value||[]).filter(f=>f.contentType!=='application/ms-tnef');
+        if(files.length){
+          const el=document.getElementById('er-attachments');
+          el.className='er-attachments visible';
+          el.innerHTML=`<span class="er-att-label">📎 ANEXOS</span>`+files.map(f=>`<span class="er-att-chip">📄 ${f.name}<span>${(f.size/1024).toFixed(0)} KB</span></span>`).join('');
+        }
+      }catch(e){/* ignore */}
+    }
+    // body
+    _erRenderBody(msg.body?.content||'',msg.body?.contentType||'text');
+  }catch(err){
+    document.getElementById('er-loading').innerHTML=`<div class="er-error">Erro ao carregar e-mail:<br>${err.message}</div>`;
+  }
+}
+
+function _erRenderBody(content,contentType){
+  const loading=document.getElementById('er-loading');
+  const iframe=document.getElementById('er-iframe');
+  const isHtml=contentType.toLowerCase()==='html';
+  const body=isHtml?content:`<pre style="white-space:pre-wrap;word-break:break-word;font-family:system-ui,sans-serif;font-size:14px;margin:0;line-height:1.6">${content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`;
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><style>
+    *{box-sizing:border-box;}
+    html,body{margin:0;padding:20px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.6;color:#1a1a1a;background:#ffffff;}
+    img{max-width:100%;height:auto;}
+    a{color:#2563eb;}
+    table{max-width:100%;border-collapse:collapse;}
+    td,th{padding:4px 8px;}
+    blockquote{border-left:3px solid #d1d5db;margin:12px 0;padding-left:12px;color:#6b7280;}
+    pre{background:#f3f4f6;padding:12px;border-radius:6px;overflow-x:auto;}
+  </style></head><body>${body}</body></html>`;
+  try{
+    const doc=iframe.contentDocument||iframe.contentWindow?.document;
+    if(doc){doc.open();doc.write(html);doc.close();}
+    loading.style.display='none';
+    iframe.style.display='block';
+  }catch(e){
+    loading.innerHTML=`<div class="er-error">Erro ao renderizar corpo: ${e.message}</div>`;
+  }
+}
+
+function _erRenderActions(email,isFlagged){
+  const id=email?.id||_erCurrentEmail?.id||'';
+  const flagged=isFlagged!=null?isFlagged:(email?.flag?.flagStatus==='flagged');
+  const pinned=PINNED_IDS.has(id);
+  const link=email?.webLink||_erCurrentEmail?.webLink||'';
+  document.getElementById('er-actions').innerHTML=`
+    <button class="er-act er-primary" onclick="erAction('reply')">↩ Responder</button>
+    <button class="er-act er-primary" onclick="erAction('replyAll')">↩↩ Resp. Todos</button>
+    <button class="er-act" onclick="erAction('forward')">➡ Encaminhar</button>
+    <button class="er-act ${flagged?'er-unflag':'er-flag'}" id="er-flag-btn" onclick="erToggleFlag(this)">${flagged?'🚩 Remover sinalização':'🚩 Sinalizar'}</button>
+    <button class="er-act ${pinned?'er-unpin':'er-pin'}" id="er-pin-btn" onclick="erTogglePin(this)">${pinned?'📌 Desafixar':'📌 Fixar'}</button>
+    ${link?`<button class="er-act er-ext" onclick="window.open('${esc(link)}','_blank')">↗ Abrir no Outlook</button>`:''}`;
+}
+
+function closeEmailReader(){
+  const o=document.getElementById('email-reader-overlay');
+  o.style.transition='opacity .15s';o.style.opacity='0';
+  setTimeout(()=>{o.style.display='none';o.style.opacity='';o.style.transition='';
+    try{const f=document.getElementById('er-iframe');const d=f.contentDocument||f.contentWindow?.document;if(d){d.open();d.write('');d.close();}f.style.display='none';}catch(e){}
+  },160);
+}
+
+function erAction(type){
+  const id=_erCurrentEmail?.id; if(!id)return;
+  closeEmailReader();
+  setTimeout(()=>openReply(id,type),200);
+}
+
+async function erToggleFlag(btn){
+  const id=_erCurrentEmail?.id; if(!id)return;
+  const unflagging=btn.classList.contains('er-unflag');
+  btn.disabled=true;btn.textContent='…';
+  try{
+    await graphPatch(`/me/messages/${encodeURIComponent(id)}`,{flag:{flagStatus:unflagging?'notFlagged':'flagged'}});
+    btn.disabled=false;
+    if(unflagging){btn.className='er-act er-flag';btn.textContent='🚩 Sinalizar';}
+    else{btn.className='er-act er-unflag';btn.textContent='🚩 Remover sinalização';}
+    // update tag row
+    const tr=document.getElementById('er-tagrow');
+    const old=tr.querySelector('[data-flag]');if(old)old.remove();
+    if(!unflagging){const s=document.createElement('span');s.className='tag';s.setAttribute('data-flag','1');s.style.cssText='background:rgba(251,146,60,.1);color:#fb923c;border-color:rgba(251,146,60,.3)';s.textContent='🚩 SINALIZADO';tr.appendChild(s);tr.style.display='flex';}
+  }catch(err){
+    btn.disabled=false;btn.textContent=unflagging?'🚩 Remover sinalização':'🚩 Sinalizar';
+    if(err.message!=='403_relogin')alert('Erro: '+err.message);
+  }
+}
+
+function erTogglePin(btn){
+  const id=_erCurrentEmail?.id; if(!id)return;
+  const unpinning=btn.classList.contains('er-unpin');
+  if(unpinning){PINNED_IDS.delete(id);savePinned();btn.className='er-act er-pin';btn.textContent='📌 Fixar';}
+  else{PINNED_IDS.add(id);savePinned();btn.className='er-act er-unpin';btn.textContent='📌 Desafixar';}
+  // update tag row
+  const tr=document.getElementById('er-tagrow');
+  const old=tr.querySelector('[data-pin]');if(old)old.remove();
+  if(!unpinning){const s=document.createElement('span');s.className='tag';s.setAttribute('data-pin','1');s.style.cssText='background:rgba(250,204,21,.1);color:#facc15;border-color:rgba(250,204,21,.3)';s.textContent='📌 FIXADO';tr.appendChild(s);tr.style.display='flex';}
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('email-reader-overlay')?.style.display==='flex')closeEmailReader();});
 
 function updateCounts(){
   const all=[...DATA.unread,...DATA.read];
