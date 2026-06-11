@@ -1379,6 +1379,12 @@ async function graphPatch(url, body) {
     headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
+  if (res.status === 403) {
+    forceRelogin();
+    const err = document.getElementById('login-error');
+    if (err) err.textContent = '🔒 Novas permissões necessárias (Mail.ReadWrite). Clique em "Entrar" para autorizar.';
+    throw new Error('403_relogin');
+  }
   if (!res.ok) throw new Error(`Graph PATCH ${res.status}: ${await res.text()}`);
   return res.status === 204 ? null : res.json();
 }
@@ -1564,7 +1570,7 @@ async function flagEmail(id, btn) {
   } catch(err) {
     btn.disabled = false;
     btn.textContent = '🚩 Sinalizar';
-    alert('Erro ao sinalizar: ' + err.message);
+    if (err.message !== '403_relogin') alert('Erro ao sinalizar: ' + err.message);
   }
 }
 
@@ -1579,7 +1585,7 @@ async function unflagEmail(id, btn) {
   } catch(err) {
     btn.disabled = false;
     btn.textContent = '🚩 Remover sinalização';
-    alert('Erro ao remover sinalização: ' + err.message);
+    if (err.message !== '403_relogin') alert('Erro ao remover sinalização: ' + err.message);
   }
 }
 
