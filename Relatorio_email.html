@@ -1958,6 +1958,7 @@ function applyFilters(){
   let _ckRowHeights={};
   let _ckDragFrom=null;
   let _ckTaskDrag=null;
+  let _ckDropPos=null; // {targetId, pos} — set by ckTaskOver, consumed by ckTaskDropOn
   let _ckSelected=new Set();
   let _ckCurrentWk='';
   let _ckExpDi=-1;
@@ -2291,11 +2292,14 @@ function applyFilters(){
     e.dataTransfer.setData('text/plain','task:'+id);
     setTimeout(()=>document.getElementById('ckt-'+id)?.classList.add('task-dragging'),0);
   };
+  function _ckClearDropIndicators(){
+    document.querySelectorAll('.ck-task.drop-before,.ck-task.drop-after').forEach(el=>el.classList.remove('drop-before','drop-after'));
+  }
   window.ckTaskDragEnd=function(){
-    _ckTaskDrag=null;
+    _ckTaskDrag=null;_ckDropPos=null;
     document.querySelectorAll('.ck-task.task-dragging').forEach(el=>el.classList.remove('task-dragging'));
     document.querySelectorAll('.ck-day.task-drop-over').forEach(el=>el.classList.remove('task-drop-over'));
-    document.querySelectorAll('.ck-task.drop-before,.ck-task.drop-after').forEach(el=>el.classList.remove('drop-before','drop-after'));
+    _ckClearDropIndicators();
   };
   window.ckTaskOver=function(wk,di,targetId,e){
     e.preventDefault();e.stopPropagation();
@@ -2303,23 +2307,30 @@ function applyFilters(){
     e.dataTransfer.dropEffect='move';
     const rect=e.currentTarget.getBoundingClientRect();
     const pos=e.clientY<rect.top+rect.height/2?'before':'after';
-    document.querySelectorAll('.ck-task.drop-before,.ck-task.drop-after').forEach(el=>el.classList.remove('drop-before','drop-after'));
-    e.currentTarget.classList.add(pos==='before'?'drop-before':'drop-after');
+    // Only update DOM and state if something changed (avoids flicker)
+    if(!_ckDropPos||_ckDropPos.targetId!==targetId||_ckDropPos.pos!==pos){
+      _ckDropPos={targetId,pos};
+      _ckClearDropIndicators();
+      e.currentTarget.classList.add(pos==='before'?'drop-before':'drop-after');
+    }
   };
   window.ckTaskDragLeave=function(e){
-    if(!e.currentTarget.contains(e.relatedTarget))
+    if(!e.currentTarget.contains(e.relatedTarget)){
       e.currentTarget.classList.remove('drop-before','drop-after');
+      if(_ckDropPos?.targetId===e.currentTarget.id?.replace('ckt-',''))_ckDropPos=null;
+    }
   };
   window.ckTaskDropOn=function(wk,di,targetId,e){
     e.preventDefault();e.stopPropagation();
-    document.querySelectorAll('.ck-task.drop-before,.ck-task.drop-after').forEach(el=>el.classList.remove('drop-before','drop-after'));
+    _ckClearDropIndicators();
     document.querySelectorAll('.ck-day.task-drop-over').forEach(el=>el.classList.remove('task-drop-over'));
     if(!_ckTaskDrag)return;
     const{id:dragId,fromDi,wk:dragWk}=_ckTaskDrag;
-    _ckTaskDrag=null;
-    if(dragId===targetId)return;
-    const rect=e.currentTarget.getBoundingClientRect();
-    const pos=e.clientY<rect.top+rect.height/2?'before':'after';
+    // Use stored position from last dragover — more reliable than recomputing at drop time
+    const resolvedTarget=_ckDropPos?.targetId||targetId;
+    const pos=_ckDropPos?.pos||(()=>{const r=e.currentTarget.getBoundingClientRect();return e.clientY<r.top+r.height/2?'before':'after';})();
+    _ckTaskDrag=null;_ckDropPos=null;
+    if(dragId===resolvedTarget)return;
     const data=ckLoad();
     if(!data[dragWk])return;
     const all=data[dragWk];
@@ -2327,7 +2338,7 @@ function applyFilters(){
     if(fromIdx===-1)return;
     if(fromDi!==di)all[fromIdx].di=di;
     const[moved]=all.splice(fromIdx,1);
-    const toIdx=all.findIndex(t=>t.id===targetId);
+    const toIdx=all.findIndex(t=>t.id===resolvedTarget);
     all.splice(toIdx===-1?all.length:pos==='before'?toIdx:toIdx+1,0,moved);
     data[dragWk]=all;
     ckSave(data);
