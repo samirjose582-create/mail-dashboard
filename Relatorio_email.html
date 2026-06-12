@@ -1481,11 +1481,12 @@ function mapMsg(m) {
     hasAttachments: m.hasAttachments||false,
     importance: m.importance||'normal',
     isRead: m.isRead!==undefined?m.isRead:true,
-    webLink: m.webLink||'#'
+    webLink: m.webLink||'#',
+    categories: m.categories||[]
   };
 }
 
-const SEL = 'id,subject,sender,receivedDateTime,bodyPreview,hasAttachments,importance,isRead,webLink';
+const SEL = 'id,subject,sender,receivedDateTime,bodyPreview,hasAttachments,importance,isRead,webLink,categories';
 
 async function fetchEmails() {
   const yesterday = new Date(Date.now()-48*3600*1000).toISOString();
@@ -1581,13 +1582,16 @@ let currentTab='urgencias',currentFilter='all';
 let DATA={unread:[],read:[],flagged:[],total:0};
 let URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[];
 let refreshTimer=null;
-const PINNED_KEY='pinned_email_ids';
-let PINNED_IDS=new Set(JSON.parse(localStorage.getItem(PINNED_KEY)||'[]'));
-function savePinned(){localStorage.setItem(PINNED_KEY,JSON.stringify([...PINNED_IDS]));}
+const PIN_CAT='📌 Fixado';
+let PINNED_IDS=new Set();
 function sortPinnedFirst(arr){return [...arr].sort((a,b)=>(PINNED_IDS.has(b.id)?1:0)-(PINNED_IDS.has(a.id)?1:0));}
 let _emailMap={};
 let _erCurrentEmail=null;
-function _buildEmailMap(){_emailMap={};const seen=new Set();for(const e of[...DATA.unread,...DATA.read,...DATA.flagged]){if(!seen.has(e.id)){_emailMap[e.id]=e;seen.add(e.id);}}}
+function _buildEmailMap(){
+  _emailMap={};const seen=new Set();
+  for(const e of[...DATA.unread,...DATA.read,...DATA.flagged]){if(!seen.has(e.id)){_emailMap[e.id]=e;seen.add(e.id);}}
+  PINNED_IDS=new Set(Object.values(_emailMap).filter(e=>e.categories?.includes(PIN_CAT)).map(e=>e.id));
+}
 
 function buildDerived(){
   const all=[...DATA.unread,...DATA.read];
@@ -1682,27 +1686,47 @@ async function unflagEmail(id, btn) {
   }
 }
 
-function pinEmail(id, btn) {
-  PINNED_IDS.add(id);
-  savePinned();
-  btn.className='eact unpin';
-  btn.onclick=()=>unpinEmail(id,btn);
-  btn.textContent='📌 Desafixar';
-  const card=btn.closest('.email-card');
-  if(card){card.classList.add('pinned');let sub=card.querySelector('.email-subject');if(sub&&!sub.querySelector('.pin-badge')){const b=document.createElement('span');b.className='pin-badge';b.textContent='FIXADO';sub.appendChild(b);}}
-  // move card to top of its panel
-  const panel=card?.closest('.email-panel');
-  if(panel&&card){const ref=panel.querySelector('.email-card');if(ref&&ref!==card)panel.insertBefore(card,ref);}
+async function pinEmail(id, btn) {
+  btn.disabled=true; btn.textContent='…';
+  try {
+    const email=_emailMap[id]||{};
+    const cats=[...(email.categories||[])];
+    if(!cats.includes(PIN_CAT)) cats.push(PIN_CAT);
+    await graphPatch(`/me/messages/${encodeURIComponent(id)}`,{categories:cats});
+    PINNED_IDS.add(id);
+    if(_emailMap[id]) _emailMap[id].categories=cats;
+    btn.className='eact unpin'; btn.onclick=()=>unpinEmail(id,btn);
+    btn.disabled=false; btn.textContent='📌 Desafixar';
+    const card=btn.closest('.email-card');
+    if(card){
+      card.classList.add('pinned');
+      const sub=card.querySelector('.email-subject');
+      if(sub&&!sub.querySelector('.pin-badge')){const b=document.createElement('span');b.className='pin-badge';b.textContent='FIXADO';sub.appendChild(b);}
+      const panel=card.closest('.email-panel');
+      if(panel){const ref=panel.querySelector('.email-card');if(ref&&ref!==card)panel.insertBefore(card,ref);}
+    }
+  } catch(err) {
+    btn.disabled=false; btn.textContent='📌 Fixar';
+    if(err.message!=='403_relogin') alert('Erro ao fixar: '+err.message);
+  }
 }
 
-function unpinEmail(id, btn) {
-  PINNED_IDS.delete(id);
-  savePinned();
-  btn.className='eact pin';
-  btn.onclick=()=>pinEmail(id,btn);
-  btn.textContent='📌 Fixar';
-  const card=btn.closest('.email-card');
-  if(card){card.classList.remove('pinned');const badge=card.querySelector('.pin-badge');if(badge)badge.remove();}
+async function unpinEmail(id, btn) {
+  btn.disabled=true; btn.textContent='…';
+  try {
+    const email=_emailMap[id]||{};
+    const cats=(email.categories||[]).filter(c=>c!==PIN_CAT);
+    await graphPatch(`/me/messages/${encodeURIComponent(id)}`,{categories:cats});
+    PINNED_IDS.delete(id);
+    if(_emailMap[id]) _emailMap[id].categories=cats;
+    btn.className='eact pin'; btn.onclick=()=>pinEmail(id,btn);
+    btn.disabled=false; btn.textContent='📌 Fixar';
+    const card=btn.closest('.email-card');
+    if(card){card.classList.remove('pinned');card.querySelector('.pin-badge')?.remove();}
+  } catch(err) {
+    btn.disabled=false; btn.textContent='📌 Desafixar';
+    if(err.message!=='403_relogin') alert('Erro ao desafixar: '+err.message);
+  }
 }
 
 function sh(color,label,count){return `<div class="section-heading"><div class="sh-line"></div><h2 style="color:${color}">${label}</h2><span class="sh-count">${count}</span><div class="sh-line"></div></div>`;}
@@ -1770,7 +1794,7 @@ async function openEmailReader(id){
   _erRenderActions(cached,null);
   // fetch full message
   try{
-    const msg=await graphGet(`/me/messages/${encodeURIComponent(id)}?$select=id,subject,from,toRecipients,ccRecipients,body,receivedDateTime,hasAttachments,importance,isRead,flag,webLink`);
+    const msg=await graphGet(`/me/messages/${encodeURIComponent(id)}?$select=id,subject,from,toRecipients,ccRecipients,body,receivedDateTime,hasAttachments,importance,isRead,flag,webLink,categories`);
     _erCurrentEmail={...cached,...msg};
     // subject
     document.getElementById('er-subject').textContent=(msg.importance==='high'?'⚠ ':'')+(msg.subject||'(sem assunto)');
@@ -1889,15 +1913,29 @@ async function erToggleFlag(btn){
   }
 }
 
-function erTogglePin(btn){
+async function erTogglePin(btn){
   const id=_erCurrentEmail?.id; if(!id)return;
   const unpinning=btn.classList.contains('er-unpin');
-  if(unpinning){PINNED_IDS.delete(id);savePinned();btn.className='er-act er-pin';btn.textContent='📌 Fixar';}
-  else{PINNED_IDS.add(id);savePinned();btn.className='er-act er-unpin';btn.textContent='📌 Desafixar';}
-  // update tag row
-  const tr=document.getElementById('er-tagrow');
-  const old=tr.querySelector('[data-pin]');if(old)old.remove();
-  if(!unpinning){const s=document.createElement('span');s.className='tag';s.setAttribute('data-pin','1');s.style.cssText='background:rgba(250,204,21,.1);color:#facc15;border-color:rgba(250,204,21,.3)';s.textContent='📌 FIXADO';tr.appendChild(s);tr.style.display='flex';}
+  btn.disabled=true; btn.textContent='…';
+  try{
+    const email=_emailMap[id]||_erCurrentEmail||{};
+    const cats=unpinning
+      ?(email.categories||[]).filter(c=>c!==PIN_CAT)
+      :[...(email.categories||[]),...(!(email.categories||[]).includes(PIN_CAT)?[PIN_CAT]:[])];
+    await graphPatch(`/me/messages/${encodeURIComponent(id)}`,{categories:cats});
+    if(unpinning){PINNED_IDS.delete(id);}else{PINNED_IDS.add(id);}
+    if(_emailMap[id])_emailMap[id].categories=cats;
+    if(_erCurrentEmail)_erCurrentEmail.categories=cats;
+    btn.disabled=false;
+    if(unpinning){btn.className='er-act er-pin';btn.textContent='📌 Fixar';}
+    else{btn.className='er-act er-unpin';btn.textContent='📌 Desafixar';}
+    const tr=document.getElementById('er-tagrow');
+    const old=tr.querySelector('[data-pin]');if(old)old.remove();
+    if(!unpinning){const s=document.createElement('span');s.className='tag';s.setAttribute('data-pin','1');s.style.cssText='background:rgba(250,204,21,.1);color:#facc15;border-color:rgba(250,204,21,.3)';s.textContent='📌 FIXADO';tr.appendChild(s);tr.style.display='flex';}
+  }catch(err){
+    btn.disabled=false;btn.textContent=unpinning?'📌 Desafixar':'📌 Fixar';
+    if(err.message!=='403_relogin')alert('Erro ao '+(unpinning?'desafixar':'fixar')+': '+err.message);
+  }
 }
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('email-reader-overlay')?.style.display==='flex')closeEmailReader();});
