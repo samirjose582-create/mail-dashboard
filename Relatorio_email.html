@@ -759,6 +759,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .btn-reset-tpl:hover{color:var(--orange);border-color:rgba(251,146,60,.4);}
 /* ── CHECKLIST SEMANAL ── */
 body.ck-active .content{max-width:100%;padding:8px 16px;}
+body.alloc-active .content{max-width:100%;padding:8px 12px;}
 #panel-checklist{padding:0;background:transparent;}
 .ck-root{display:flex;flex-direction:column;font-family:'Inter',sans-serif;gap:10px;}
 /* ── Hero compacto ── */
@@ -1103,7 +1104,7 @@ body.ck-active{padding-bottom:54px;}
 .alloc-th-hdr{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);text-align:center;padding:5px 4px;position:sticky;z-index:3;top:0;background:var(--surface);}
 .alloc-th-month{font-size:.6rem;font-weight:700;color:var(--text-soft);text-align:center;padding:4px 0;position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--border);}
 .alloc-th-week{font-size:.55rem;color:var(--text-muted);text-align:center;padding:2px 0;position:sticky;top:24px;z-index:2;background:var(--surface);border-bottom:1px solid var(--border);}
-.alloc-th-day{width:32px;min-width:32px;max-width:32px;text-align:center;padding:2px 1px;font-size:.55rem;position:sticky;top:40px;z-index:2;background:var(--surface);}
+.alloc-th-day{width:38px;min-width:38px;max-width:38px;text-align:center;padding:2px 1px;font-size:.57rem;position:sticky;top:40px;z-index:2;background:var(--surface);}
 .alloc-th-day .day-num{font-weight:700;color:var(--text-soft);line-height:1.4;display:block;}
 .alloc-th-day .day-dow{font-size:.48rem;color:var(--text-muted);display:block;}
 .alloc-th-day.is-today .day-num{color:var(--yellow);}
@@ -1112,7 +1113,7 @@ body.ck-active{padding-bottom:54px;}
 .alloc-td-day.is-holiday{background:rgba(239,68,68,.04);}
 .alloc-td-day.is-today{background:rgba(245,158,11,.08);}
 .alloc-td-left{font-size:.72rem;padding:6px 8px;color:var(--text-soft);vertical-align:middle;position:sticky;z-index:4;background:var(--surface);will-change:transform;}
-.alloc-td-day{width:32px;min-width:32px;max-width:32px;height:42px;padding:0;vertical-align:middle;}
+.alloc-td-day{width:38px;min-width:38px;max-width:38px;height:42px;padding:0;vertical-align:middle;}
 .alloc-day-inner{position:relative;width:100%;height:42px;overflow:hidden;}
 .alloc-editable{cursor:text;border-radius:4px;padding:1px 2px;transition:background .15s;}
 .alloc-editable:hover{background:rgba(245,158,11,.1);outline:1px dashed rgba(245,158,11,.4);}
@@ -2387,6 +2388,7 @@ function switchTab(tab){
   if(tab==='escrever'&&!document.getElementById('comp-body')){renderComposer();setTimeout(()=>{initBodyDrop();initImageEditing();initContactSearch();initComposerResize();_initTblBarEvents();},100);}
   else if(tab==='escrever'){setTimeout(()=>{initContactSearch();initComposerResize();if(!_peopleCache)loadPeople();},80);}
   document.body.classList.toggle('ck-active',tab==='checklist');
+  document.body.classList.toggle('alloc-active',tab==='alloc');
   if(tab==='checklist'){renderChecklist();}
   document.getElementById('ck-calendar').style.display=tab==='checklist'?'':'none';
   document.getElementById('analytics-section').style.display=(tab==='checklist'||tab==='alloc')?'none':'';
@@ -6103,7 +6105,7 @@ function hlMatch(text,q){
   const FIXED_HOL={'01-01':'Confraternização Universal','04-21':'Tiradentes','05-01':'Dia do Trabalho','09-07':'Independência do Brasil','10-12':'Nossa Sra. Aparecida','11-02':'Finados','11-15':'Proclamação da República','11-20':'Consciência Negra','12-25':'Natal'};
 
   let _navDate=null,_holCache={},_editPid=null;
-  const VISIBLE=56; // 8 weeks
+  const VISIBLE=98; // 14 weeks
 
   function _easter(y){
     const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),dy=((h+l-7*m+114)%31)+1;
