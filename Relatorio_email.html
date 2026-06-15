@@ -1705,6 +1705,32 @@ function emailCard(e, extraCls=''){
     </div>
   </div>`;}
 
+function replyCard(e){
+  const isPinned=PINNED_IDS.has(e.id),isU=!e.isRead;
+  return `<div class="reply-card" onclick="openEmailReader('${esc(e.id)}')">
+    <div class="reply-inner">
+      <div class="reply-reason">↩ AGUARDA RESPOSTA${isPinned?'<span class="pin-badge" style="margin-left:8px">FIXADO</span>':''}</div>
+      <div class="reply-subject">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}</div>
+      <div class="reply-from">${sn(e)} · <span style="font-family:var(--mono);font-size:.68rem">${e.sender||''}</span> · ${fmtTime(e.receivedDateTime)}</div>
+      ${e.summary?`<div class="reply-snippet">${clean(e.summary)}</div>`:''}
+    </div>
+    <div class="email-actions" onclick="event.stopPropagation()">
+      <button class="eact reply"     onclick="openReply('${esc(e.id)}','reply')"    >↩ Responder</button>
+      <button class="eact reply-all" onclick="openReply('${esc(e.id)}','replyAll')" >↩↩ Resp. Todos</button>
+      <button class="eact fwd"       onclick="openReply('${esc(e.id)}','forward')"  >➡ Encaminhar</button>
+      <button class="eact flag"      onclick="flagEmail('${esc(e.id)}',this)"        >🚩 Sinalizar</button>
+      ${isPinned
+        ? `<button class="eact unpin" onclick="unpinEmail('${esc(e.id)}',this)">📌 Desafixar</button>`
+        : `<button class="eact pin"   onclick="pinEmail('${esc(e.id)}',this)">📌 Fixar</button>`
+      }
+      ${isU
+        ? `<button class="eact mark-read" onclick="markAsRead('${esc(e.id)}',this)">✓ Marcar como lido</button>`
+        : `<button class="eact mark-unread" onclick="markAsUnread('${esc(e.id)}',this)">◌ Marcar como não lido</button>`
+      }
+      <button class="eact replied" onclick="markAsReplied('${esc(e.id)}',this)">✅ Respondido</button>
+    </div>
+  </div>`;}
+
 async function markAsReplied(id, btn){
   btn.disabled=true; btn.textContent='…';
   try{
@@ -1891,7 +1917,7 @@ function renderAll(){
       <div class="usub-section" id="usub-all">${unreadHtml}</div>
       <div class="usub-section" id="usub-pinned" style="display:none">${pinnedHtml}</div>`;
   }
-  document.getElementById('panel-responder').innerHTML=RESPONDER.length?sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',RESPONDER.length)+RESPONDER.map(e=>emailCard(e,'responder')).join(''):empty('✓','Nada a responder','');
+  document.getElementById('panel-responder').innerHTML=RESPONDER.length?sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',RESPONDER.length)+RESPONDER.map(e=>replyCard(e)).join(''):empty('✓','Nada a responder','');
   renderMeetingCal();
   const keys=Object.keys(PROJETOS).sort();
   document.getElementById('panel-projetos').innerHTML=keys.length?sh('var(--green)','🗂 PROJECTOS',keys.length)+keys.map(proj=>{const emails=PROJETOS[proj],hasU=emails.some(e=>!e.isRead),uid='proj_'+proj.replace(/[^a-z0-9]/gi,'_');return `<div class="project-group" id="pg_${uid}"><div class="project-header" onclick="toggleProject('${uid}')"><span class="project-code">${proj}</span><span class="project-name">${emails[0]?.subject?.split('|').slice(2).join('|').trim().slice(0,55)||''}</span><span class="project-count">${emails.length} msg${hasU?` · <span style="color:var(--blue)">${emails.filter(e=>!e.isRead).length} unread</span>`:''}</span><span class="project-chevron">›</span></div><div class="project-emails" id="${uid}">${emails.map(emailCard).join('')}</div></div>`}).join(''):empty('🗂','Sem projectos','');
