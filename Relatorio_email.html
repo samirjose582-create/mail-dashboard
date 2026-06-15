@@ -4918,6 +4918,22 @@ function renderAnalytics(){
   const pct=v=>total?Math.round(v/total*100):0;
   const projN=Object.keys(PROJETOS).length;
   const projEmails=Object.values(PROJETOS).reduce((a,v)=>a+v.length,0);
+  const highPrio=all.filter(e=>e.importance==='high').length;
+  const highUnread=DATA.unread.filter(e=>e.importance==='high').length;
+  const withAttach=all.filter(e=>e.hasAttachments).length;
+  const pinnedN=PINNED_IDS.size;
+  const domMap={};all.forEach(e=>{const d=e.sender?.split('@')[1]||'?';domMap[d]=(domMap[d]||0)+1;});
+  const domN=Object.keys(domMap).length;
+  const avgAgeH=DATA.unread.length?Math.round(DATA.unread.reduce((s,e)=>s+(Date.now()-new Date(e.receivedDateTime))/3600000,0)/DATA.unread.length):0;
+  // Health score
+  let score=100;
+  score-=Math.min(30,URGENCIAS.length*6);
+  score-=Math.round(Math.min(30,ur/Math.max(total,1)*40));
+  score-=Math.min(20,RESPONDER.length*4);
+  score-=Math.min(10,highUnread*2);
+  score=Math.max(0,score);
+  const scoreColor=score>=80?'#4ade80':score>=60?'#fbbf24':score>=40?'#fb923c':'#f87171';
+  const scoreLabel=score>=80?'Excelente':score>=60?'Bom':score>=40?'Atenção':'Crítico';
 
   panel.innerHTML=`
   <div class="analytics-divider"><span class="analytics-divider-title">📊 Análise Geral</span><div class="analytics-divider-line"></div></div>
@@ -4925,10 +4941,19 @@ function renderAnalytics(){
     <div class="kpi-card kc-red"><div class="kpi-label">🔥 Urgências</div><div class="kpi-value">${URGENCIAS.length}</div><div class="kpi-sub">${pct(URGENCIAS.length)}% do total</div></div>
     <div class="kpi-card kc-blue"><div class="kpi-label">📥 Não Lidos</div><div class="kpi-value">${ur}</div><div class="kpi-sub">${pct(ur)}% do total</div></div>
     <div class="kpi-card kc-yellow"><div class="kpi-label">💬 A Responder</div><div class="kpi-value">${RESPONDER.length}</div><div class="kpi-sub">${pct(RESPONDER.length)}% do total</div></div>
-    <div class="kpi-card kc-purple"><div class="kpi-label">📅 Reuniões</div><div class="kpi-value">${REUNIOES.length}</div><div class="kpi-sub">${pct(REUNIOES.length)}% do total</div></div>
+    <div class="kpi-card kc-purple"><div class="kpi-label">📅 Reuniões</div><div class="kpi-value">${REUNIOES.length}</div><div class="kpi-sub">${CALENDAR_EVENTS.length} no calendário</div></div>
     <div class="kpi-card kc-green"><div class="kpi-label">🗂 Projectos</div><div class="kpi-value">${projN}</div><div class="kpi-sub">${projEmails} emails</div></div>
     <div class="kpi-card kc-orange"><div class="kpi-label">📖 Taxa Leitura</div><div class="kpi-value">${pct(rd)}%</div><div class="kpi-sub">${rd} lidos de ${total}</div></div>
   </div>
+  <div class="kpi-row" style="margin-top:8px">
+    <div class="kpi-card kc-yellow"><div class="kpi-label">⚠️ Alta Prioridade</div><div class="kpi-value">${highPrio}</div><div class="kpi-sub">${highUnread} não lidos</div></div>
+    <div class="kpi-card kc-blue"><div class="kpi-label">📎 Com Anexos</div><div class="kpi-value">${withAttach}</div><div class="kpi-sub">${pct(withAttach)}% do total</div></div>
+    <div class="kpi-card kc-yellow"><div class="kpi-label">📌 Fixados</div><div class="kpi-value">${pinnedN}</div><div class="kpi-sub">sincronizado Outlook</div></div>
+    <div class="kpi-card kc-purple"><div class="kpi-label">🌐 Domínios</div><div class="kpi-value">${domN}</div><div class="kpi-sub">remetentes únicos</div></div>
+    <div class="kpi-card kc-orange"><div class="kpi-label">⏱ Espera Média</div><div class="kpi-value">${avgAgeH<1?'<1h':avgAgeH+'h'}</div><div class="kpi-sub">e-mails não lidos</div></div>
+    <div class="kpi-card" style="border-color:${scoreColor}33"><div class="kpi-label">🏆 Saúde da Caixa</div><div class="kpi-value" style="color:${scoreColor}">${score}</div><div class="kpi-sub" style="color:${scoreColor}">${scoreLabel}</div></div>
+  </div>
+  <div class="analytics-divider" style="margin-top:24px"><span class="analytics-divider-title">📈 Gráficos</span><div class="analytics-divider-line"></div></div>
   <div class="charts-grid-2">
     <div class="chart-card"><div class="chart-title">🍩 Distribuição por Categoria</div><div class="chart-wrap"><canvas id="ch-cat"></canvas></div></div>
     <div class="chart-card"><div class="chart-title">👥 Top Remetentes</div><div class="chart-wrap"><canvas id="ch-snd"></canvas></div></div>
@@ -4936,24 +4961,31 @@ function renderAnalytics(){
   <div class="charts-grid-2">
     <div class="chart-card"><div class="chart-title">🗂 E-mails por Projecto</div><div class="chart-wrap"><canvas id="ch-prj"></canvas></div></div>
     <div class="chart-card"><div class="chart-title">⏰ Volume por Hora do Dia</div><div class="chart-wrap"><canvas id="ch-hr"></canvas></div></div>
+  </div>
+  <div class="charts-grid-2">
+    <div class="chart-card"><div class="chart-title">🌐 Top Domínios de E-mail</div><div class="chart-wrap"><canvas id="ch-dom"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">📊 Lidos vs Não Lidos por Remetente</div><div class="chart-wrap"><canvas id="ch-rdunrd"></canvas></div></div>
+  </div>
+  <div class="charts-grid-2">
+    <div class="chart-card"><div class="chart-title">🎯 Radar de Saúde da Caixa</div><div class="chart-wrap"><canvas id="ch-radar"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">📎 Anexos por Prioridade</div><div class="chart-wrap"><canvas id="ch-attpr"></canvas></div></div>
   </div>`;
 
-  // Destruir gráficos anteriores
   Object.values(_charts).forEach(c=>{try{c.destroy();}catch(e){}});
   _charts={};
 
   const tc='#8892a4',gc='rgba(255,255,255,.05)',tf={family:"'Inter',sans-serif",size:10};
 
   // 1. Donut — Categorias
-  const othersU=Math.max(0,ur-URGENCIAS.length);
+  const othersU=Math.max(0,ur-URGENCIAS.length-RESPONDER.length);
   _charts.cat=new Chart(document.getElementById('ch-cat'),{
     type:'doughnut',
     data:{
-      labels:['Urgências','A Responder','Reuniões','Projectos','Outros NL','Lidos'],
+      labels:['Urgências','A Responder','Alta Prior.','Com Anexo','Outros NL','Lidos'],
       datasets:[{
-        data:[URGENCIAS.length,RESPONDER.length,REUNIOES.length,projN,othersU,rd],
-        backgroundColor:['rgba(248,113,113,.75)','rgba(251,191,36,.75)','rgba(192,132,252,.75)','rgba(74,222,128,.75)','rgba(56,189,248,.75)','rgba(100,116,139,.6)'],
-        borderColor:['#f87171','#fbbf24','#c084fc','#4ade80','#38bdf8','#475569'],
+        data:[URGENCIAS.length,RESPONDER.length,highUnread,DATA.unread.filter(e=>e.hasAttachments).length,Math.max(0,othersU),rd],
+        backgroundColor:['rgba(248,113,113,.75)','rgba(251,191,36,.75)','rgba(251,146,60,.75)','rgba(56,189,248,.75)','rgba(100,116,139,.5)','rgba(74,222,128,.6)'],
+        borderColor:['#f87171','#fbbf24','#fb923c','#38bdf8','#475569','#4ade80'],
         borderWidth:1.5,hoverOffset:8
       }]
     },
@@ -4974,7 +5006,9 @@ function renderAnalytics(){
     data:{
       labels:topS.map(([k])=>k.length>22?k.slice(0,20)+'…':k),
       datasets:[{label:'E-mails',data:topS.map(([,v])=>v),
-        backgroundColor:'rgba(56,189,248,.55)',borderColor:'#38bdf8',borderWidth:1,borderRadius:4}]
+        backgroundColor:topS.map(([,v],i)=>`hsla(${200+i*22},70%,60%,.55)`),
+        borderColor:topS.map(([,v],i)=>`hsla(${200+i*22},70%,60%,1)`),
+        borderWidth:1,borderRadius:4}]
     },
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
       plugins:{legend:{display:false}},
@@ -5004,8 +5038,7 @@ function renderAnalytics(){
       }
     });
   } else {
-    const wrap=document.getElementById('ch-prj');
-    if(wrap)wrap.parentElement.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:8px;color:var(--text-muted);font-size:.78rem">🗂 Sem projectos identificados</div>';
+    document.getElementById('ch-prj')?.closest('.chart-card').querySelector('.chart-wrap').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:.78rem">🗂 Sem projectos identificados</div>';
   }
 
   // 4. Line — Volume por Hora
@@ -5024,6 +5057,105 @@ function renderAnalytics(){
       scales:{
         x:{ticks:{color:tc,font:tf,maxTicksLimit:12},grid:{color:gc}},
         y:{ticks:{color:tc,font:tf,stepSize:1},grid:{color:gc},beginAtZero:true}
+      }
+    }
+  });
+
+  // 5. Bar H — Top Domínios
+  const topDoms=Object.entries(domMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  _charts.dom=new Chart(document.getElementById('ch-dom'),{
+    type:'bar',
+    data:{
+      labels:topDoms.map(([k])=>k.length>28?k.slice(0,26)+'…':k),
+      datasets:[{label:'E-mails',data:topDoms.map(([,v])=>v),
+        backgroundColor:topDoms.map((_,i)=>`hsla(${280+i*18},60%,60%,.55)`),
+        borderColor:topDoms.map((_,i)=>`hsla(${280+i*18},60%,60%,1)`),
+        borderWidth:1,borderRadius:4}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:tc,font:tf,stepSize:1},grid:{color:gc}},
+        y:{ticks:{color:tc,font:{...tf,size:9}},grid:{display:false}}
+      }
+    }
+  });
+
+  // 6. Stacked Bar — Lidos vs NL por Remetente
+  const rdMap={},urlMap={};
+  DATA.read.forEach(e=>{const s=sn(e);rdMap[s]=(rdMap[s]||0)+1;});
+  DATA.unread.forEach(e=>{const s=sn(e);urlMap[s]=(urlMap[s]||0)+1;});
+  const allSnds={...rdMap};Object.keys(urlMap).forEach(k=>{allSnds[k]=(allSnds[k]||0)+urlMap[k];});
+  const top6=Object.entries(allSnds).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k])=>k);
+  _charts.rdunrd=new Chart(document.getElementById('ch-rdunrd'),{
+    type:'bar',
+    data:{
+      labels:top6.map(k=>k.length>18?k.slice(0,16)+'…':k),
+      datasets:[
+        {label:'Lidos',data:top6.map(k=>rdMap[k]||0),backgroundColor:'rgba(74,222,128,.55)',borderColor:'#4ade80',borderWidth:1,borderRadius:4,stack:'s'},
+        {label:'Não Lidos',data:top6.map(k=>urlMap[k]||0),backgroundColor:'rgba(56,189,248,.55)',borderColor:'#38bdf8',borderWidth:1,borderRadius:4,stack:'s'}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:tc,font:tf,boxWidth:10,boxHeight:10}}},
+      scales:{
+        x:{ticks:{color:tc,font:{...tf,size:9}},grid:{display:false},stacked:true},
+        y:{ticks:{color:tc,font:tf,stepSize:1},grid:{color:gc},beginAtZero:true,stacked:true}
+      }
+    }
+  });
+
+  // 7. Radar — Saúde da Caixa
+  const radarData=[
+    Math.max(0,10-Math.min(10,URGENCIAS.length*2)),           // Sem Urgências
+    Math.round(rd/Math.max(total,1)*10),                       // Taxa Leitura
+    Math.max(0,10-Math.min(10,RESPONDER.length*2)),            // Respostas OK
+    Math.max(0,10-Math.min(10,highUnread*2)),                  // Prior. OK
+    Math.max(0,10-Math.min(10,Math.round(ur/Math.max(total,1)*10))), // Inbox limpo
+    Math.min(10,projN>0?Math.min(projN,8)+2:4)                // Organização
+  ];
+  _charts.radar=new Chart(document.getElementById('ch-radar'),{
+    type:'radar',
+    data:{
+      labels:['Sem Urgências','Taxa Leitura','Respostas OK','Prior. OK','Inbox Limpo','Organização'],
+      datasets:[{
+        label:'Saúde',data:radarData,
+        backgroundColor:'rgba(56,189,248,.12)',borderColor:'#38bdf8',borderWidth:2,
+        pointBackgroundColor:'#38bdf8',pointRadius:4,pointHoverRadius:6
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{r:{
+        min:0,max:10,
+        ticks:{stepSize:2,color:tc,font:tf,backdropColor:'transparent'},
+        grid:{color:'rgba(255,255,255,.07)'},
+        angleLines:{color:'rgba(255,255,255,.07)'},
+        pointLabels:{color:tc,font:{...tf,size:11}}
+      }}
+    }
+  });
+
+  // 8. Donut — Anexos por Prioridade
+  const attHigh=all.filter(e=>e.hasAttachments&&e.importance==='high').length;
+  const attNorm=all.filter(e=>e.hasAttachments&&e.importance==='normal').length;
+  const attLow=all.filter(e=>e.hasAttachments&&e.importance==='low').length;
+  const noAtt=all.length-withAttach;
+  _charts.attpr=new Chart(document.getElementById('ch-attpr'),{
+    type:'doughnut',
+    data:{
+      labels:['Anexo + Alta Prior.','Anexo + Normal','Anexo + Baixa','Sem Anexo'],
+      datasets:[{
+        data:[attHigh,attNorm,attLow,noAtt],
+        backgroundColor:['rgba(251,146,60,.75)','rgba(56,189,248,.65)','rgba(100,116,139,.5)','rgba(30,41,59,.6)'],
+        borderColor:['#fb923c','#38bdf8','#64748b','#1e293b'],
+        borderWidth:1.5,hoverOffset:8
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
+      plugins:{
+        legend:{position:'right',labels:{color:tc,font:tf,padding:10,boxWidth:10,boxHeight:10}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed}`}}
       }
     }
   });
