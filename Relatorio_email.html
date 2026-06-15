@@ -1764,22 +1764,38 @@ async function markAsRead(id, btn){
   btn.disabled=true; btn.textContent='…';
   try{
     await graphPatch(`/me/messages/${encodeURIComponent(id)}`,{isRead:true});
-    const card=btn.closest('.email-card');
-    if(card){
-      card.classList.remove('unread','high-prio');
-      card.querySelector('.email-subject')?.classList.add('read');
-      const tag=card.querySelector('.tag.unread');
-      if(tag){tag.className='tag read';tag.textContent='READ';}
-      btn.textContent='✓ Lido';
-      btn.className='eact mark-unread';
-      btn.onclick=()=>markAsUnread(id,btn);
-      btn.disabled=false;
-    }
     if(_emailMap[id]) _emailMap[id].isRead=true;
     DATA.unread=DATA.unread.filter(e=>e.id!==id);
     const moved=_emailMap[id];
     if(moved&&!DATA.read.find(e=>e.id===id)) DATA.read.push(moved);
     updateCounts();
+    const card=btn.closest('.email-card');
+    if(!card) return;
+    // Se estiver na aba Não Lidos, remove com animação
+    const inUnreadTab=card.closest('#usub-all,#panel-unread');
+    if(inUnreadTab){
+      card.style.transition='opacity .25s,transform .25s';
+      card.style.opacity='0'; card.style.transform='translateX(40px)';
+      setTimeout(()=>{
+        card.remove();
+        const section=document.getElementById('usub-all');
+        const cnt=document.getElementById('usub-btn-all')?.querySelector('.usub-cnt');
+        if(cnt) cnt.textContent=DATA.unread.length;
+        if(section&&!section.querySelector('.email-card')){
+          section.innerHTML=`<div class="empty"><div class="icon">📭</div><h3>Inbox limpo</h3><p>Nenhum e-mail não lido.</p></div>`;
+        }
+      },260);
+    } else {
+      // Em outra aba: apenas atualiza visual sem remover
+      card.classList.remove('unread','high-prio');
+      card.querySelector('.email-subject')?.classList.add('read');
+      const tag=card.querySelector('.tag.unread');
+      if(tag){tag.className='tag read';tag.textContent='READ';}
+      btn.textContent='◌ Marcar como não lido';
+      btn.className='eact mark-unread';
+      btn.onclick=()=>markAsUnread(id,btn);
+      btn.disabled=false;
+    }
   }catch(err){
     btn.disabled=false; btn.textContent='✓ Marcar como lido';
     if(err.message!=='403_relogin') alert('Erro: '+err.message);
