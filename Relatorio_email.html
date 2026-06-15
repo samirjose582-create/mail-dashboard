@@ -1108,8 +1108,9 @@ body.ck-active{padding-bottom:54px;}
 .alloc-th-day.is-holiday{background:rgba(239,68,68,.07);}
 .alloc-td-day.is-holiday{background:rgba(239,68,68,.04);}
 .alloc-td-day.is-today{background:rgba(245,158,11,.08);}
-.alloc-td-left{font-size:.72rem;padding:6px 8px;color:var(--text-soft);vertical-align:middle;position:sticky;z-index:4;background:var(--surface);}
-.alloc-td-day{width:32px;min-width:32px;max-width:32px;height:42px;padding:0;position:relative;vertical-align:middle;overflow:hidden;}
+.alloc-td-left{font-size:.72rem;padding:6px 8px;color:var(--text-soft);vertical-align:middle;position:sticky;z-index:4;background:var(--surface);will-change:transform;}
+.alloc-td-day{width:32px;min-width:32px;max-width:32px;height:42px;padding:0;vertical-align:middle;}
+.alloc-day-inner{position:relative;width:100%;height:42px;overflow:hidden;}
 .alloc-editable{cursor:text;border-radius:4px;padding:1px 2px;transition:background .15s;}
 .alloc-editable:hover{background:rgba(245,158,11,.1);outline:1px dashed rgba(245,158,11,.4);}
 .alloc-editable-assign{cursor:pointer;border-radius:4px;padding:1px 2px;transition:background .15s;}
@@ -6188,9 +6189,9 @@ function hlMatch(text,q){
             const isFirst=ds===p.start,isLast=ds===p.end;
             let bc='alloc-bar ';bc+=isFirst&&isLast?'alloc-bar-solo':isFirst?'alloc-bar-start':isLast?'alloc-bar-end':'alloc-bar-mid';
             const lbl=isFirst?`<span class="alloc-bar-pct">${pct}%</span>`:'';
-            bar=`<div class="${bc}" style="background:${p.color||ALLOC_COLORS[0]}"></div>${lbl}`;
+            bar=`<div class="${bc}" style="background:${p.color||ALLOC_COLORS[0]};overflow:hidden">${lbl}</div>`;
           }
-          return `<td class="${cls}">${bar}</td>`;
+          return `<td class="${cls}"><div class="alloc-day-inner">${bar}</div></td>`;
         }).join('');
         rows+=`<tr class="alloc-row" data-pid="${p.id}">
           <td class="alloc-td-left" style="left:${CL[0]}px;min-width:${CW[0]}px;max-width:${CW[0]}px">
