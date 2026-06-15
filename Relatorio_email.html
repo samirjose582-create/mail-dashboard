@@ -573,6 +573,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .btn-join:hover{background:linear-gradient(135deg,#6f72c4,#5b5ea6);box-shadow:0 0 10px rgba(91,94,166,.4);}
 .btn-join-sm{background:var(--purple-dim);border:1px solid rgba(192,132,252,.25);color:var(--purple);padding:5px 11px;border-radius:6px;cursor:pointer;font-size:.71rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:all .15s;font-family:'Inter',sans-serif;}
 .btn-join-sm:hover{background:rgba(192,132,252,.2);}
+.btn-copy-link{background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25);color:var(--blue);font-family:'Inter',sans-serif;}
+.btn-copy-link:hover{background:rgba(56,189,248,.18);}
+.btn-copy-link.copied{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.3);color:var(--green);}
 .teams-no-perm{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center;}
 .teams-filter-row{display:flex;gap:6px;margin-bottom:14px;}
 .teams-filter-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:5px 13px;border-radius:6px;cursor:pointer;font-size:.73rem;font-weight:500;transition:all .15s;font-family:'Inter',sans-serif;}
@@ -4080,6 +4083,7 @@ function renderMeetingCal(){
                   ?`<a class="btn-join${live?' ':" "}" href="${esc(e.joinUrl)}" target="_blank" onclick="event.stopPropagation()">▶ Entrar no Teams</a>`
                   :`<span style="font-size:.72rem;color:var(--text-muted)">Sem link Teams</span>`}
                 <a class="btn-join-sm" href="${esc(e.webLink)}" target="_blank" onclick="event.stopPropagation()">↗ Calendário</a>
+                ${e.joinUrl?`<button class="btn-join-sm btn-copy-link" onclick="event.stopPropagation();copyMeetLink('${esc(e.joinUrl)}',this)" title="Copiar link da reunião">🔗 Copiar link</button>`:''}
               </div>
             </div>
           </div>`;
@@ -4101,6 +4105,19 @@ function renderMeetingCal(){
 }
 
 function calNav(dir){calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}calSelDay=null;if(calTeamsFilter==='dia')calTeamsFilter='hoje';renderMeetingCal();}
+
+function copyMeetLink(url,btn){
+  navigator.clipboard.writeText(url).then(()=>{
+    btn.textContent='✅ Copiado!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='🔗 Copiar link';btn.classList.remove('copied');},2000);
+  }).catch(()=>{
+    // Fallback para browsers sem clipboard API
+    const ta=document.createElement('textarea');ta.value=url;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();
+    btn.textContent='✅ Copiado!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='🔗 Copiar link';btn.classList.remove('copied');},2000);
+  });
+}
 
 function calSelectDay(d){calSetTeamsFilterDay(d);}
 function calClear(){calSelDay=null;calTeamsFilter='hoje';renderMeetingCal();}
