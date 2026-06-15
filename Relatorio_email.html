@@ -1131,7 +1131,7 @@ body.ck-active{padding-bottom:54px;}
 .alloc-bar-solo{left:5px;right:5px;border-radius:5px;}
 .alloc-bar-pct{position:absolute;top:50%;transform:translateY(-50%);left:8px;font-size:.5rem;font-weight:700;color:rgba(255,255,255,.95);white-space:nowrap;pointer-events:none;z-index:1;}
 .alloc-proj-code{font-size:.6rem;color:var(--text-muted);font-family:var(--mono);}
-.alloc-proj-name{font-size:.73rem;font-weight:600;color:var(--text);white-space:normal;line-height:1.3;max-width:148px;}
+.alloc-proj-name{font-size:.7rem;font-weight:600;color:var(--text);white-space:normal;line-height:1.25;max-width:118px;}
 .alloc-progress-bar{height:5px;border-radius:3px;background:var(--border);margin-top:3px;}
 .alloc-progress-fill{height:100%;border-radius:3px;}
 .alloc-assignees{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:2px;}
@@ -6165,7 +6165,7 @@ function hlMatch(text,q){
     const navLbl=sm===em?`${MONTHS_PT[+sm.slice(5)-1]} ${sm.slice(0,4)}`:`${MONTHS_SH[+sm.slice(5)-1]} – ${MONTHS_SH[+em.slice(5)-1]} ${em.slice(0,4)}`;
 
     // Sticky left col config [width, left]
-    const CW=[160,120,50,70,70,55,40]; // Projeto,Atribuído,%,Início,Término,Dias,Edit
+    const CW=[130,76,42,52,52,38,28]; // Projeto,Atribuído,%,Início,Término,Dias,Edit
     const CL=CW.reduce((acc,w,i)=>[...acc,(acc[i]||0)+w],[0]).slice(0,-1);
     const CH=['Projeto','Atribuído','%','Início','Término','Dias',''];
 
@@ -6218,17 +6218,16 @@ function hlMatch(text,q){
             <div class="alloc-proj-code alloc-editable" title="Clique para editar código" onclick="event.stopPropagation();allocInlineName('${p.id}','code',this)">${p.code||'—'}</div>
             <div class="alloc-proj-name alloc-editable" title="Clique para editar nome" onclick="event.stopPropagation();allocInlineName('${p.id}','name',this)">${p.name||''}</div>
           </td>
-          <td class="alloc-td-left alloc-editable-assign" title="Clique para editar responsáveis" onclick="event.stopPropagation();allocAssigneePopup('${p.id}',this)" style="left:${CL[1]}px;min-width:${CW[1]}px;max-width:${CW[1]}px">
-            <div class="alloc-assignees">${avatars}</div>
-            <div style="font-size:.58rem;color:var(--text-muted)">${assignStr}</div>
+          <td class="alloc-td-left alloc-editable-assign" title="${assignStr||'Clique para atribuir'}" onclick="event.stopPropagation();allocAssigneePopup('${p.id}',this)" style="left:${CL[1]}px;min-width:${CW[1]}px;max-width:${CW[1]}px;text-align:center">
+            <div class="alloc-assignees" style="justify-content:center">${avatars||'<span style="font-size:.6rem;color:var(--text-muted)">—</span>'}</div>
           </td>
           <td class="alloc-td-left" style="left:${CL[2]}px;min-width:${CW[2]}px;max-width:${CW[2]}px;text-align:center">
             <div style="font-size:.72rem;font-weight:700;color:${pctColor}">${pct}%</div>
             <div class="alloc-progress-bar"><div class="alloc-progress-fill" style="width:${pct}%;background:${pctColor}"></div></div>
           </td>
-          <td class="alloc-td-left alloc-editable" title="Clique para editar início" onclick="event.stopPropagation();allocInlineDate('${p.id}','start',this)" style="left:${CL[3]}px;min-width:${CW[3]}px;max-width:${CW[3]}px;text-align:center;font-size:.65rem">${_fmt(p.start)}</td>
-          <td class="alloc-td-left alloc-editable" title="Clique para editar término" onclick="event.stopPropagation();allocInlineDate('${p.id}','end',this)" style="left:${CL[4]}px;min-width:${CW[4]}px;max-width:${CW[4]}px;text-align:center;font-size:.65rem">${_fmt(p.end)}</td>
-          <td class="alloc-td-left" style="left:${CL[5]}px;min-width:${CW[5]}px;max-width:${CW[5]}px;text-align:center;font-size:.75rem;font-weight:700;color:var(--blue)">${wd}</td>
+          <td class="alloc-td-left alloc-editable" title="${_fmt(p.start)||'Clique para definir início'}" onclick="event.stopPropagation();allocInlineDate('${p.id}','start',this)" style="left:${CL[3]}px;min-width:${CW[3]}px;max-width:${CW[3]}px;text-align:center;font-size:.62rem">${p.start?p.start.slice(8)+'/'+p.start.slice(5,7):'—'}</td>
+          <td class="alloc-td-left alloc-editable" title="${_fmt(p.end)||'Clique para definir término'}" onclick="event.stopPropagation();allocInlineDate('${p.id}','end',this)" style="left:${CL[4]}px;min-width:${CW[4]}px;max-width:${CW[4]}px;text-align:center;font-size:.62rem">${p.end?p.end.slice(8)+'/'+p.end.slice(5,7):'—'}</td>
+          <td class="alloc-td-left" style="left:${CL[5]}px;min-width:${CW[5]}px;max-width:${CW[5]}px;text-align:center;font-size:.72rem;font-weight:700;color:var(--blue)">${wd}</td>
           <td class="alloc-td-left alloc-sep-col" style="left:${CL[6]}px;min-width:${CW[6]}px;max-width:${CW[6]}px;text-align:center">
             <button onclick="openAllocModal('${p.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px" title="Editar tudo">✏️</button>
           </td>
@@ -6335,8 +6334,7 @@ function hlMatch(text,q){
       const cell=row.querySelector('.alloc-editable-assign');
       if(cell){
         const av=proj.assignees.map(a=>`<span class="alloc-avatar" style="background:${_nameColor(a)}" title="${a}">${_initials(a)}</span>`).join('');
-        const str=proj.assignees.join(', ').slice(0,18)||'—';
-        cell.innerHTML=`<div class="alloc-assignees">${av}</div><div style="font-size:.58rem;color:var(--text-muted)">${str}</div>`;
+        cell.innerHTML=`<div class="alloc-assignees" style="justify-content:center">${av||'<span style="font-size:.6rem;color:var(--text-muted)">—</span>'}</div>`;
       }
     }
     // Atualiza working days
