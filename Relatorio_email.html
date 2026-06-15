@@ -1732,31 +1732,32 @@ function replyCard(e){
   </div>`;}
 
 async function markAsReplied(id, btn){
-  btn.disabled=true; btn.textContent='…';
+  btn.disabled=true; btn.textContent='✅ Respondido';
+  // Remove imediatamente do DOM (optimistic — não espera API)
+  RESPONDER=RESPONDER.filter(e=>e.id!==id);
+  updateCounts();
+  const card=btn.closest('.reply-card,.email-card');
+  if(card){
+    card.style.transition='opacity .25s,transform .25s';
+    card.style.opacity='0'; card.style.transform='translateX(40px)';
+    setTimeout(()=>{
+      card.remove();
+      const panel=document.getElementById('panel-responder');
+      if(panel&&!panel.querySelector('.reply-card,.email-card')){
+        panel.innerHTML=sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',0)+empty('✓','Nada a responder','');
+      }
+    },260);
+  }
+  // Sincroniza com o servidor em background (sem bloquear UI)
   try{
-    // marca como lido no servidor
     await graphPatch(`/me/messages/${encodeURIComponent(id)}`,{isRead:true});
-    // remove da lista local e do DOM
-    RESPONDER=RESPONDER.filter(e=>e.id!==id);
     if(_emailMap[id]) _emailMap[id].isRead=true;
     DATA.unread=DATA.unread.filter(e=>e.id!==id);
     const moved=_emailMap[id];
     if(moved&&!DATA.read.find(e=>e.id===id)) DATA.read.push(moved);
     updateCounts();
-    const card=btn.closest('.reply-card,.email-card');
-    if(card){
-      card.style.transition='opacity .25s,transform .25s';
-      card.style.opacity='0'; card.style.transform='translateX(40px)';
-      setTimeout(()=>{ card.remove();
-        const panel=document.getElementById('panel-responder');
-        if(panel&&!panel.querySelector('.reply-card,.email-card')){
-          panel.innerHTML=sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',0)+empty('✓','Nada a responder','');
-        }
-      },260);
-    }
   }catch(err){
-    btn.disabled=false; btn.textContent='✅ Respondido';
-    if(err.message!=='403_relogin') alert('Erro: '+err.message);
+    if(err.message!=='403_relogin') console.warn('[markAsReplied]',err.message);
   }
 }
 
