@@ -162,6 +162,15 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .email-panel{display:none;animation:fadeIn .2s ease;}.email-panel.active{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 .unread-subtabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px;}
+.fetch-filter{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.fetch-filter-label{font-size:.72rem;color:var(--text-muted);font-weight:600;letter-spacing:.05em;white-space:nowrap;}
+.fetch-chip{background:none;border:1px solid var(--border);border-radius:20px;color:var(--text-muted);font-size:.75rem;font-weight:600;padding:4px 13px;cursor:pointer;transition:all .18s;}
+.fetch-chip:hover{border-color:var(--border2);color:var(--text);}
+.fetch-chip.active{background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.45);color:var(--blue);}
+.fetch-date-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.75rem;padding:4px 10px;font-family:var(--mono);cursor:pointer;outline:none;transition:border .18s;}
+.fetch-date-input:focus{border-color:var(--blue);}
+.fetch-refreshing{font-size:.72rem;color:var(--text-muted);animation:pulse 1s infinite;margin-left:4px;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 .usub{background:none;border:1px solid var(--border);border-radius:7px;color:var(--text-muted);font-size:.78rem;font-weight:600;letter-spacing:.04em;padding:5px 13px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:6px;}
 .usub:hover{border-color:var(--border2);color:var(--text);}
 .usub.active{background:rgba(250,204,21,.08);border-color:rgba(250,204,21,.4);color:#facc15;}
@@ -1503,9 +1512,11 @@ function mapMsg(m) {
 const SEL = 'id,subject,sender,receivedDateTime,bodyPreview,hasAttachments,importance,isRead,webLink,categories';
 
 async function fetchEmails() {
-  const yesterday = new Date(Date.now()-7*24*3600*1000).toISOString();
+  const since = _fetchSinceCustom
+    ? new Date(_fetchSinceCustom).toISOString()
+    : new Date(Date.now()-_fetchSinceDays*24*3600*1000).toISOString();
   const [inboxRes, flaggedRes] = await Promise.all([
-    graphGet(`/me/mailFolders/Inbox/messages?$filter=receivedDateTime ge ${yesterday}&$orderby=receivedDateTime desc&$top=50&$select=${SEL}`),
+    graphGet(`/me/mailFolders/Inbox/messages?$filter=receivedDateTime ge ${since}&$orderby=receivedDateTime desc&$top=100&$select=${SEL}`),
     graphGet(`/me/messages?$filter=flag/flagStatus eq 'flagged'&$top=50&$select=${SEL}`)
   ]);
   if (!inboxRes) return {unread:[],read:[],flagged:[],total:0};
@@ -1595,6 +1606,8 @@ function esc(s){return(s||'').replace(/'/g,"\'");}
 let currentTab='urgencias',currentFilter='all';
 let DATA={unread:[],read:[],flagged:[],total:0};
 let URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[];
+let _fetchSinceDays=7;
+let _fetchSinceCustom=null; // ISO date string quando modo personalizado
 let refreshTimer=null;
 const PIN_CAT='📌 Fixado';
 let PINNED_IDS=new Set();
@@ -1762,7 +1775,17 @@ function renderAll(){
     const pinnedAll=(()=>{const seen=new Set(),arr=[...DATA.unread,...DATA.read,...DATA.flagged];return arr.filter(e=>PINNED_IDS.has(e.id)&&!seen.has(e.id)&&seen.add(e.id));})();
     const unreadHtml=DATA.unread.length?sh('var(--blue)','📥 NÃO LIDOS',DATA.unread.length)+sortPinnedFirst(DATA.unread).map(emailCard).join(''):empty('📭','Inbox limpo','Nenhum e-mail não lido.');
     const pinnedHtml=pinnedAll.length?sh('var(--yellow)','📌 FIXADOS',pinnedAll.length)+pinnedAll.map(e=>emailCard(e,DATA.flagged.find(f=>f.id===e.id)?'flagged':'')).join(''):empty('📌','Nenhum fixado','Clique em 📌 Fixar em qualquer e-mail para ele aparecer aqui.');
+    const _chips=[{d:3,l:'3 dias'},{d:7,l:'7 dias'},{d:15,l:'15 dias'},{d:30,l:'30 dias'},{d:90,l:'3 meses'}];
+    const _customDateVal=_fetchSinceCustom?_fetchSinceCustom.slice(0,10):'';
+    const _isCustom=!!_fetchSinceCustom;
     document.getElementById('panel-unread').innerHTML=`
+      <div class="fetch-filter">
+        <span class="fetch-filter-label">📅 PERÍODO:</span>
+        ${_chips.map(c=>`<button class="fetch-chip${!_isCustom&&_fetchSinceDays===c.d?' active':''}" onclick="setFetchPeriod(${c.d})">${c.l}</button>`).join('')}
+        <button class="fetch-chip${_isCustom?' active':''}" onclick="document.getElementById('fetch-custom-dt').showPicker?.()??document.getElementById('fetch-custom-dt').click()">📆 Personalizado</button>
+        <input type="date" id="fetch-custom-dt" class="fetch-date-input" value="${_customDateVal}" max="${new Date().toISOString().slice(0,10)}" onchange="setFetchCustomDate(this.value)" title="Buscar a partir desta data" style="${_isCustom?'':'display:none'}">
+        <span id="fetch-loading-indicator" style="display:none" class="fetch-refreshing">↻ buscando...</span>
+      </div>
       <div class="unread-subtabs">
         <button class="usub active" id="usub-btn-all" onclick="switchUnreadSub('all',this)">📥 Não Lidos <span class="usub-cnt">${DATA.unread.length}</span></button>
         <button class="usub pin-sub" id="usub-btn-pinned" onclick="switchUnreadSub('pinned',this)">📌 Fixados <span class="usub-cnt">${pinnedAll.length}</span></button>
@@ -1787,6 +1810,28 @@ function switchUnreadSub(tab, btn){
   btn.classList.add('active');
   document.getElementById('usub-all').style.display=tab==='all'?'':'none';
   document.getElementById('usub-pinned').style.display=tab==='pinned'?'':'none';
+}
+
+async function setFetchPeriod(days){
+  _fetchSinceDays=days;
+  _fetchSinceCustom=null;
+  const ind=document.getElementById('fetch-loading-indicator');
+  if(ind){ind.style.display='inline';}
+  await loadEmails();
+  // re-activate the tab after reload
+  setTimeout(()=>{ switchTab('unread'); },50);
+}
+
+async function setFetchCustomDate(dateStr){
+  if(!dateStr)return;
+  _fetchSinceCustom=dateStr+'T00:00:00';
+  _fetchSinceDays=7; // reset preset
+  const inp=document.getElementById('fetch-custom-dt');
+  if(inp)inp.style.display='';
+  const ind=document.getElementById('fetch-loading-indicator');
+  if(ind)ind.style.display='inline';
+  await loadEmails();
+  setTimeout(()=>{ switchTab('unread'); },50);
 }
 function toggleProject(uid){const el=document.getElementById(uid),pg=document.getElementById('pg_'+uid);if(el){el.classList.toggle('open');if(pg)pg.classList.toggle('open');}}
 
