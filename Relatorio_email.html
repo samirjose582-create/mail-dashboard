@@ -35,7 +35,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 ::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:10px;}
 
 /* ── LOGIN OVERLAY ── */
-#login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;}
+#login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:10001;}
 .login-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px 40px;text-align:center;max-width:380px;width:90%;box-shadow:0 0 60px rgba(56,189,248,.08);position:relative;z-index:1000;}
 .login-logo{width:56px;height:56px;background:var(--blue-dim);border:1px solid rgba(56,189,248,.3);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 20px;}
 .login-title{font-size:1.4rem;font-weight:700;margin-bottom:6px;}
@@ -1089,7 +1089,7 @@ body.ck-active{padding-bottom:54px;}
     <div class="login-logo">📬</div>
     <div class="login-title">Mail Dashboard</div>
     <div class="login-sub">samir.goncalves@jpprojetos.com</div>
-    <button class="login-btn" id="login-btn">🔐 Entrar com Microsoft 365</button>
+    <button class="login-btn" id="login-btn" onclick="login()">🔐 Entrar com Microsoft 365</button>
     <div class="login-error" id="login-error"></div>
     <div class="login-note">Conta corporativa JP Projetos · Login seguro via Microsoft</div>
   </div>
@@ -1169,8 +1169,9 @@ body.ck-active{padding-bottom:54px;}
 <div id="ck-calendar" class="ck-calendar" style="display:none;"></div>
 <div class="page-footer" id="page-footer"></div>
 <div class="print-section"><div id="print-content"></div></div>
+</div>
 
-<!-- EMAIL READER MODAL -->
+<!-- EMAIL READER MODAL (outside #app to avoid stacking context issues) -->
 <div id="email-reader-overlay" onclick="if(event.target===this)closeEmailReader()">
   <div id="email-reader">
     <div class="er-header">
@@ -1189,7 +1190,6 @@ body.ck-active{padding-bottom:54px;}
     <div class="er-attachments" id="er-attachments"></div>
     <div class="er-actions" id="er-actions"></div>
   </div>
-</div>
 </div>
 
 <script>
