@@ -1083,6 +1083,76 @@ body.ck-active{padding-bottom:54px;}
 .chart-title{font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);margin-bottom:13px;}
 .chart-wrap{position:relative;height:200px;}
 @media(max-width:640px){.charts-grid-2{grid-template-columns:1fr;}.kpi-row{grid-template-columns:repeat(2,1fr);}}
+/* ── ALOCAÇÃO DE EQUIPE ── */
+#panel-alloc{padding:0;background:transparent;overflow:visible;}
+.alloc-root{display:flex;flex-direction:column;gap:0;font-family:'Inter',sans-serif;}
+.alloc-toolbar{display:flex;align-items:center;gap:8px;padding:12px 0 10px;flex-wrap:wrap;}
+.alloc-nav-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text-soft);padding:5px 12px;font-size:.78rem;cursor:pointer;transition:all .2s;}
+.alloc-nav-btn:hover{border-color:var(--yellow);color:var(--yellow);}
+.alloc-spacer{flex:1;}
+.alloc-add-btn{background:var(--surface);border:1px solid var(--green);border-radius:8px;color:var(--green);padding:5px 12px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.alloc-add-btn:hover{background:var(--green);color:#000;}
+.alloc-team-btn{background:var(--surface);border:1px solid var(--blue);border-radius:8px;color:var(--blue);padding:5px 12px;font-size:.78rem;cursor:pointer;transition:all .2s;}
+.alloc-team-btn:hover{background:var(--blue);color:#fff;}
+.alloc-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:13px;background:var(--surface);}
+.alloc-table{border-collapse:separate;border-spacing:0;white-space:nowrap;min-width:100%;}
+.alloc-table th,.alloc-table td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.alloc-th-hdr{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);text-align:center;padding:5px 4px;position:sticky;z-index:3;top:0;background:var(--surface);}
+.alloc-th-month{font-size:.6rem;font-weight:700;color:var(--text-soft);text-align:center;padding:4px 0;position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--border);}
+.alloc-th-week{font-size:.55rem;color:var(--text-muted);text-align:center;padding:2px 0;position:sticky;top:24px;z-index:2;background:var(--surface);border-bottom:1px solid var(--border);}
+.alloc-th-day{width:32px;min-width:32px;max-width:32px;text-align:center;padding:2px 1px;font-size:.55rem;position:sticky;top:40px;z-index:2;background:var(--surface);}
+.alloc-th-day .day-num{font-weight:700;color:var(--text-soft);line-height:1.4;display:block;}
+.alloc-th-day .day-dow{font-size:.48rem;color:var(--text-muted);display:block;}
+.alloc-th-day.is-today .day-num{color:var(--yellow);}
+.alloc-th-day.is-weekend,.alloc-td-day.is-weekend{background:rgba(255,255,255,.015);}
+.alloc-th-day.is-holiday{background:rgba(239,68,68,.07);}
+.alloc-td-day.is-holiday{background:rgba(239,68,68,.04);}
+.alloc-td-day.is-today{background:rgba(245,158,11,.08);}
+.alloc-td-left{font-size:.72rem;padding:6px 8px;color:var(--text-soft);vertical-align:middle;position:sticky;z-index:1;background:var(--surface);}
+.alloc-td-day{width:32px;min-width:32px;max-width:32px;height:42px;padding:0;position:relative;vertical-align:middle;}
+.alloc-bar{position:absolute;top:50%;transform:translateY(-50%);height:22px;opacity:.88;}
+.alloc-bar-start{left:5px;right:0;border-radius:5px 0 0 5px;}
+.alloc-bar-mid{left:0;right:0;border-radius:0;}
+.alloc-bar-end{left:0;right:5px;border-radius:0 5px 5px 0;}
+.alloc-bar-solo{left:5px;right:5px;border-radius:5px;}
+.alloc-bar-pct{position:absolute;top:50%;transform:translateY(-50%);left:8px;font-size:.5rem;font-weight:700;color:rgba(255,255,255,.95);white-space:nowrap;pointer-events:none;z-index:1;}
+.alloc-proj-code{font-size:.6rem;color:var(--text-muted);font-family:var(--mono);}
+.alloc-proj-name{font-size:.73rem;font-weight:600;color:var(--text);white-space:normal;line-height:1.3;max-width:148px;}
+.alloc-progress-bar{height:5px;border-radius:3px;background:var(--border);margin-top:3px;}
+.alloc-progress-fill{height:100%;border-radius:3px;}
+.alloc-assignees{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:2px;}
+.alloc-avatar{width:20px;height:20px;border-radius:50%;font-size:.52rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;}
+.alloc-empty{padding:48px;text-align:center;color:var(--text-muted);font-size:.85rem;}
+.alloc-row:hover .alloc-td-left{background:rgba(255,255,255,.025);}
+.alloc-sep-col{border-right:2px solid var(--border) !important;}
+/* Modals */
+.alloc-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9100;display:flex;align-items:center;justify-content:center;padding:16px;}
+.alloc-modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+.alloc-modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;border-bottom:1px solid var(--border);}
+.alloc-modal-title{font-size:.9rem;font-weight:700;color:var(--text);}
+.alloc-modal-close{background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;padding:4px 8px;}
+.alloc-modal-body{padding:16px 20px 20px;}
+.alloc-form-row{margin-bottom:13px;}
+.alloc-form-label{font-size:.63rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:5px;display:block;}
+.alloc-form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 10px;font-size:.82rem;box-sizing:border-box;font-family:'Inter',sans-serif;}
+.alloc-form-input:focus{outline:none;border-color:var(--yellow);}
+.alloc-color-swatches{display:flex;gap:7px;flex-wrap:wrap;padding:4px 0;}
+.alloc-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:border-color .15s,transform .1s;}
+.alloc-swatch.selected{border-color:#fff;transform:scale(1.15);}
+.alloc-member-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;}
+.alloc-member-chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:.72rem;color:var(--text-soft);cursor:pointer;transition:all .15s;user-select:none;}
+.alloc-member-chip.selected{border-color:var(--yellow);background:rgba(245,158,11,.12);color:var(--yellow);font-weight:600;}
+.alloc-form-actions{display:flex;gap:8px;justify-content:flex-end;padding-top:12px;border-top:1px solid var(--border);margin-top:8px;}
+.alloc-btn-save{background:var(--yellow);color:#000;border:none;border-radius:8px;padding:8px 18px;font-size:.8rem;font-weight:700;cursor:pointer;}
+.alloc-btn-del{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:8px 14px;font-size:.8rem;cursor:pointer;}
+.alloc-btn-cancel{background:var(--surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:.8rem;cursor:pointer;}
+.alloc-team-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);}
+.alloc-team-item:last-child{border-bottom:none;}
+.alloc-team-name{font-size:.82rem;color:var(--text-soft);}
+.alloc-team-del{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.85rem;padding:2px 8px;border-radius:4px;}
+.alloc-team-del:hover{color:var(--red);background:rgba(239,68,68,.1);}
+.alloc-add-member-row{display:flex;gap:8px;margin-top:12px;}
+.alloc-holiday-dot{width:4px;height:4px;border-radius:50%;background:var(--red);margin:1px auto 0;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -1172,6 +1242,7 @@ body.ck-active{padding-bottom:54px;}
       <div class="tab t-todos" id="tab-todos" onclick="switchTab('todos')">≡ Todos <span class="count" id="tc-todos">0</span></div>
       <div class="tab t-escrever" id="tab-escrever" onclick="switchTab('escrever')">✏️ Escrever</div>
       <div class="tab t-checklist" id="tab-checklist" onclick="switchTab('checklist')" style="color:#c084fc;">⬡ Checklist</div>
+      <div class="tab t-alloc" id="tab-alloc" onclick="switchTab('alloc')" style="color:#fb923c;">🏗 Alocação</div>
     </div>
     <span class="tabs-arr tabs-arr-right" id="tabs-ar">›</span>
     <div class="tabs-fade tabs-fade-right" id="tabs-fr"></div>
@@ -1196,6 +1267,7 @@ body.ck-active{padding-bottom:54px;}
   <div class="email-panel" id="panel-todos"></div>
   <div class="email-panel" id="panel-escrever"></div>
   <div class="email-panel" id="panel-checklist"></div>
+  <div class="email-panel" id="panel-alloc"></div>
 </div>
 <div class="analytics-section" id="analytics-section"></div>
 <div id="ck-calendar" class="ck-calendar" style="display:none;"></div>
@@ -2282,7 +2354,7 @@ function updateVolume(){
   if(prev&&prev!==today){const diff=today-prev,pct=Math.round(Math.abs(diff/prev)*100);const el=document.getElementById('vol-diff');el.textContent=` ${diff>0?'+':''}${diff} (${pct}%)`;el.className='vol-diff '+(diff>0?'vol-up':'vol-down');document.getElementById('vol-arrow').textContent=diff>0?'📈':'📉';}
 }
 
-const NO_SEARCH=['urgencias','responder','reunioes','projetos','fixados','escrever','checklist'];
+const NO_SEARCH=['urgencias','responder','reunioes','projetos','fixados','escrever','checklist','alloc'];
 function switchTab(tab){
   currentTab=tab;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+tab));
@@ -2297,7 +2369,8 @@ function switchTab(tab){
   document.body.classList.toggle('ck-active',tab==='checklist');
   if(tab==='checklist'){renderChecklist();}
   document.getElementById('ck-calendar').style.display=tab==='checklist'?'':'none';
-  document.getElementById('analytics-section').style.display=tab==='checklist'?'none':'';
+  document.getElementById('analytics-section').style.display=(tab==='checklist'||tab==='alloc')?'none':'';
+  if(tab==='alloc'){renderAllocPanel();}
 }
 function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();}
 function applyFilters(){
@@ -5983,6 +6056,303 @@ function hlMatch(text,q){
   if(i===-1)return text;
   return `${text.slice(0,i)}<strong style="color:var(--blue)">${text.slice(i,i+q.length)}</strong>${text.slice(i+q.length)}`;
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ALOCAÇÃO DE EQUIPE — GANTT CALENDAR
+// ══════════════════════════════════════════════════════════════════════════════
+(function(){
+  const STORE='_alloc_v1';
+  const ALLOC_COLORS=['#f59e0b','#3b82f6','#10b981','#8b5cf6','#ef4444','#06b6d4','#f97316','#ec4899','#84cc16','#6366f1'];
+  const DAY_ABBR=['D','S','T','Q','Q','S','S']; // 0=Sun
+  const MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const MONTHS_SH=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const FIXED_HOL={'01-01':'Confraternização Universal','04-21':'Tiradentes','05-01':'Dia do Trabalho','09-07':'Independência do Brasil','10-12':'Nossa Sra. Aparecida','11-02':'Finados','11-15':'Proclamação da República','11-20':'Consciência Negra','12-25':'Natal'};
+
+  let _navDate=null,_holCache={},_editPid=null;
+  const VISIBLE=56; // 8 weeks
+
+  function _easter(y){
+    const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),dy=((h+l-7*m+114)%31)+1;
+    return new Date(y,mo-1,dy);
+  }
+  function _buildHol(y){
+    const mp=new Map();
+    Object.entries(FIXED_HOL).forEach(([md,n])=>mp.set(`${y}-${md}`,n));
+    const e=_easter(y);
+    const add=(days,n)=>{const d=new Date(e);d.setDate(d.getDate()+days);mp.set(d.toISOString().slice(0,10),n);};
+    add(-2,'Sexta-feira Santa');add(60,'Corpus Christi');
+    return mp;
+  }
+  function _hols(y){if(!_holCache[y])_holCache[y]=_buildHol(y);return _holCache[y];}
+  function _isHol(ds){return _hols(+ds.slice(0,4)).has(ds);}
+  function _holName(ds){return _hols(+ds.slice(0,4)).get(ds)||'';}
+  function _isWe(ds){const d=new Date(ds+'T12:00:00');return d.getDay()===0||d.getDay()===6;}
+  function _workDays(s,e){
+    let n=0;const c=new Date(s+'T12:00:00'),en=new Date(e+'T12:00:00');
+    while(c<=en){const ds=c.toISOString().slice(0,10);if(!_isWe(ds)&&!_isHol(ds))n++;c.setDate(c.getDate()+1);}
+    return n;
+  }
+  function _load(){try{return JSON.parse(localStorage.getItem(STORE))||{projects:[],team:[]};}catch{return{projects:[],team:[]};}}
+  function _save(d){localStorage.setItem(STORE,JSON.stringify(d));}
+  function _navStart(){
+    if(!_navDate){
+      const t=new Date();const dow=t.getDay();
+      _navDate=new Date(t);_navDate.setDate(t.getDate()-(dow===0?6:dow-1));_navDate.setHours(0,0,0,0);
+    }
+    return _navDate;
+  }
+  function _days(){
+    const ds=[],s=new Date(_navStart());
+    for(let i=0;i<VISIBLE;i++){const d=new Date(s);d.setDate(d.getDate()+i);ds.push(d.toISOString().slice(0,10));}
+    return ds;
+  }
+  function _fmt(ds){if(!ds)return'—';const[y,m,d]=ds.split('-');return`${d}/${m}/${y}`;}
+  function _initials(n){return n.trim().split(/\s+/).map(p=>p[0]||'').join('').toUpperCase().slice(0,2);}
+  function _nameColor(n){let h=0;for(const c of n)h=c.charCodeAt(0)+((h<<5)-h);return ALLOC_COLORS[Math.abs(h)%ALLOC_COLORS.length];}
+  function _uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+
+  function renderAllocPanel(){
+    const panel=document.getElementById('panel-alloc');
+    if(!panel)return;
+    const data=_load();
+    const days=_days();
+    const todayStr=new Date().toISOString().slice(0,10);
+
+    // Month spans
+    const mSpans=[];let cm='',cc=0;
+    days.forEach(ds=>{const m=ds.slice(0,7);if(m!==cm){if(cm)mSpans.push({m:cm,n:cc});cm=m;cc=1;}else cc++;});
+    if(cm)mSpans.push({m:cm,n:cc});
+
+    // Week spans
+    function _isoWeek(ds){const d=new Date(ds+'T12:00:00');const t=new Date(d);t.setDate(t.getDate()+3-(t.getDay()+6)%7);const w1=new Date(t.getFullYear(),0,4);return`${t.getFullYear()}-W${String(Math.round(((t-w1)/86400000+w1.getDay()+6)/7)).padStart(2,'0')}`;}
+    const wSpans=[];let cw='',cwc=0;
+    days.forEach(ds=>{const w=_isoWeek(ds);if(w!==cw){if(cw)wSpans.push({w:cw,n:cwc,label:`Sem ${cw.split('-W')[1]}`});cw=w;cwc=1;}else cwc++;});
+    if(cw)wSpans.push({w:cw,n:cwc,label:`Sem ${cw.split('-W')[1]}`});
+
+    // Nav label
+    const sm=days[0].slice(0,7),em=days[days.length-1].slice(0,7);
+    const navLbl=sm===em?`${MONTHS_PT[+sm.slice(5)-1]} ${sm.slice(0,4)}`:`${MONTHS_SH[+sm.slice(5)-1]} – ${MONTHS_SH[+em.slice(5)-1]} ${em.slice(0,4)}`;
+
+    // Sticky left col config [width, left]
+    const CW=[160,120,50,70,70,55,40]; // Projeto,Atribuído,%,Início,Término,Dias,Edit
+    const CL=CW.reduce((acc,w,i)=>[...acc,(acc[i]||0)+w],[0]).slice(0,-1);
+    const CH=['Projeto','Atribuído','%','Início','Término','Dias',''];
+
+    // Header: month row
+    const mHdrLeft=`<th colspan="${CW.length}" style="text-align:left;padding:6px 10px;font-size:.68rem;font-weight:700;color:var(--yellow);background:var(--surface);position:sticky;left:0;z-index:4;top:0;border-bottom:1px solid var(--border)">🏗 ALOCAÇÃO DE EQUIPE</th>`;
+    const mHdrRight=mSpans.map(({m,n})=>`<th colspan="${n}" class="alloc-th-month">${MONTHS_SH[+m.slice(5)-1]} ${m.slice(0,4)}</th>`).join('');
+
+    // Header: week row
+    const wHdrLeft=`<th colspan="${CW.length}" style="background:var(--surface);position:sticky;left:0;z-index:4;top:24px;padding:3px 10px;font-size:.6rem;color:var(--text-muted);border-bottom:1px solid var(--border)">${navLbl}</th>`;
+    const wHdrRight=wSpans.map(({n,label})=>`<th colspan="${n}" class="alloc-th-week">${label}</th>`).join('');
+
+    // Header: col names + day numbers
+    const colHdrs=CH.map((h,i)=>`<th class="alloc-th-hdr${i===CW.length-1?' alloc-sep-col':''}" style="left:${CL[i]}px;min-width:${CW[i]}px;max-width:${CW[i]}px;top:40px">${h}</th>`).join('');
+    const dayHdrs=days.map(ds=>{
+      const d=new Date(ds+'T12:00:00');const dow=d.getDay();
+      const isT=ds===todayStr,isW=_isWe(ds),isH=_isHol(ds);
+      let cls='alloc-th-day';if(isT)cls+=' is-today';if(isW)cls+=' is-weekend';if(isH)cls+=' is-holiday';
+      const title=isH?` title="${_holName(ds)}"`:isW?' title="Fim de semana"':'';
+      const dot=isH?'<div class="alloc-holiday-dot"></div>':'';
+      return `<th class="${cls}"${title}><span class="day-num">${d.getDate()}</span><span class="day-dow">${DAY_ABBR[dow]}</span>${dot}</th>`;
+    }).join('');
+
+    // Project rows
+    let rows='';
+    if(!data.projects.length){
+      rows=`<tr><td colspan="${CW.length+days.length}" class="alloc-empty">Nenhum projeto ainda. Clique em <strong>＋ Projeto</strong> para começar.</td></tr>`;
+    } else {
+      data.projects.forEach(p=>{
+        const wd=_workDays(p.start||'',p.end||'');
+        const pct=Math.min(100,Math.max(0,p.progress||0));
+        const pctColor=pct>=80?'var(--green)':pct>=40?'var(--yellow)':'var(--orange)';
+        const avatars=(p.assignees||[]).map(a=>`<span class="alloc-avatar" style="background:${_nameColor(a)}" title="${a}">${_initials(a)}</span>`).join('');
+        const assignStr=(p.assignees||[]).join(', ').slice(0,18)||'—';
+        const dayCells=days.map(ds=>{
+          const d=new Date(ds+'T12:00:00');const dow=d.getDay();
+          const isT=ds===todayStr,isW=_isWe(ds),isH=_isHol(ds);
+          const inRange=p.start&&p.end&&ds>=p.start&&ds<=p.end;
+          let cls='alloc-td-day';if(isW)cls+=' is-weekend';if(isH)cls+=' is-holiday';if(isT)cls+=' is-today';
+          let bar='';
+          if(inRange){
+            const isFirst=ds===p.start,isLast=ds===p.end;
+            let bc='alloc-bar ';bc+=isFirst&&isLast?'alloc-bar-solo':isFirst?'alloc-bar-start':isLast?'alloc-bar-end':'alloc-bar-mid';
+            const lbl=isFirst?`<span class="alloc-bar-pct">${pct}%</span>`:'';
+            bar=`<div class="${bc}" style="background:${p.color||ALLOC_COLORS[0]}"></div>${lbl}`;
+          }
+          return `<td class="${cls}">${bar}</td>`;
+        }).join('');
+        rows+=`<tr class="alloc-row">
+          <td class="alloc-td-left" style="left:${CL[0]}px;min-width:${CW[0]}px;max-width:${CW[0]}px">
+            <div class="alloc-proj-code">${p.code||''}</div>
+            <div class="alloc-proj-name">${p.name||''}</div>
+          </td>
+          <td class="alloc-td-left" style="left:${CL[1]}px;min-width:${CW[1]}px;max-width:${CW[1]}px">
+            <div class="alloc-assignees">${avatars}</div>
+            <div style="font-size:.58rem;color:var(--text-muted)">${assignStr}</div>
+          </td>
+          <td class="alloc-td-left" style="left:${CL[2]}px;min-width:${CW[2]}px;max-width:${CW[2]}px;text-align:center">
+            <div style="font-size:.72rem;font-weight:700;color:${pctColor}">${pct}%</div>
+            <div class="alloc-progress-bar"><div class="alloc-progress-fill" style="width:${pct}%;background:${pctColor}"></div></div>
+          </td>
+          <td class="alloc-td-left" style="left:${CL[3]}px;min-width:${CW[3]}px;max-width:${CW[3]}px;text-align:center;font-size:.65rem">${_fmt(p.start)}</td>
+          <td class="alloc-td-left" style="left:${CL[4]}px;min-width:${CW[4]}px;max-width:${CW[4]}px;text-align:center;font-size:.65rem">${_fmt(p.end)}</td>
+          <td class="alloc-td-left" style="left:${CL[5]}px;min-width:${CW[5]}px;max-width:${CW[5]}px;text-align:center;font-size:.75rem;font-weight:700;color:var(--blue)">${wd}</td>
+          <td class="alloc-td-left alloc-sep-col" style="left:${CL[6]}px;min-width:${CW[6]}px;max-width:${CW[6]}px;text-align:center">
+            <button onclick="openAllocModal('${p.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px" title="Editar">✏️</button>
+          </td>
+          ${dayCells}
+        </tr>`;
+      });
+    }
+
+    panel.innerHTML=`<div class="alloc-root">
+      <div class="alloc-toolbar">
+        <button class="alloc-nav-btn" onclick="allocNav(-1)">‹ Anterior</button>
+        <button class="alloc-nav-btn" onclick="allocNav(0)">Hoje</button>
+        <button class="alloc-nav-btn" onclick="allocNav(1)">Próximo ›</button>
+        <span style="font-size:.72rem;color:var(--text-muted);padding:0 4px">${navLbl}</span>
+        <div class="alloc-spacer"></div>
+        <button class="alloc-team-btn" onclick="openTeamModal()">👥 Equipe</button>
+        <button class="alloc-add-btn" onclick="openAllocModal()">＋ Projeto</button>
+      </div>
+      <div class="alloc-wrap">
+        <table class="alloc-table">
+          <thead>
+            <tr>${mHdrLeft}${mHdrRight}</tr>
+            <tr>${wHdrLeft}${wHdrRight}</tr>
+            <tr>${colHdrs}${dayHdrs}</tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }
+
+  window.renderAllocPanel=renderAllocPanel;
+
+  window.allocNav=function(dir){
+    if(!_navDate)_navStart();
+    if(dir===0){_navDate=null;_navStart();}
+    else _navDate.setDate(_navDate.getDate()+dir*7);
+    renderAllocPanel();
+  };
+
+  window.openAllocModal=function(pid){
+    _editPid=pid||null;
+    const data=_load();
+    const proj=pid?data.projects.find(p=>p.id===pid):null;
+    const team=data.team||[];
+    const today=new Date().toISOString().slice(0,10);
+    const selColor=proj?.color||ALLOC_COLORS[0];
+
+    const swatches=ALLOC_COLORS.map(c=>`<span class="alloc-swatch${c===selColor?' selected':''}" style="background:${c}" data-color="${c}" onclick="allocPickColor(this)" title="${c}"></span>`).join('');
+    const chips=team.length?team.map(m=>`<span class="alloc-member-chip${(proj?.assignees||[]).includes(m)?' selected':''}" onclick="this.classList.toggle('selected')" data-member="${m}">${m}</span>`).join(''):'<span style="font-size:.75rem;color:var(--text-muted)">Sem membros na equipe. Clique em 👥 Equipe primeiro.</span>';
+    const delBtn=pid?`<button class="alloc-btn-del" onclick="deleteAllocProject('${pid}')">🗑 Excluir</button>`:'';
+
+    const ov=document.createElement('div');
+    ov.className='alloc-modal-overlay';ov.id='alloc-modal-ov';
+    ov.onclick=e=>{if(e.target===ov)closeAllocModal();};
+    ov.innerHTML=`<div class="alloc-modal">
+      <div class="alloc-modal-hdr">
+        <span class="alloc-modal-title">${pid?'✏️ Editar Projeto':'＋ Novo Projeto'}</span>
+        <button class="alloc-modal-close" onclick="closeAllocModal()">✕</button>
+      </div>
+      <div class="alloc-modal-body">
+        <div class="alloc-form-row"><label class="alloc-form-label">Código</label><input class="alloc-form-input" id="af-code" placeholder="Ex: MEC-01" value="${proj?.code||''}"></div>
+        <div class="alloc-form-row"><label class="alloc-form-label">Nome do Projeto</label><input class="alloc-form-input" id="af-name" placeholder="Nome completo do projeto" value="${proj?.name||''}"></div>
+        <div class="alloc-form-row"><label class="alloc-form-label">Atribuído Para</label><div class="alloc-member-list" id="af-members">${chips}</div></div>
+        <div class="alloc-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label class="alloc-form-label">Data de Início</label><input class="alloc-form-input" type="date" id="af-start" value="${proj?.start||today}"></div>
+          <div><label class="alloc-form-label">Data de Término</label><input class="alloc-form-input" type="date" id="af-end" value="${proj?.end||today}"></div>
+        </div>
+        <div class="alloc-form-row">
+          <label class="alloc-form-label">Progresso — <span id="af-pct-val" style="color:var(--yellow)">${proj?.progress||0}%</span></label>
+          <input class="alloc-form-input" type="range" id="af-pct" min="0" max="100" value="${proj?.progress||0}" oninput="document.getElementById('af-pct-val').textContent=this.value+'%'" style="padding:4px 0;accent-color:var(--yellow)">
+        </div>
+        <div class="alloc-form-row"><label class="alloc-form-label">Cor</label><div class="alloc-color-swatches">${swatches}</div></div>
+        <div class="alloc-form-actions">${delBtn}<button class="alloc-btn-cancel" onclick="closeAllocModal()">Cancelar</button><button class="alloc-btn-save" onclick="saveAllocProject()">💾 Salvar</button></div>
+      </div>
+    </div>`;
+    document.body.appendChild(ov);
+  };
+
+  window.allocPickColor=function(el){
+    document.querySelectorAll('#alloc-modal-ov .alloc-swatch').forEach(s=>s.classList.remove('selected'));
+    el.classList.add('selected');
+  };
+
+  window.closeAllocModal=function(){document.getElementById('alloc-modal-ov')?.remove();_editPid=null;};
+
+  window.saveAllocProject=function(){
+    const code=document.getElementById('af-code')?.value.trim()||'';
+    const name=document.getElementById('af-name')?.value.trim()||'';
+    const start=document.getElementById('af-start')?.value||'';
+    const end=document.getElementById('af-end')?.value||'';
+    const pct=parseInt(document.getElementById('af-pct')?.value||'0');
+    const color=document.querySelector('#alloc-modal-ov .alloc-swatch.selected')?.dataset.color||ALLOC_COLORS[0];
+    const assignees=[...document.querySelectorAll('#af-members .alloc-member-chip.selected')].map(el=>el.dataset.member);
+    if(!name){alert('Informe o nome do projeto.');return;}
+    if(!start||!end){alert('Informe as datas de início e término.');return;}
+    if(start>end){alert('Data de início deve ser anterior ao término.');return;}
+    const data=_load();
+    if(_editPid){
+      const idx=data.projects.findIndex(p=>p.id===_editPid);
+      if(idx>=0)data.projects[idx]={...data.projects[idx],code,name,start,end,progress:pct,color,assignees};
+    } else {
+      data.projects.push({id:_uid(),code,name,start,end,progress:pct,color,assignees});
+    }
+    _save(data);closeAllocModal();renderAllocPanel();
+  };
+
+  window.deleteAllocProject=function(pid){
+    if(!confirm('Excluir este projeto permanentemente?'))return;
+    const data=_load();data.projects=data.projects.filter(p=>p.id!==pid);
+    _save(data);closeAllocModal();renderAllocPanel();
+  };
+
+  window.openTeamModal=function(){
+    const data=_load();const team=data.team||[];
+    const listHtml=t=>t.length?t.map(m=>`<div class="alloc-team-item"><span class="alloc-team-name">${m}</span><button class="alloc-team-del" onclick="removeTeamMember('${m}')">✕</button></div>`).join(''):'<p style="color:var(--text-muted);font-size:.8rem;margin:0">Nenhum membro ainda.</p>';
+    const ov=document.createElement('div');
+    ov.className='alloc-modal-overlay';ov.id='team-modal-ov';
+    ov.onclick=e=>{if(e.target===ov)closeTeamModal();};
+    ov.innerHTML=`<div class="alloc-modal" style="max-width:360px">
+      <div class="alloc-modal-hdr"><span class="alloc-modal-title">👥 Equipe</span><button class="alloc-modal-close" onclick="closeTeamModal()">✕</button></div>
+      <div class="alloc-modal-body">
+        <div id="team-list">${listHtml(team)}</div>
+        <div class="alloc-add-member-row">
+          <input class="alloc-form-input" id="team-new-name" placeholder="Nome do membro" onkeydown="if(event.key==='Enter')addTeamMember()" style="flex:1">
+          <button class="alloc-btn-save" onclick="addTeamMember()" style="white-space:nowrap">＋ Adicionar</button>
+        </div>
+      </div>
+    </div>`;
+    document.body.appendChild(ov);
+    setTimeout(()=>document.getElementById('team-new-name')?.focus(),80);
+  };
+
+  window.closeTeamModal=function(){document.getElementById('team-modal-ov')?.remove();};
+
+  window.addTeamMember=function(){
+    const inp=document.getElementById('team-new-name');
+    const name=inp?.value.trim();if(!name)return;
+    const data=_load();
+    if(!data.team.includes(name)){data.team.push(name);_save(data);}
+    inp.value='';
+    const listHtml=t=>t.length?t.map(m=>`<div class="alloc-team-item"><span class="alloc-team-name">${m}</span><button class="alloc-team-del" onclick="removeTeamMember('${m}')">✕</button></div>`).join(''):'<p style="color:var(--text-muted);font-size:.8rem;margin:0">Nenhum membro ainda.</p>';
+    const el=document.getElementById('team-list');if(el)el.innerHTML=listHtml(data.team);
+    inp.focus();
+  };
+
+  window.removeTeamMember=function(name){
+    const data=_load();
+    data.team=data.team.filter(m=>m!==name);
+    data.projects.forEach(p=>{p.assignees=(p.assignees||[]).filter(a=>a!==name);});
+    _save(data);
+    const listHtml=t=>t.length?t.map(m=>`<div class="alloc-team-item"><span class="alloc-team-name">${m}</span><button class="alloc-team-del" onclick="removeTeamMember('${m}')">✕</button></div>`).join(''):'<p style="color:var(--text-muted);font-size:.8rem;margin:0">Nenhum membro ainda.</p>';
+    const el=document.getElementById('team-list');if(el)el.innerHTML=listHtml(data.team);
+  };
+})();
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 (async () => {
