@@ -1170,6 +1170,9 @@ body.ck-active{padding-bottom:54px;}
 .alloc-export-btn{background:var(--surface);border:1px solid #16a34a;border-radius:8px;color:#4ade80;padding:5px 13px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;}
 .alloc-export-btn:hover{background:#16a34a;color:#fff;}
 .alloc-export-btn:disabled{opacity:.45;cursor:not-allowed;}
+.alloc-resize-handle{position:absolute;right:-3px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:10;user-select:none;}
+.alloc-resize-handle::after{content:'';position:absolute;left:3px;top:15%;bottom:15%;width:2px;background:transparent;transition:background .15s;border-radius:1px;}
+.alloc-resize-handle:hover::after,.alloc-resize-handle.dragging::after{background:var(--yellow);}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -6165,7 +6168,7 @@ function hlMatch(text,q){
     const navLbl=sm===em?`${MONTHS_PT[+sm.slice(5)-1]} ${sm.slice(0,4)}`:`${MONTHS_SH[+sm.slice(5)-1]} – ${MONTHS_SH[+em.slice(5)-1]} ${em.slice(0,4)}`;
 
     // Sticky left col config [width, left]
-    const CW=[130,76,42,52,52,38,28]; // Projeto,Atribuído,%,Início,Término,Dias,Edit
+    const CW=_allocLoadCW();
     const CL=CW.reduce((acc,w,i)=>[...acc,(acc[i]||0)+w],[0]).slice(0,-1);
     const CH=['Projeto','Atribuído','%','Início','Término','Dias',''];
 
@@ -6178,7 +6181,7 @@ function hlMatch(text,q){
     const wHdrRight=wSpans.map(({n,label})=>`<th colspan="${n}" class="alloc-th-week">${label}</th>`).join('');
 
     // Header: col names + day numbers
-    const colHdrs=CH.map((h,i)=>`<th class="alloc-th-hdr${i===CW.length-1?' alloc-sep-col':''}" style="left:${CL[i]}px;min-width:${CW[i]}px;max-width:${CW[i]}px;top:40px">${h}</th>`).join('');
+    const colHdrs=CH.map((h,i)=>`<th class="alloc-th-hdr${i===CW.length-1?' alloc-sep-col':''}" data-col="${i}" style="left:${CL[i]}px;min-width:${CW[i]}px;max-width:${CW[i]}px;width:${CW[i]}px;top:40px;position:sticky;overflow:visible">${h}</th>`).join('');
     const dayHdrs=days.map(ds=>{
       const d=new Date(ds+'T12:00:00');const dow=d.getDay();
       const isT=ds===todayStr,isW=_isWe(ds),isH=_isHol(ds);
@@ -6214,21 +6217,21 @@ function hlMatch(text,q){
           return `<td class="${cls}"><div class="alloc-day-inner">${bar}</div></td>`;
         }).join('');
         rows+=`<tr class="alloc-row" data-pid="${p.id}">
-          <td class="alloc-td-left" style="left:${CL[0]}px;min-width:${CW[0]}px;max-width:${CW[0]}px">
+          <td class="alloc-td-left" data-col="0" style="left:${CL[0]}px;min-width:${CW[0]}px;max-width:${CW[0]}px;width:${CW[0]}px">
             <div class="alloc-proj-code alloc-editable" title="Clique para editar código" onclick="event.stopPropagation();allocInlineName('${p.id}','code',this)">${p.code||'—'}</div>
             <div class="alloc-proj-name alloc-editable" title="Clique para editar nome" onclick="event.stopPropagation();allocInlineName('${p.id}','name',this)">${p.name||''}</div>
           </td>
-          <td class="alloc-td-left alloc-editable-assign" title="${assignStr||'Clique para atribuir'}" onclick="event.stopPropagation();allocAssigneePopup('${p.id}',this)" style="left:${CL[1]}px;min-width:${CW[1]}px;max-width:${CW[1]}px;text-align:center">
+          <td class="alloc-td-left alloc-editable-assign" data-col="1" title="${assignStr||'Clique para atribuir'}" onclick="event.stopPropagation();allocAssigneePopup('${p.id}',this)" style="left:${CL[1]}px;min-width:${CW[1]}px;max-width:${CW[1]}px;width:${CW[1]}px;text-align:center">
             <div class="alloc-assignees" style="justify-content:center">${avatars||'<span style="font-size:.6rem;color:var(--text-muted)">—</span>'}</div>
           </td>
-          <td class="alloc-td-left" style="left:${CL[2]}px;min-width:${CW[2]}px;max-width:${CW[2]}px;text-align:center">
+          <td class="alloc-td-left" data-col="2" style="left:${CL[2]}px;min-width:${CW[2]}px;max-width:${CW[2]}px;width:${CW[2]}px;text-align:center">
             <div style="font-size:.72rem;font-weight:700;color:${pctColor}">${pct}%</div>
             <div class="alloc-progress-bar"><div class="alloc-progress-fill" style="width:${pct}%;background:${pctColor}"></div></div>
           </td>
-          <td class="alloc-td-left alloc-editable" title="${_fmt(p.start)||'Clique para definir início'}" onclick="event.stopPropagation();allocInlineDate('${p.id}','start',this)" style="left:${CL[3]}px;min-width:${CW[3]}px;max-width:${CW[3]}px;text-align:center;font-size:.62rem">${p.start?p.start.slice(8)+'/'+p.start.slice(5,7):'—'}</td>
-          <td class="alloc-td-left alloc-editable" title="${_fmt(p.end)||'Clique para definir término'}" onclick="event.stopPropagation();allocInlineDate('${p.id}','end',this)" style="left:${CL[4]}px;min-width:${CW[4]}px;max-width:${CW[4]}px;text-align:center;font-size:.62rem">${p.end?p.end.slice(8)+'/'+p.end.slice(5,7):'—'}</td>
-          <td class="alloc-td-left" style="left:${CL[5]}px;min-width:${CW[5]}px;max-width:${CW[5]}px;text-align:center;font-size:.72rem;font-weight:700;color:var(--blue)">${wd}</td>
-          <td class="alloc-td-left alloc-sep-col" style="left:${CL[6]}px;min-width:${CW[6]}px;max-width:${CW[6]}px;text-align:center">
+          <td class="alloc-td-left alloc-editable" data-col="3" title="${_fmt(p.start)||'Clique para definir início'}" onclick="event.stopPropagation();allocInlineDate('${p.id}','start',this)" style="left:${CL[3]}px;min-width:${CW[3]}px;max-width:${CW[3]}px;width:${CW[3]}px;text-align:center;font-size:.62rem">${p.start?p.start.slice(8)+'/'+p.start.slice(5,7):'—'}</td>
+          <td class="alloc-td-left alloc-editable" data-col="4" title="${_fmt(p.end)||'Clique para definir término'}" onclick="event.stopPropagation();allocInlineDate('${p.id}','end',this)" style="left:${CL[4]}px;min-width:${CW[4]}px;max-width:${CW[4]}px;width:${CW[4]}px;text-align:center;font-size:.62rem">${p.end?p.end.slice(8)+'/'+p.end.slice(5,7):'—'}</td>
+          <td class="alloc-td-left" data-col="5" style="left:${CL[5]}px;min-width:${CW[5]}px;max-width:${CW[5]}px;width:${CW[5]}px;text-align:center;font-size:.72rem;font-weight:700;color:var(--blue)">${wd}</td>
+          <td class="alloc-td-left alloc-sep-col" data-col="6" style="left:${CL[6]}px;min-width:${CW[6]}px;max-width:${CW[6]}px;width:${CW[6]}px;text-align:center">
             <button onclick="openAllocModal('${p.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px" title="Editar tudo">✏️</button>
           </td>
           ${dayCells}
@@ -6258,6 +6261,66 @@ function hlMatch(text,q){
         </table>
       </div>
     </div>`;
+    _initAllocResize();
+  }
+
+  // ── Column resize ─────────────────────────────────────────────────────────────
+  const CW_STORE='_alloc_cw_v1';
+  const CW_DEFAULT=[130,76,42,52,52,38,28];
+
+  function _allocLoadCW(){
+    try{const s=JSON.parse(localStorage.getItem(CW_STORE));if(Array.isArray(s)&&s.length===CW_DEFAULT.length)return s.map(Number);}catch{}
+    return [...CW_DEFAULT];
+  }
+  function _allocSaveCW(cw){localStorage.setItem(CW_STORE,JSON.stringify(cw));}
+
+  function _initAllocResize(){
+    const panel=document.getElementById('panel-alloc');
+    if(!panel)return;
+    const ths=panel.querySelectorAll('th[data-col]');
+    ths.forEach(th=>{
+      if(th.querySelector('.alloc-resize-handle'))return; // já tem
+      const handle=document.createElement('div');
+      handle.className='alloc-resize-handle';
+      th.appendChild(handle);
+
+      handle.addEventListener('mousedown',e=>{
+        e.preventDefault();e.stopPropagation();
+        handle.classList.add('dragging');
+        const col=parseInt(th.dataset.col);
+        const startX=e.clientX;
+        const cw=_allocLoadCW();
+        const startW=cw[col];
+
+        function reflow(){
+          // Recalcula left acumulado para todas as colunas
+          let left=0;
+          for(let i=0;i<cw.length;i++){
+            panel.querySelectorAll(`[data-col="${i}"]`).forEach(el=>{
+              el.style.minWidth=cw[i]+'px';
+              el.style.maxWidth=cw[i]+'px';
+              el.style.width=cw[i]+'px';
+              el.style.left=left+'px';
+            });
+            left+=cw[i];
+          }
+        }
+
+        const onMove=ev=>{
+          const newW=Math.max(28,startW+(ev.clientX-startX));
+          cw[col]=Math.round(newW);
+          reflow();
+        };
+        const onUp=()=>{
+          handle.classList.remove('dragging');
+          _allocSaveCW(cw);
+          document.removeEventListener('mousemove',onMove);
+          document.removeEventListener('mouseup',onUp);
+        };
+        document.addEventListener('mousemove',onMove);
+        document.addEventListener('mouseup',onUp);
+      });
+    });
   }
 
   window.renderAllocPanel=renderAllocPanel;
