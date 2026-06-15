@@ -614,6 +614,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .eact.mark-unread{border-color:rgba(56,189,248,.2);color:rgba(255,255,255,.35);}
 .eact.mark-unread:hover{background:rgba(56,189,248,.09);border-color:rgba(56,189,248,.45);color:var(--blue);}
 .eact.mark-read:disabled,.eact.mark-unread:disabled{opacity:.4;cursor:default;}
+.eact.replied{border-color:rgba(74,222,128,.3);color:rgba(74,222,128,.7);font-weight:700;}
+.eact.replied:hover{background:rgba(74,222,128,.12);border-color:#4ade80;color:#4ade80;}
+.eact.replied:disabled{opacity:.4;cursor:default;}
 .eact.fwd:hover{background:var(--orange-dim);border-color:rgba(251,146,60,.3);color:var(--orange);}
 .eact:disabled{opacity:.4;cursor:not-allowed;}
 .reply-ctx{display:flex;align-items:center;gap:9px;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:.75rem;color:var(--text-soft);}
@@ -1695,8 +1698,42 @@ function emailCard(e, extraCls=''){
         ? `<button class="eact mark-read" onclick="markAsRead('${esc(e.id)}',this)">✓ Marcar como lido</button>`
         : `<button class="eact mark-unread" onclick="markAsUnread('${esc(e.id)}',this)">◌ Marcar como não lido</button>`
       }
+      ${extraCls==='responder'
+        ? `<button class="eact replied" onclick="markAsReplied('${esc(e.id)}',this)">✅ Respondido</button>`
+        : ''
+      }
     </div>
   </div>`;}
+
+async function markAsReplied(id, btn){
+  btn.disabled=true; btn.textContent='…';
+  try{
+    // marca como lido no servidor
+    await graphPatch(`/me/messages/${encodeURIComponent(id)}`,{isRead:true});
+    // remove da lista local e do DOM
+    RESPONDER=RESPONDER.filter(e=>e.id!==id);
+    if(_emailMap[id]) _emailMap[id].isRead=true;
+    DATA.unread=DATA.unread.filter(e=>e.id!==id);
+    const moved=_emailMap[id];
+    if(moved&&!DATA.read.find(e=>e.id===id)) DATA.read.push(moved);
+    updateCounts();
+    const card=btn.closest('.email-card');
+    if(card){
+      card.style.transition='opacity .25s,transform .25s';
+      card.style.opacity='0'; card.style.transform='translateX(40px)';
+      setTimeout(()=>{ card.remove();
+        // se ficou vazio, mostra empty state
+        const panel=document.getElementById('panel-responder');
+        if(panel&&!panel.querySelector('.email-card')){
+          panel.innerHTML=sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',0)+empty('✓','Nada a responder','');
+        }
+      },260);
+    }
+  }catch(err){
+    btn.disabled=false; btn.textContent='✅ Respondido';
+    if(err.message!=='403_relogin') alert('Erro: '+err.message);
+  }
+}
 
 async function markAsRead(id, btn){
   btn.disabled=true; btn.textContent='…';
@@ -1854,7 +1891,7 @@ function renderAll(){
       <div class="usub-section" id="usub-all">${unreadHtml}</div>
       <div class="usub-section" id="usub-pinned" style="display:none">${pinnedHtml}</div>`;
   }
-  document.getElementById('panel-responder').innerHTML=RESPONDER.length?sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',RESPONDER.length)+RESPONDER.map(e=>`<div class="reply-card" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="reply-inner"><div class="reply-reason">↩ AGUARDA RESPOSTA</div><div class="reply-subject">${e.subject||''}</div><div class="reply-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="reply-snippet">${clean(e.summary)}</div><a class="reply-btn" href="${e.webLink||'#'}" target="_blank" onclick="event.stopPropagation()">↩ Responder</a></div></div>`).join(''):empty('✓','Nada a responder','');
+  document.getElementById('panel-responder').innerHTML=RESPONDER.length?sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',RESPONDER.length)+RESPONDER.map(e=>emailCard(e,'responder')).join(''):empty('✓','Nada a responder','');
   renderMeetingCal();
   const keys=Object.keys(PROJETOS).sort();
   document.getElementById('panel-projetos').innerHTML=keys.length?sh('var(--green)','🗂 PROJECTOS',keys.length)+keys.map(proj=>{const emails=PROJETOS[proj],hasU=emails.some(e=>!e.isRead),uid='proj_'+proj.replace(/[^a-z0-9]/gi,'_');return `<div class="project-group" id="pg_${uid}"><div class="project-header" onclick="toggleProject('${uid}')"><span class="project-code">${proj}</span><span class="project-name">${emails[0]?.subject?.split('|').slice(2).join('|').trim().slice(0,55)||''}</span><span class="project-count">${emails.length} msg${hasU?` · <span style="color:var(--blue)">${emails.filter(e=>!e.isRead).length} unread</span>`:''}</span><span class="project-chevron">›</span></div><div class="project-emails" id="${uid}">${emails.map(emailCard).join('')}</div></div>`}).join(''):empty('🗂','Sem projectos','');
