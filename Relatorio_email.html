@@ -1624,19 +1624,28 @@ async function loadEmails(manual=false){
     showLoading('A buscar e-mails e reuniões...');
     const [result,calEvents]=await Promise.all([fetchEmails(),fetchCalendarEvents()]);
     CALENDAR_EVENTS=calEvents;
-    if(!result.total&&!result.unread.length){hideLoading();if(manual){btn.disabled=false;btn.textContent='↺ Actualizar';}return;}
-    DATA=result; buildDerived(); renderAll(); updateCounts(); updateVolume();
+    DATA=result;
+    buildDerived();
+    renderAll();
+    updateCounts();
+    updateVolume();
     const now=new Date();
     document.getElementById('updated-meta').textContent='atualizado às '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
     document.getElementById('header-date').innerHTML=fmtFull(now)+'<br>auto-refresh 5min';
     document.getElementById('page-footer').textContent=`samir.goncalves@jpprojetos.com · ${DATA.total} emails · ${URGENCIAS.length} urgências · ${REUNIOES.length} reuniões · live`;
+  }catch(e){
+    console.error('[loadEmails]',e);
+    // mostra erro no rodapé em vez de alert
+    document.getElementById('page-footer').textContent='Erro ao carregar: '+e.message;
+  }finally{
     hideLoading();
     document.getElementById('app').style.display='block';
-    _checkIOSInstall(); // mostrar botão instalar no iOS após login
+    document.getElementById('login-overlay').style.display='none';
+    _checkIOSInstall();
+    if(manual){btn.disabled=false;btn.textContent='↺ Actualizar';}
     if(refreshTimer)clearTimeout(refreshTimer);
     refreshTimer=setTimeout(()=>loadEmails(),5*60*1000);
-  }catch(e){hideLoading();console.error(e);alert('Erro: '+e.message);}
-  finally{if(manual){btn.disabled=false;btn.textContent='↺ Actualizar';}}
+  }
 }
 
 function showLoading(msg){document.getElementById('loading-text').textContent=msg||'A carregar...';document.getElementById('loading-overlay').style.display='flex';}
