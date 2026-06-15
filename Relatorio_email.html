@@ -1503,7 +1503,7 @@ function mapMsg(m) {
 const SEL = 'id,subject,sender,receivedDateTime,bodyPreview,hasAttachments,importance,isRead,webLink,categories';
 
 async function fetchEmails() {
-  const yesterday = new Date(Date.now()-48*3600*1000).toISOString();
+  const yesterday = new Date(Date.now()-7*24*3600*1000).toISOString();
   const [inboxRes, flaggedRes] = await Promise.all([
     graphGet(`/me/mailFolders/Inbox/messages?$filter=receivedDateTime ge ${yesterday}&$orderby=receivedDateTime desc&$top=50&$select=${SEL}`),
     graphGet(`/me/messages?$filter=flag/flagStatus eq 'flagged'&$top=50&$select=${SEL}`)
