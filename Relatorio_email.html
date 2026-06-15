@@ -609,6 +609,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .eact.flag{border-color:rgba(251,146,60,.2);color:rgba(255,255,255,.35);}
 .eact.flag:hover{background:rgba(251,146,60,.09);border-color:rgba(251,146,60,.45);color:#fb923c;}
 .eact.flag:disabled{opacity:.4;cursor:default;}
+.eact.mark-read{border-color:rgba(74,222,128,.2);color:rgba(255,255,255,.35);}
+.eact.mark-read:hover{background:rgba(74,222,128,.09);border-color:rgba(74,222,128,.45);color:#4ade80;}
+.eact.mark-unread{border-color:rgba(56,189,248,.2);color:rgba(255,255,255,.35);}
+.eact.mark-unread:hover{background:rgba(56,189,248,.09);border-color:rgba(56,189,248,.45);color:var(--blue);}
+.eact.mark-read:disabled,.eact.mark-unread:disabled{opacity:.4;cursor:default;}
 .eact.fwd:hover{background:var(--orange-dim);border-color:rgba(251,146,60,.3);color:var(--orange);}
 .eact:disabled{opacity:.4;cursor:not-allowed;}
 .reply-ctx{display:flex;align-items:center;gap:9px;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:.75rem;color:var(--text-soft);}
@@ -1686,8 +1691,64 @@ function emailCard(e, extraCls=''){
         ? `<button class="eact unpin" onclick="unpinEmail('${esc(e.id)}',this)">📌 Desafixar</button>`
         : `<button class="eact pin"   onclick="pinEmail('${esc(e.id)}',this)">📌 Fixar</button>`
       }
+      ${isU
+        ? `<button class="eact mark-read" onclick="markAsRead('${esc(e.id)}',this)">✓ Marcar como lido</button>`
+        : `<button class="eact mark-unread" onclick="markAsUnread('${esc(e.id)}',this)">◌ Marcar como não lido</button>`
+      }
     </div>
   </div>`;}
+
+async function markAsRead(id, btn){
+  btn.disabled=true; btn.textContent='…';
+  try{
+    await graphPatch(`/me/messages/${encodeURIComponent(id)}`,{isRead:true});
+    const card=btn.closest('.email-card');
+    if(card){
+      card.classList.remove('unread','high-prio');
+      card.querySelector('.email-subject')?.classList.add('read');
+      const tag=card.querySelector('.tag.unread');
+      if(tag){tag.className='tag read';tag.textContent='READ';}
+      btn.textContent='✓ Lido';
+      btn.className='eact mark-unread';
+      btn.onclick=()=>markAsUnread(id,btn);
+      btn.disabled=false;
+    }
+    if(_emailMap[id]) _emailMap[id].isRead=true;
+    DATA.unread=DATA.unread.filter(e=>e.id!==id);
+    const moved=_emailMap[id];
+    if(moved&&!DATA.read.find(e=>e.id===id)) DATA.read.push(moved);
+    updateCounts();
+  }catch(err){
+    btn.disabled=false; btn.textContent='✓ Marcar como lido';
+    if(err.message!=='403_relogin') alert('Erro: '+err.message);
+  }
+}
+
+async function markAsUnread(id, btn){
+  btn.disabled=true; btn.textContent='…';
+  try{
+    await graphPatch(`/me/messages/${encodeURIComponent(id)}`,{isRead:false});
+    const card=btn.closest('.email-card');
+    if(card){
+      card.classList.add('unread');
+      card.querySelector('.email-subject')?.classList.remove('read');
+      const tag=card.querySelector('.tag.read');
+      if(tag){tag.className='tag unread';tag.textContent='UNREAD';}
+      btn.textContent='◌ Não lido';
+      btn.className='eact mark-read';
+      btn.onclick=()=>markAsRead(id,btn);
+      btn.disabled=false;
+    }
+    if(_emailMap[id]) _emailMap[id].isRead=false;
+    DATA.read=DATA.read.filter(e=>e.id!==id);
+    const moved=_emailMap[id];
+    if(moved&&!DATA.unread.find(e=>e.id===id)) DATA.unread.push(moved);
+    updateCounts();
+  }catch(err){
+    btn.disabled=false; btn.textContent='◌ Marcar como não lido';
+    if(err.message!=='403_relogin') alert('Erro: '+err.message);
+  }
+}
 
 async function flagEmail(id, btn) {
   btn.disabled = true;
