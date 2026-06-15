@@ -143,7 +143,16 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .vol-up{color:var(--red);}.vol-down{color:var(--green);}
 
 /* ── TABS ── */
-.tabs{display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px;}
+.tabs-wrapper{position:relative;overflow:hidden;margin:0 -2px;}
+.tabs{display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tabs-fade{position:absolute;top:0;bottom:0;width:72px;pointer-events:none;z-index:4;transition:opacity .25s;}
+.tabs-fade-left{left:0;background:linear-gradient(to right,var(--header-bg,var(--surface)) 30%,transparent);}
+.tabs-fade-right{right:0;background:linear-gradient(to left,var(--header-bg,var(--surface)) 30%,transparent);}
+.tabs-fade.hidden{opacity:0;}
+.tabs-arr{position:absolute;top:50%;transform:translateY(-50%);z-index:5;color:var(--text-muted);font-size:.7rem;pointer-events:none;transition:opacity .25s;}
+.tabs-arr-left{left:6px;}.tabs-arr-right{right:6px;}
+.tabs-arr.hidden{opacity:0;}
 .tab{padding:10px 16px;font-size:.78rem;font-weight:500;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;}
 .tab:hover{color:var(--text-soft);}
 .tab.active{color:var(--text);font-weight:600;}
@@ -1149,17 +1158,23 @@ body.ck-active{padding-bottom:54px;}
     <div class="vol-chip"><span id="vol-arrow">📊</span><span style="color:var(--text-soft)">Volume:</span><span class="vol-num" id="vol-num">–</span><span class="vol-diff" id="vol-diff"></span></div>
     <div class="vol-chip" onclick="switchTab('checklist')" style="cursor:pointer;border-color:rgba(192,132,252,.3);color:#c084fc;gap:5px;" title="Checklist Semanal">⬡ Checklist</div>
   </div>
-  <div class="tabs">
-    <div class="tab t-urgencias active" id="tab-urgencias" onclick="switchTab('urgencias')">🔥 Urgências <span class="count" id="tc-urgencias">0</span></div>
-    <div class="tab t-fixados" id="tab-fixados" onclick="switchTab('fixados')">🚩 Sinalizados <span class="count" id="tc-fixados">0</span></div>
-    <div class="tab t-unread" id="tab-unread" onclick="switchTab('unread')">📥 Não Lidos <span class="count" id="tc-unread">0</span></div>
-    <div class="tab t-responder" id="tab-responder" onclick="switchTab('responder')">💬 Responder <span class="count" id="tc-responder">0</span></div>
-    <div class="tab t-reunioes" id="tab-reunioes" onclick="switchTab('reunioes')">📅 Reuniões <span class="count" id="tc-reunioes">0</span></div>
-    <div class="tab t-projetos" id="tab-projetos" onclick="switchTab('projetos')">🗂 Projetos <span class="count" id="tc-projetos">0</span></div>
-    <div class="tab t-lidos" id="tab-lidos" onclick="switchTab('lidos')">✓ Lidos <span class="count" id="tc-lidos">0</span></div>
-    <div class="tab t-todos" id="tab-todos" onclick="switchTab('todos')">≡ Todos <span class="count" id="tc-todos">0</span></div>
-    <div class="tab t-escrever" id="tab-escrever" onclick="switchTab('escrever')">✏️ Escrever</div>
-    <div class="tab t-checklist" id="tab-checklist" onclick="switchTab('checklist')" style="color:#c084fc;">⬡ Checklist</div>
+  <div class="tabs-wrapper" id="tabs-wrapper">
+    <div class="tabs-fade tabs-fade-left hidden" id="tabs-fl"></div>
+    <span class="tabs-arr tabs-arr-left hidden" id="tabs-al">‹</span>
+    <div class="tabs" id="tabs-bar">
+      <div class="tab t-urgencias active" id="tab-urgencias" onclick="switchTab('urgencias')">🔥 Urgências <span class="count" id="tc-urgencias">0</span></div>
+      <div class="tab t-fixados" id="tab-fixados" onclick="switchTab('fixados')">🚩 Sinalizados <span class="count" id="tc-fixados">0</span></div>
+      <div class="tab t-unread" id="tab-unread" onclick="switchTab('unread')">📥 Não Lidos <span class="count" id="tc-unread">0</span></div>
+      <div class="tab t-responder" id="tab-responder" onclick="switchTab('responder')">💬 Responder <span class="count" id="tc-responder">0</span></div>
+      <div class="tab t-reunioes" id="tab-reunioes" onclick="switchTab('reunioes')">📅 Reuniões <span class="count" id="tc-reunioes">0</span></div>
+      <div class="tab t-projetos" id="tab-projetos" onclick="switchTab('projetos')">🗂 Projetos <span class="count" id="tc-projetos">0</span></div>
+      <div class="tab t-lidos" id="tab-lidos" onclick="switchTab('lidos')">✓ Lidos <span class="count" id="tc-lidos">0</span></div>
+      <div class="tab t-todos" id="tab-todos" onclick="switchTab('todos')">≡ Todos <span class="count" id="tc-todos">0</span></div>
+      <div class="tab t-escrever" id="tab-escrever" onclick="switchTab('escrever')">✏️ Escrever</div>
+      <div class="tab t-checklist" id="tab-checklist" onclick="switchTab('checklist')" style="color:#c084fc;">⬡ Checklist</div>
+    </div>
+    <span class="tabs-arr tabs-arr-right" id="tabs-ar">›</span>
+    <div class="tabs-fade tabs-fade-right" id="tabs-fr"></div>
   </div>
 </div>
 
@@ -1210,7 +1225,76 @@ body.ck-active{padding-bottom:54px;}
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => { const b = document.getElementById('login-btn'); if(b) b.addEventListener('click', login); });
+document.addEventListener('DOMContentLoaded', () => {
+  const b = document.getElementById('login-btn');
+  if(b) b.addEventListener('click', login);
+  _initTabsScroll();
+});
+
+function _initTabsScroll(){
+  const wrapper = document.getElementById('tabs-wrapper');
+  const tabs    = document.getElementById('tabs-bar');
+  const fl      = document.getElementById('tabs-fl');
+  const fr      = document.getElementById('tabs-fr');
+  const al      = document.getElementById('tabs-al');
+  const ar      = document.getElementById('tabs-ar');
+  if(!wrapper || !tabs) return;
+
+  const ZONE     = 80;   // px da borda que ativa scroll
+  const MAX_SPD  = 10;   // px/frame máximo
+  let   raf      = null;
+  let   curSpeed = 0;
+
+  function updateFades(){
+    const sl  = tabs.scrollLeft;
+    const max = tabs.scrollWidth - tabs.clientWidth;
+    const showL = sl > 4;
+    const showR = sl < max - 4;
+    fl.classList.toggle('hidden', !showL);
+    al.classList.toggle('hidden', !showL);
+    fr.classList.toggle('hidden', !showR);
+    ar.classList.toggle('hidden', !showR);
+  }
+
+  function startScroll(speed){
+    if(raf) cancelAnimationFrame(raf);
+    curSpeed = speed;
+    function step(){
+      tabs.scrollLeft += curSpeed;
+      updateFades();
+      raf = requestAnimationFrame(step);
+    }
+    raf = requestAnimationFrame(step);
+  }
+
+  function stopScroll(){
+    if(raf){ cancelAnimationFrame(raf); raf = null; }
+  }
+
+  wrapper.addEventListener('mousemove', e => {
+    const rect  = wrapper.getBoundingClientRect();
+    const x     = e.clientX - rect.left;
+    const w     = rect.width;
+    let   speed = 0;
+
+    if(x < ZONE){
+      const ratio = 1 - (x / ZONE);
+      speed = -Math.ceil(ratio * ratio * MAX_SPD); // quadrático: mais suave
+    } else if(x > w - ZONE){
+      const ratio = 1 - ((w - x) / ZONE);
+      speed = Math.ceil(ratio * ratio * MAX_SPD);
+    }
+
+    if(speed === 0) stopScroll();
+    else if(speed !== curSpeed) startScroll(speed);
+  });
+
+  wrapper.addEventListener('mouseleave', stopScroll);
+  tabs.addEventListener('scroll', updateFades);
+
+  // estado inicial
+  updateFades();
+}
 
 // ── PWA: Service Worker + Install Prompt ─────────────────────────────────────
 let _installPrompt = null;
