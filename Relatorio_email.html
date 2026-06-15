@@ -5078,7 +5078,8 @@ function renderAnalytics(){
       }
     });
   } else {
-    document.getElementById('ch-prj')?.closest('.chart-card').querySelector('.chart-wrap').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:.78rem">🗂 Sem projectos identificados</div>';
+    const _prjWrap=document.getElementById('ch-prj')?.closest('.chart-card')?.querySelector('.chart-wrap');
+    if(_prjWrap)_prjWrap.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:.78rem">🗂 Sem projectos identificados</div>';
   }
 
   // 4. Line — Volume por Hora
