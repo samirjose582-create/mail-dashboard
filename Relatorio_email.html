@@ -1164,6 +1164,9 @@ body.ck-active{padding-bottom:54px;}
 .alloc-team-del:hover{color:var(--red);background:rgba(239,68,68,.1);}
 .alloc-add-member-row{display:flex;gap:8px;margin-top:12px;}
 .alloc-holiday-dot{width:4px;height:4px;border-radius:50%;background:var(--red);margin:1px auto 0;}
+.alloc-export-btn{background:var(--surface);border:1px solid #16a34a;border-radius:8px;color:#4ade80;padding:5px 13px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.alloc-export-btn:hover{background:#16a34a;color:#fff;}
+.alloc-export-btn:disabled{opacity:.45;cursor:not-allowed;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -6224,6 +6227,7 @@ function hlMatch(text,q){
         <button class="alloc-nav-btn" onclick="allocNav(1)">Próximo ›</button>
         <span style="font-size:.72rem;color:var(--text-muted);padding:0 4px">${navLbl}</span>
         <div class="alloc-spacer"></div>
+        <button class="alloc-export-btn" id="alloc-export-btn" onclick="allocExportExcel()">📥 Exportar Excel</button>
         <button class="alloc-team-btn" onclick="openTeamModal()">👥 Equipe</button>
         <button class="alloc-add-btn" onclick="openAllocModal()">＋ Projeto</button>
       </div>
@@ -6443,6 +6447,176 @@ function hlMatch(text,q){
     _save(data);
     const listHtml=t=>t.length?t.map(m=>`<div class="alloc-team-item"><span class="alloc-team-name">${m}</span><button class="alloc-team-del" onclick="removeTeamMember('${m}')">✕</button></div>`).join(''):'<p style="color:var(--text-muted);font-size:.8rem;margin:0">Nenhum membro ainda.</p>';
     const el=document.getElementById('team-list');if(el)el.innerHTML=listHtml(data.team);
+  };
+
+  // ── Export Excel ─────────────────────────────────────────────────────────────
+  window.allocExportExcel=async function(){
+    const btn=document.getElementById('alloc-export-btn');
+    if(btn){btn.disabled=true;btn.textContent='⏳ Gerando...';}
+    try{
+      if(typeof ExcelJS==='undefined'){
+        await new Promise((res,rej)=>{
+          const s=document.createElement('script');
+          s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+          s.onload=res;s.onerror=()=>rej(new Error('Falha ao carregar ExcelJS'));
+          document.head.appendChild(s);
+        });
+      }
+      const data=_load();
+      const days=_days();
+      const today=new Date().toISOString().slice(0,10);
+      const exportDate=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+      const toArgb=h=>'FF'+h.replace('#','').toUpperCase().padStart(6,'0');
+      const DB='0F172A',SB='1E293B',MT='334155',TX='CBD5E1',YL='F59E0B',GR='10B981',BL='3B82F6',RD='EF4444';
+
+      const wb=new ExcelJS.Workbook();
+      wb.creator='Mail Dashboard — MEC SOLUTIONS';wb.created=new Date();
+
+      // ── Sheet 1: Resumo ────────────────────────────────────────────────────
+      const s1=wb.addWorksheet('Resumo');
+      s1.mergeCells('A1:H1');
+      const t1=s1.getCell('A1');
+      t1.value=`ALOCAÇÃO DE EQUIPE  ·  ${exportDate}`;
+      t1.font={bold:true,size:13,color:{argb:`FF${YL}`}};
+      t1.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${DB}`}};
+      t1.alignment={vertical:'middle',horizontal:'center'};
+      s1.getRow(1).height=30;
+
+      const hdr1=['Código','Projeto','Atribuídos','Progresso','Início','Término','Dias Úteis','Status'];
+      const hr1=s1.addRow(hdr1);
+      hr1.height=22;
+      hr1.eachCell(c=>{
+        c.font={bold:true,size:10,color:{argb:'FF000000'}};
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${YL}`}};
+        c.alignment={vertical:'middle',horizontal:'center'};
+        c.border={bottom:{style:'medium'}};
+      });
+
+      data.projects.forEach((p,i)=>{
+        const wd=_workDays(p.start||'',p.end||'');
+        const pct=Math.min(100,Math.max(0,p.progress||0));
+        const status=pct===100?'✅ Concluído':pct>=50?'🔄 Em Andamento':'🕐 Iniciando';
+        const bg=i%2===0?SB:DB;
+        const row=s1.addRow([
+          p.code||'',p.name||'',(p.assignees||[]).join(', '),
+          pct/100,
+          p.start?new Date(p.start+'T12:00:00'):'',
+          p.end?new Date(p.end+'T12:00:00'):'',
+          wd,status
+        ]);
+        row.height=20;
+        const pc=toArgb(p.color||'#f59e0b');
+        row.eachCell((c,col)=>{
+          c.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${bg}`}};
+          c.font={size:10,color:{argb:`FF${TX}`}};
+          c.alignment={vertical:'middle'};
+          c.border={left:{style:'thin',color:{argb:`FF${MT}`}},right:{style:'thin',color:{argb:`FF${MT}`}}};
+          if(col===1){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:pc}};c.font={bold:true,size:10,color:{argb:'FF000000'}};c.alignment={vertical:'middle',horizontal:'center'};}
+          if(col===4){c.numFmt='0%';c.alignment={vertical:'middle',horizontal:'center'};}
+          if(col===5||col===6){c.numFmt='DD/MM/YYYY';c.alignment={vertical:'middle',horizontal:'center'};}
+          if(col===7){c.font={bold:true,size:10,color:{argb:`FF${BL}`}};c.alignment={vertical:'middle',horizontal:'center'};}
+          if(col===8){c.alignment={vertical:'middle',horizontal:'center'};}
+        });
+      });
+
+      // Totals
+      const totWd=data.projects.reduce((s,p)=>s+_workDays(p.start||'',p.end||''),0);
+      const tr1=s1.addRow(['',`TOTAL: ${data.projects.length} projeto(s)`,'','','','',totWd,'']);
+      tr1.height=22;
+      tr1.eachCell((c,col)=>{
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${MT}`}};
+        c.font={bold:true,size:10,color:{argb:`FF${YL}`}};
+        c.alignment={vertical:'middle',...(col===7?{horizontal:'center'}:{})};
+      });
+
+      s1.columns=[{width:12},{width:38},{width:32},{width:13},{width:14},{width:14},{width:12},{width:18}];
+      s1.views=[{state:'frozen',ySplit:2}];
+
+      // ── Sheet 2: Calendário Gantt ──────────────────────────────────────────
+      const s2=wb.addWorksheet('Calendario Gantt');
+      const FC=7; // fixed left cols
+      const fcLbl=['Código','Projeto','Atribuídos','%','Início','Término','Dias'];
+      [12,28,22,6,11,11,8].forEach((w,i)=>s2.getColumn(i+1).width=w);
+      days.forEach((_,i)=>s2.getColumn(FC+i+1).width=3.5);
+
+      // Row 1: fixed labels + month headers
+      const r1=s2.addRow(new Array(FC+days.length).fill(''));
+      r1.height=20;
+      fcLbl.forEach((lbl,i)=>{
+        const c=r1.getCell(i+1);
+        c.value=lbl;c.font={bold:true,size:9,color:{argb:`FF${YL}`}};
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${DB}`}};
+        c.alignment={vertical:'middle',horizontal:'center'};
+        c.border={right:{style:'thin',color:{argb:`FF${MT}`}},bottom:{style:'medium',color:{argb:`FF${YL}`}}};
+      });
+      // Month groups
+      const mGroups=[];let cm='',cms=FC+1;
+      days.forEach((ds,i)=>{const m=ds.slice(0,7);if(m!==cm){if(cm)mGroups.push({m:cm,s:cms,e:FC+i});cm=m;cms=FC+i+1;}});
+      mGroups.push({m:cm,s:cms,e:FC+days.length});
+      mGroups.forEach(({m,s,e})=>{
+        if(s<e)s2.mergeCells(1,s,1,e);
+        const c=r1.getCell(s);
+        c.value=`${MONTHS_PT[+m.slice(5)-1]} ${m.slice(0,4)}`;
+        c.font={bold:true,size:9,color:{argb:'FFFFFFFF'}};
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1E3A5F'}};
+        c.alignment={vertical:'middle',horizontal:'center'};
+      });
+
+      // Row 2: day numbers
+      const r2=s2.addRow(new Array(FC+days.length).fill(''));
+      r2.height=22;
+      days.forEach((ds,i)=>{
+        const d=new Date(ds+'T12:00:00'),dow=d.getDay();
+        const c=r2.getCell(FC+i+1);
+        c.value=d.getDate();
+        const isWe=dow===0||dow===6,isH=_isHol(ds),isT=ds===today;
+        c.font={bold:isT,size:8,color:{argb:isT?`FF${YL}`:isH?`FF${RD}`:isWe?'FF64748B':`FF${TX}`}};
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:isT?'FF78350F':isH?'FF2D0A0A':isWe?'FF1A1F2E':`FF${DB}`}};
+        c.alignment={vertical:'middle',horizontal:'center'};
+        c.border={bottom:{style:'thin',color:{argb:`FF${MT}`}}};
+        if(isH){const hn=_holName(ds);if(hn)c.note=hn;}
+      });
+
+      // Project rows
+      data.projects.forEach(p=>{
+        const wd=_workDays(p.start||'',p.end||'');
+        const pct=Math.min(100,Math.max(0,p.progress||0));
+        const pc=toArgb(p.color||'#f59e0b');
+        const row=s2.addRow(new Array(FC+days.length).fill(''));
+        row.height=18;
+        [p.code||'',p.name||'',(p.assignees||[]).join(', '),`${pct}%`,p.start?_fmt(p.start):'',p.end?_fmt(p.end):'',wd].forEach((v,i)=>{
+          const c=row.getCell(i+1);c.value=v;
+          c.font={size:9,color:{argb:i===0?'FF000000':`FF${TX}`},bold:i===0||i===6};
+          c.fill={type:'pattern',pattern:'solid',fgColor:{argb:i===0?pc:`FF${SB}`}};
+          c.alignment={vertical:'middle',horizontal:i===0||i>=3?'center':'left'};
+          c.border={right:{style:'thin',color:{argb:`FF${MT}`}}};
+        });
+        days.forEach((ds,i)=>{
+          const d=new Date(ds+'T12:00:00'),dow=d.getDay();
+          const c=row.getCell(FC+i+1);
+          const inR=p.start&&p.end&&ds>=p.start&&ds<=p.end;
+          const isWe=dow===0||dow===6,isH=_isHol(ds),isT=ds===today;
+          c.fill={type:'pattern',pattern:'solid',fgColor:{argb:inR?pc:isT?'FF78350F':isH?'FF2D0A0A':isWe?'FF1A1F2E':`FF${DB}`}};
+        });
+      });
+
+      s2.views=[{state:'frozen',xSplit:FC,ySplit:2}];
+
+      // ── Download ───────────────────────────────────────────────────────────
+      const buf=await wb.xlsx.writeBuffer();
+      const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download=`Alocacao_Equipe_${today}.xlsx`;
+      document.body.appendChild(a);a.click();
+      setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},3000);
+
+    }catch(err){
+      console.error('[allocExport]',err);
+      alert('Erro ao gerar Excel: '+err.message);
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent='📥 Exportar Excel';}
+    }
   };
 })();
 
