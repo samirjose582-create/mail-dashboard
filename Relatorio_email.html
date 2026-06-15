@@ -1202,7 +1202,10 @@ let _installPrompt = null;
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('[PWA] SW registado:', reg.scope))
+      .then(reg => {
+        console.log('[PWA] SW registado:', reg.scope);
+        reg.update(); // força verificação de nova versão
+      })
       .catch(err => console.warn('[PWA] SW falhou:', err));
   });
 }
@@ -1348,17 +1351,25 @@ async function pkceChallenge(v) {
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 async function login() {
   const btn = document.getElementById('login-btn');
-  btn.disabled = true; btn.textContent = 'A redirecionar...';
-  const verifier = await pkceVerifier();
-  const challenge = await pkceChallenge(verifier);
-  sessionStorage.setItem('pkce_v', verifier);
-  const p = new URLSearchParams({
-    client_id: CLIENT_ID, response_type: 'code',
-    redirect_uri: REDIRECT_URI, scope: SCOPES,
-    code_challenge: challenge, code_challenge_method: 'S256',
-    response_mode: 'query', state: Math.random().toString(36).slice(2)
-  });
-  window.location.href = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/authorize?${p}`;
+  const errEl = document.getElementById('login-error');
+  try {
+    btn.disabled = true; btn.textContent = 'A redirecionar...';
+    if(errEl){ errEl.style.display='none'; }
+    const verifier = await pkceVerifier();
+    const challenge = await pkceChallenge(verifier);
+    sessionStorage.setItem('pkce_v', verifier);
+    const p = new URLSearchParams({
+      client_id: CLIENT_ID, response_type: 'code',
+      redirect_uri: REDIRECT_URI, scope: SCOPES,
+      code_challenge: challenge, code_challenge_method: 'S256',
+      response_mode: 'query', state: Math.random().toString(36).slice(2)
+    });
+    window.location.href = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/authorize?${p}`;
+  } catch(e) {
+    if(btn){ btn.disabled=false; btn.textContent='🔐 Entrar com Microsoft 365'; }
+    if(errEl){ errEl.textContent='Erro ao iniciar login: '+e.message; errEl.style.display='block'; }
+    console.error('[login]', e);
+  }
 }
 
 async function handleCallback() {
