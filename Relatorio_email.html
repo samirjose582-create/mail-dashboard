@@ -1108,8 +1108,18 @@ body.ck-active{padding-bottom:54px;}
 .alloc-th-day.is-holiday{background:rgba(239,68,68,.07);}
 .alloc-td-day.is-holiday{background:rgba(239,68,68,.04);}
 .alloc-td-day.is-today{background:rgba(245,158,11,.08);}
-.alloc-td-left{font-size:.72rem;padding:6px 8px;color:var(--text-soft);vertical-align:middle;position:sticky;z-index:1;background:var(--surface);}
-.alloc-td-day{width:32px;min-width:32px;max-width:32px;height:42px;padding:0;position:relative;vertical-align:middle;}
+.alloc-td-left{font-size:.72rem;padding:6px 8px;color:var(--text-soft);vertical-align:middle;position:sticky;z-index:4;background:var(--surface);}
+.alloc-td-day{width:32px;min-width:32px;max-width:32px;height:42px;padding:0;position:relative;vertical-align:middle;overflow:hidden;}
+.alloc-editable{cursor:text;border-radius:4px;padding:1px 2px;transition:background .15s;}
+.alloc-editable:hover{background:rgba(245,158,11,.1);outline:1px dashed rgba(245,158,11,.4);}
+.alloc-editable-assign{cursor:pointer;border-radius:4px;padding:1px 2px;transition:background .15s;}
+.alloc-editable-assign:hover{background:rgba(56,189,248,.1);outline:1px dashed rgba(56,189,248,.35);}
+.alloc-inline-input{background:var(--bg);border:1px solid var(--yellow);border-radius:5px;color:var(--text);padding:2px 5px;font-size:.72rem;width:100%;box-sizing:border-box;font-family:'Inter',sans-serif;outline:none;}
+.alloc-inline-date{background:var(--bg);border:1px solid var(--yellow);border-radius:5px;color:var(--text);padding:1px 3px;font-size:.65rem;width:96px;box-sizing:border-box;font-family:'Inter',sans-serif;outline:none;}
+.alloc-assign-pop{position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:10px;z-index:9500;padding:8px;box-shadow:0 10px 32px rgba(0,0,0,.5);min-width:170px;max-height:240px;overflow-y:auto;}
+.alloc-assign-item{display:flex;align-items:center;gap:8px;padding:5px 8px;cursor:pointer;border-radius:6px;font-size:.75rem;color:var(--text-soft);transition:background .12s;}
+.alloc-assign-item:hover{background:rgba(255,255,255,.07);}
+.alloc-assign-item input[type=checkbox]{accent-color:var(--yellow);cursor:pointer;}
 .alloc-bar{position:absolute;top:50%;transform:translateY(-50%);height:22px;opacity:.88;}
 .alloc-bar-start{left:5px;right:0;border-radius:5px 0 0 5px;}
 .alloc-bar-mid{left:0;right:0;border-radius:0;}
@@ -6182,12 +6192,12 @@ function hlMatch(text,q){
           }
           return `<td class="${cls}">${bar}</td>`;
         }).join('');
-        rows+=`<tr class="alloc-row">
+        rows+=`<tr class="alloc-row" data-pid="${p.id}">
           <td class="alloc-td-left" style="left:${CL[0]}px;min-width:${CW[0]}px;max-width:${CW[0]}px">
-            <div class="alloc-proj-code">${p.code||''}</div>
-            <div class="alloc-proj-name">${p.name||''}</div>
+            <div class="alloc-proj-code alloc-editable" title="Clique para editar código" onclick="event.stopPropagation();allocInlineName('${p.id}','code',this)">${p.code||'—'}</div>
+            <div class="alloc-proj-name alloc-editable" title="Clique para editar nome" onclick="event.stopPropagation();allocInlineName('${p.id}','name',this)">${p.name||''}</div>
           </td>
-          <td class="alloc-td-left" style="left:${CL[1]}px;min-width:${CW[1]}px;max-width:${CW[1]}px">
+          <td class="alloc-td-left alloc-editable-assign" title="Clique para editar responsáveis" onclick="event.stopPropagation();allocAssigneePopup('${p.id}',this)" style="left:${CL[1]}px;min-width:${CW[1]}px;max-width:${CW[1]}px">
             <div class="alloc-assignees">${avatars}</div>
             <div style="font-size:.58rem;color:var(--text-muted)">${assignStr}</div>
           </td>
@@ -6195,11 +6205,11 @@ function hlMatch(text,q){
             <div style="font-size:.72rem;font-weight:700;color:${pctColor}">${pct}%</div>
             <div class="alloc-progress-bar"><div class="alloc-progress-fill" style="width:${pct}%;background:${pctColor}"></div></div>
           </td>
-          <td class="alloc-td-left" style="left:${CL[3]}px;min-width:${CW[3]}px;max-width:${CW[3]}px;text-align:center;font-size:.65rem">${_fmt(p.start)}</td>
-          <td class="alloc-td-left" style="left:${CL[4]}px;min-width:${CW[4]}px;max-width:${CW[4]}px;text-align:center;font-size:.65rem">${_fmt(p.end)}</td>
+          <td class="alloc-td-left alloc-editable" title="Clique para editar início" onclick="event.stopPropagation();allocInlineDate('${p.id}','start',this)" style="left:${CL[3]}px;min-width:${CW[3]}px;max-width:${CW[3]}px;text-align:center;font-size:.65rem">${_fmt(p.start)}</td>
+          <td class="alloc-td-left alloc-editable" title="Clique para editar término" onclick="event.stopPropagation();allocInlineDate('${p.id}','end',this)" style="left:${CL[4]}px;min-width:${CW[4]}px;max-width:${CW[4]}px;text-align:center;font-size:.65rem">${_fmt(p.end)}</td>
           <td class="alloc-td-left" style="left:${CL[5]}px;min-width:${CW[5]}px;max-width:${CW[5]}px;text-align:center;font-size:.75rem;font-weight:700;color:var(--blue)">${wd}</td>
           <td class="alloc-td-left alloc-sep-col" style="left:${CL[6]}px;min-width:${CW[6]}px;max-width:${CW[6]}px;text-align:center">
-            <button onclick="openAllocModal('${p.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px" title="Editar">✏️</button>
+            <button onclick="openAllocModal('${p.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px" title="Editar tudo">✏️</button>
           </td>
           ${dayCells}
         </tr>`;
@@ -6230,6 +6240,87 @@ function hlMatch(text,q){
   }
 
   window.renderAllocPanel=renderAllocPanel;
+
+  // ── Inline edit: código / nome do projeto ───────────────────────────────────
+  window.allocInlineName=function(pid,field,el){
+    const data=_load();const proj=data.projects.find(p=>p.id===pid);if(!proj)return;
+    const inp=document.createElement('input');
+    inp.type='text';inp.value=proj[field]||'';inp.className='alloc-inline-input';
+    inp.placeholder=field==='code'?'Código':'Nome do projeto';
+    el.innerHTML='';el.appendChild(inp);inp.focus();inp.select();
+    const save=()=>{
+      const v=inp.value.trim();if(v)proj[field]=v;
+      _save(data);renderAllocPanel();
+    };
+    inp.addEventListener('blur',save);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save();}if(e.key==='Escape')renderAllocPanel();});
+  };
+
+  // ── Inline edit: datas ───────────────────────────────────────────────────────
+  window.allocInlineDate=function(pid,field,el){
+    const data=_load();const proj=data.projects.find(p=>p.id===pid);if(!proj)return;
+    const inp=document.createElement('input');
+    inp.type='date';inp.value=proj[field]||'';inp.className='alloc-inline-date';
+    el.innerHTML='';el.appendChild(inp);
+    try{inp.showPicker();}catch{}
+    const save=()=>{
+      const v=inp.value;
+      if(v){
+        if(field==='start'&&proj.end&&v>proj.end){alert('Início deve ser anterior ao término.');inp.value=proj[field];return;}
+        if(field==='end'&&proj.start&&v<proj.start){alert('Término deve ser posterior ao início.');inp.value=proj[field];return;}
+        proj[field]=v;_save(data);
+      }
+      renderAllocPanel();
+    };
+    inp.addEventListener('blur',save);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();save();}if(e.key==='Escape')renderAllocPanel();});
+    inp.addEventListener('change',()=>{setTimeout(save,80);});
+  };
+
+  // ── Inline edit: responsáveis (popup com checkboxes) ────────────────────────
+  window.allocAssigneePopup=function(pid,el){
+    document.getElementById('_alloc-assign-pop')?.remove();
+    const data=_load();const proj=data.projects.find(p=>p.id===pid);const team=data.team||[];
+    if(!proj)return;
+    const pop=document.createElement('div');
+    pop.id='_alloc-assign-pop';pop.className='alloc-assign-pop';
+    if(!team.length){
+      pop.innerHTML='<div style="font-size:.73rem;color:var(--text-muted);padding:4px 6px">Adicione membros em 👥 Equipe</div>';
+    } else {
+      pop.innerHTML=`<div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);padding:2px 6px 6px">RESPONSÁVEIS</div>`
+        +team.map(m=>{
+          const chk=(proj.assignees||[]).includes(m)?'checked':'';
+          return `<label class="alloc-assign-item"><input type="checkbox" ${chk} onchange="allocToggleAssignee('${pid}','${m}',this.checked)"><span class="alloc-avatar" style="background:${_nameColor(m)};width:18px;height:18px;font-size:.5rem">${_initials(m)}</span>${m}</label>`;
+        }).join('');
+    }
+    document.body.appendChild(pop);
+    const r=el.getBoundingClientRect();
+    pop.style.top=(r.bottom+6)+'px';
+    pop.style.left=Math.min(r.left,window.innerWidth-180)+'px';
+    const close=e=>{if(!pop.contains(e.target)){pop.remove();document.removeEventListener('mousedown',close);}};
+    setTimeout(()=>document.addEventListener('mousedown',close),10);
+  };
+
+  window.allocToggleAssignee=function(pid,member,checked){
+    const data=_load();const proj=data.projects.find(p=>p.id===pid);if(!proj)return;
+    if(!proj.assignees)proj.assignees=[];
+    if(checked&&!proj.assignees.includes(member))proj.assignees.push(member);
+    else if(!checked)proj.assignees=proj.assignees.filter(a=>a!==member);
+    _save(data);
+    // Atualiza só a célula de atribuídos sem re-renderizar tudo
+    const row=document.querySelector(`.alloc-row[data-pid="${pid}"]`);
+    if(row){
+      const cell=row.querySelector('.alloc-editable-assign');
+      if(cell){
+        const av=proj.assignees.map(a=>`<span class="alloc-avatar" style="background:${_nameColor(a)}" title="${a}">${_initials(a)}</span>`).join('');
+        const str=proj.assignees.join(', ').slice(0,18)||'—';
+        cell.innerHTML=`<div class="alloc-assignees">${av}</div><div style="font-size:.58rem;color:var(--text-muted)">${str}</div>`;
+      }
+    }
+    // Atualiza working days
+    const wdCell=row?.querySelectorAll('.alloc-td-left')[5];
+    if(wdCell&&proj.start&&proj.end)wdCell.textContent=_workDays(proj.start,proj.end);
+  };
 
   window.allocNav=function(dir){
     if(!_navDate)_navStart();
