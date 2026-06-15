@@ -1743,14 +1743,13 @@ async function markAsReplied(id, btn){
     const moved=_emailMap[id];
     if(moved&&!DATA.read.find(e=>e.id===id)) DATA.read.push(moved);
     updateCounts();
-    const card=btn.closest('.email-card');
+    const card=btn.closest('.reply-card,.email-card');
     if(card){
       card.style.transition='opacity .25s,transform .25s';
       card.style.opacity='0'; card.style.transform='translateX(40px)';
       setTimeout(()=>{ card.remove();
-        // se ficou vazio, mostra empty state
         const panel=document.getElementById('panel-responder');
-        if(panel&&!panel.querySelector('.email-card')){
+        if(panel&&!panel.querySelector('.reply-card,.email-card')){
           panel.innerHTML=sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',0)+empty('✓','Nada a responder','');
         }
       },260);
