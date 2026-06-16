@@ -1104,7 +1104,7 @@ body.ck-active{padding-bottom:54px;}
 .alloc-th-hdr{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);text-align:center;padding:5px 4px;position:sticky;z-index:3;top:0;background:var(--surface);}
 .alloc-th-month{font-size:.6rem;font-weight:700;color:var(--text-soft);text-align:center;padding:4px 0;position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--border);}
 .alloc-th-week{font-size:.55rem;color:var(--text-muted);text-align:center;padding:2px 0;position:sticky;top:24px;z-index:2;background:var(--surface);border-bottom:1px solid var(--border);}
-.alloc-th-day{width:38px;min-width:38px;max-width:38px;text-align:center;padding:2px 1px;font-size:.57rem;position:sticky;top:40px;z-index:2;background:var(--surface);}
+.alloc-th-day{width:var(--adw,38px);min-width:var(--adw,38px);max-width:var(--adw,38px);text-align:center;padding:2px 1px;font-size:.57rem;position:sticky;top:40px;z-index:2;background:var(--surface);}
 .alloc-th-day .day-num{font-weight:700;color:var(--text-soft);line-height:1.4;display:block;}
 .alloc-th-day .day-dow{font-size:.48rem;color:var(--text-muted);display:block;}
 .alloc-th-day.is-today .day-num{color:var(--yellow);}
@@ -1113,8 +1113,13 @@ body.ck-active{padding-bottom:54px;}
 .alloc-td-day.is-holiday{background:rgba(239,68,68,.04);}
 .alloc-td-day.is-today{background:rgba(245,158,11,.08);}
 .alloc-td-left{font-size:.72rem;padding:6px 8px;color:var(--text-soft);vertical-align:middle;position:sticky;z-index:4;background:var(--surface);will-change:transform;}
-.alloc-td-day{width:38px;min-width:38px;max-width:38px;height:42px;padding:0;vertical-align:middle;}
+.alloc-td-day{width:var(--adw,38px);min-width:var(--adw,38px);max-width:var(--adw,38px);height:42px;padding:0;vertical-align:middle;}
 .alloc-day-inner{position:relative;width:100%;height:42px;overflow:hidden;}
+.alloc-zoom-ctrl{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px 8px;}
+.alloc-zoom-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;line-height:1;padding:0 3px;transition:color .15s;}
+.alloc-zoom-btn:hover{color:var(--yellow);}
+.alloc-zoom-slider{-webkit-appearance:none;appearance:none;width:90px;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;accent-color:var(--yellow);}
+.alloc-zoom-label{font-size:.68rem;color:var(--yellow);font-weight:700;font-family:var(--mono);min-width:36px;text-align:right;}
 .alloc-editable{cursor:text;border-radius:4px;padding:1px 2px;transition:background .15s;}
 .alloc-editable:hover{background:rgba(245,158,11,.1);outline:1px dashed rgba(245,158,11,.4);}
 .alloc-editable-assign{cursor:pointer;border-radius:4px;padding:1px 2px;transition:background .15s;}
@@ -6247,6 +6252,12 @@ function hlMatch(text,q){
         <button class="alloc-nav-btn" onclick="allocNav(0)">Hoje</button>
         <button class="alloc-nav-btn" onclick="allocNav(1)">Próximo ›</button>
         <span style="font-size:.72rem;color:var(--text-muted);padding:0 4px">${navLbl}</span>
+        <div class="alloc-zoom-ctrl">
+          <button class="alloc-zoom-btn" onclick="allocZoomStep(-6)" title="Menos zoom">−</button>
+          <input class="alloc-zoom-slider" id="alloc-zoom-slider" type="range" min="18" max="80" step="2" value="${_allocLoadZoom()}" oninput="allocSetZoom(+this.value)">
+          <button class="alloc-zoom-btn" onclick="allocZoomStep(6)" title="Mais zoom">+</button>
+          <span class="alloc-zoom-label" id="alloc-zoom-label">${Math.round(_allocLoadZoom()/38*100)}%</span>
+        </div>
         <div class="alloc-spacer"></div>
         <button class="alloc-export-btn" id="alloc-export-btn" onclick="allocExportExcel()">📥 Exportar Excel</button>
         <button class="alloc-team-btn" onclick="openTeamModal()">👥 Equipe</button>
@@ -6264,7 +6275,36 @@ function hlMatch(text,q){
       </div>
     </div>`;
     _initAllocResize();
+    _applyZoom(_allocLoadZoom());
   }
+
+  // ── Zoom ──────────────────────────────────────────────────────────────────────
+  const ZOOM_STORE='_alloc_zoom_v1';
+  const ZOOM_DEF=38,ZOOM_MIN=18,ZOOM_MAX=80;
+
+  function _allocLoadZoom(){
+    const v=parseInt(localStorage.getItem(ZOOM_STORE));
+    return isNaN(v)?ZOOM_DEF:Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,v));
+  }
+
+  function _applyZoom(w){
+    const table=document.querySelector('#panel-alloc .alloc-table');
+    if(table)table.style.setProperty('--adw',w+'px');
+    const sl=document.getElementById('alloc-zoom-slider');
+    if(sl)sl.value=w;
+    const lb=document.getElementById('alloc-zoom-label');
+    if(lb)lb.textContent=Math.round(w/ZOOM_DEF*100)+'%';
+  }
+
+  window.allocSetZoom=function(w){
+    w=Math.min(ZOOM_MAX,Math.max(ZOOM_MIN,Math.round(w)));
+    localStorage.setItem(ZOOM_STORE,w);
+    _applyZoom(w);
+  };
+
+  window.allocZoomStep=function(delta){
+    allocSetZoom(_allocLoadZoom()+delta);
+  };
 
   // ── Column resize ─────────────────────────────────────────────────────────────
   const CW_STORE='_alloc_cw_v1';
