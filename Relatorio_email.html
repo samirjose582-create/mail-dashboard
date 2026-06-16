@@ -1804,6 +1804,12 @@ let PINNED_IDS=new Set();
 function sortPinnedFirst(arr){return [...arr].sort((a,b)=>(PINNED_IDS.has(b.id)?1:0)-(PINNED_IDS.has(a.id)?1:0));}
 let _emailMap={};
 let _erCurrentEmail=null;
+const REPLIED_STORE='_replied_ids_v1';
+let REPLIED_IDS=new Set();
+try{REPLIED_IDS=new Set(JSON.parse(localStorage.getItem(REPLIED_STORE))||[]);}catch{}
+function _saveRepliedIds(){
+  try{localStorage.setItem(REPLIED_STORE,JSON.stringify([...REPLIED_IDS].slice(-500)));}catch{}
+}
 function _buildEmailMap(){
   _emailMap={};const seen=new Set();
   for(const e of[...DATA.unread,...DATA.read,...DATA.flagged]){if(!seen.has(e.id)){_emailMap[e.id]=e;seen.add(e.id);}}
@@ -1814,7 +1820,7 @@ function buildDerived(){
   const all=[...DATA.unread,...DATA.read];
   all.forEach(e=>{e._urgency=detectUrgency(e);});
   URGENCIAS=all.filter(e=>!!e._urgency);
-  RESPONDER=all.filter(needsReply);
+  RESPONDER=all.filter(e=>needsReply(e)&&!REPLIED_IDS.has(e.id));
   REUNIOES=all.filter(isMeeting);
   PROJETOS={};
   for(const e of all){const p=extractProject(e.subject);if(p){if(!PROJETOS[p])PROJETOS[p]=[];PROJETOS[p].push(e);}}
@@ -1915,6 +1921,8 @@ function replyCard(e){
 
 async function markAsReplied(id, btn){
   btn.disabled=true; btn.textContent='✅ Respondido';
+  // Marca como respondido permanentemente (não reaparece em recálculos futuros)
+  REPLIED_IDS.add(id); _saveRepliedIds();
   // Remove imediatamente do DOM (optimistic — não espera API)
   RESPONDER=RESPONDER.filter(e=>e.id!==id);
   updateCounts();
