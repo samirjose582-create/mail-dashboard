@@ -1113,8 +1113,8 @@ body.ck-active{padding-bottom:54px;}
 .alloc-td-day.is-holiday{background:rgba(239,68,68,.04);}
 .alloc-td-day.is-today{background:rgba(245,158,11,.08);}
 .alloc-td-left{font-size:.72rem;padding:6px 8px;color:var(--text-soft);vertical-align:middle;position:sticky;z-index:4;background:var(--surface);will-change:transform;}
-.alloc-td-day{width:var(--adw,38px);min-width:var(--adw,38px);max-width:var(--adw,38px);height:42px;padding:0;vertical-align:middle;}
-.alloc-day-inner{position:relative;width:100%;height:42px;overflow:hidden;}
+.alloc-td-day{width:var(--adw,38px);min-width:var(--adw,38px);max-width:var(--adw,38px);height:var(--adh,42px);padding:0;vertical-align:middle;}
+.alloc-day-inner{position:relative;width:100%;height:var(--adh,42px);overflow:hidden;}
 .alloc-zoom-ctrl{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px 8px;}
 .alloc-zoom-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1rem;line-height:1;padding:0 3px;transition:color .15s;}
 .alloc-zoom-btn:hover{color:var(--yellow);}
@@ -1130,7 +1130,7 @@ body.ck-active{padding-bottom:54px;}
 .alloc-assign-item{display:flex;align-items:center;gap:8px;padding:5px 8px;cursor:pointer;border-radius:6px;font-size:.75rem;color:var(--text-soft);transition:background .12s;}
 .alloc-assign-item:hover{background:rgba(255,255,255,.07);}
 .alloc-assign-item input[type=checkbox]{accent-color:var(--yellow);cursor:pointer;}
-.alloc-bar{position:absolute;top:50%;transform:translateY(-50%);height:22px;opacity:.88;}
+.alloc-bar{position:absolute;top:50%;transform:translateY(-50%);height:calc(var(--adh,42px) - 20px);opacity:.88;}
 .alloc-bar-start{left:5px;right:0;border-radius:5px 0 0 5px;}
 .alloc-bar-mid{left:0;right:0;border-radius:0;}
 .alloc-bar-end{left:0;right:5px;border-radius:0 5px 5px 0;}
@@ -6280,7 +6280,7 @@ function hlMatch(text,q){
 
   // ── Zoom ──────────────────────────────────────────────────────────────────────
   const ZOOM_STORE='_alloc_zoom_v1';
-  const ZOOM_DEF=38,ZOOM_MIN=18,ZOOM_MAX=80;
+  const ZOOM_DEF=38,ZOOM_MIN=18,ZOOM_MAX=80,ZOOM_HRATIO=42/38;
 
   function _allocLoadZoom(){
     const v=parseInt(localStorage.getItem(ZOOM_STORE));
@@ -6288,8 +6288,9 @@ function hlMatch(text,q){
   }
 
   function _applyZoom(w){
+    const h=Math.round(w*ZOOM_HRATIO);
     const table=document.querySelector('#panel-alloc .alloc-table');
-    if(table)table.style.setProperty('--adw',w+'px');
+    if(table){table.style.setProperty('--adw',w+'px');table.style.setProperty('--adh',h+'px');}
     const sl=document.getElementById('alloc-zoom-slider');
     if(sl)sl.value=w;
     const lb=document.getElementById('alloc-zoom-label');
