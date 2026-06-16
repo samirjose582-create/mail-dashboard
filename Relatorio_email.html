@@ -6177,7 +6177,7 @@ function hlMatch(text,q){
     // Sticky left col config [width, left]
     const CW=_allocLoadCW();
     const CL=CW.reduce((acc,w,i)=>[...acc,(acc[i]||0)+w],[0]).slice(0,-1);
-    const CH=['Projeto','Atribuído','%','Início','Término','Dias',''];
+    const CH=['Projeto','Atribuído','%','Etapa','Início','Término','Dias',''];
 
     // Header: month row
     const mHdrLeft=`<th colspan="${CW.length}" style="text-align:left;padding:6px 10px;font-size:.68rem;font-weight:700;color:var(--yellow);background:var(--surface);position:sticky;left:0;z-index:4;top:0;border-bottom:1px solid var(--border)">🏗 ALOCAÇÃO DE EQUIPE</th>`;
@@ -6235,10 +6235,11 @@ function hlMatch(text,q){
             <div style="font-size:.72rem;font-weight:700;color:${pctColor}">${pct}%</div>
             <div class="alloc-progress-bar"><div class="alloc-progress-fill" style="width:${pct}%;background:${pctColor}"></div></div>
           </td>
-          <td class="alloc-td-left alloc-editable" data-col="3" title="${_fmt(p.start)||'Clique para definir início'}" onclick="event.stopPropagation();allocInlineDate('${p.id}','start',this)" style="left:${CL[3]}px;min-width:${CW[3]}px;max-width:${CW[3]}px;width:${CW[3]}px;text-align:center;font-size:.62rem">${p.start?p.start.slice(8)+'/'+p.start.slice(5,7):'—'}</td>
-          <td class="alloc-td-left alloc-editable" data-col="4" title="${_fmt(p.end)||'Clique para definir término'}" onclick="event.stopPropagation();allocInlineDate('${p.id}','end',this)" style="left:${CL[4]}px;min-width:${CW[4]}px;max-width:${CW[4]}px;width:${CW[4]}px;text-align:center;font-size:.62rem">${p.end?p.end.slice(8)+'/'+p.end.slice(5,7):'—'}</td>
-          <td class="alloc-td-left" data-col="5" style="left:${CL[5]}px;min-width:${CW[5]}px;max-width:${CW[5]}px;width:${CW[5]}px;text-align:center;font-size:.72rem;font-weight:700;color:var(--blue)">${wd}</td>
-          <td class="alloc-td-left alloc-sep-col" data-col="6" style="left:${CL[6]}px;min-width:${CW[6]}px;max-width:${CW[6]}px;width:${CW[6]}px;text-align:center">
+          <td class="alloc-td-left alloc-editable" data-col="3" title="Clique para editar etapa" onclick="event.stopPropagation();allocInlineName('${p.id}','stage',this)" style="left:${CL[3]}px;min-width:${CW[3]}px;max-width:${CW[3]}px;width:${CW[3]}px;text-align:center;font-size:.65rem">${p.stage||'—'}</td>
+          <td class="alloc-td-left alloc-editable" data-col="4" title="${_fmt(p.start)||'Clique para definir início'}" onclick="event.stopPropagation();allocInlineDate('${p.id}','start',this)" style="left:${CL[4]}px;min-width:${CW[4]}px;max-width:${CW[4]}px;width:${CW[4]}px;text-align:center;font-size:.62rem">${p.start?p.start.slice(8)+'/'+p.start.slice(5,7):'—'}</td>
+          <td class="alloc-td-left alloc-editable" data-col="5" title="${_fmt(p.end)||'Clique para definir término'}" onclick="event.stopPropagation();allocInlineDate('${p.id}','end',this)" style="left:${CL[5]}px;min-width:${CW[5]}px;max-width:${CW[5]}px;width:${CW[5]}px;text-align:center;font-size:.62rem">${p.end?p.end.slice(8)+'/'+p.end.slice(5,7):'—'}</td>
+          <td class="alloc-td-left" data-col="6" style="left:${CL[6]}px;min-width:${CW[6]}px;max-width:${CW[6]}px;width:${CW[6]}px;text-align:center;font-size:.72rem;font-weight:700;color:var(--blue)">${wd}</td>
+          <td class="alloc-td-left alloc-sep-col" data-col="7" style="left:${CL[7]}px;min-width:${CW[7]}px;max-width:${CW[7]}px;width:${CW[7]}px;text-align:center">
             <button onclick="openAllocModal('${p.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px" title="Editar tudo">✏️</button>
           </td>
           ${dayCells}
@@ -6309,7 +6310,7 @@ function hlMatch(text,q){
 
   // ── Column resize ─────────────────────────────────────────────────────────────
   const CW_STORE='_alloc_cw_v1';
-  const CW_DEFAULT=[130,76,42,52,52,38,28];
+  const CW_DEFAULT=[130,76,42,68,52,52,38,28];
 
   function _allocLoadCW(){
     try{const s=JSON.parse(localStorage.getItem(CW_STORE));if(Array.isArray(s)&&s.length===CW_DEFAULT.length)return s.map(Number);}catch{}
@@ -6373,7 +6374,7 @@ function hlMatch(text,q){
     const data=_load();const proj=data.projects.find(p=>p.id===pid);if(!proj)return;
     const inp=document.createElement('input');
     inp.type='text';inp.value=proj[field]||'';inp.className='alloc-inline-input';
-    inp.placeholder=field==='code'?'Código':'Nome do projeto';
+    inp.placeholder=field==='code'?'Código':field==='stage'?'Etapa':'Nome do projeto';
     el.innerHTML='';el.appendChild(inp);inp.focus();inp.select();
     const save=()=>{
       const v=inp.value.trim();if(v)proj[field]=v;
@@ -6444,7 +6445,7 @@ function hlMatch(text,q){
       }
     }
     // Atualiza working days
-    const wdCell=row?.querySelectorAll('.alloc-td-left')[5];
+    const wdCell=row?.querySelectorAll('.alloc-td-left')[6];
     if(wdCell&&proj.start&&proj.end)wdCell.textContent=_workDays(proj.start,proj.end);
   };
 
@@ -6478,6 +6479,7 @@ function hlMatch(text,q){
       <div class="alloc-modal-body">
         <div class="alloc-form-row"><label class="alloc-form-label">Código</label><input class="alloc-form-input" id="af-code" placeholder="Ex: MEC-01" value="${proj?.code||''}"></div>
         <div class="alloc-form-row"><label class="alloc-form-label">Nome do Projeto</label><input class="alloc-form-input" id="af-name" placeholder="Nome completo do projeto" value="${proj?.name||''}"></div>
+        <div class="alloc-form-row"><label class="alloc-form-label">Etapa</label><input class="alloc-form-input" id="af-stage" placeholder="Ex: Execução, Planejamento..." value="${proj?.stage||''}"></div>
         <div class="alloc-form-row"><label class="alloc-form-label">Atribuído Para</label><div class="alloc-member-list" id="af-members">${chips}</div></div>
         <div class="alloc-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div><label class="alloc-form-label">Data de Início</label><input class="alloc-form-input" type="date" id="af-start" value="${proj?.start||today}"></div>
@@ -6504,6 +6506,7 @@ function hlMatch(text,q){
   window.saveAllocProject=function(){
     const code=document.getElementById('af-code')?.value.trim()||'';
     const name=document.getElementById('af-name')?.value.trim()||'';
+    const stage=document.getElementById('af-stage')?.value.trim()||'';
     const start=document.getElementById('af-start')?.value||'';
     const end=document.getElementById('af-end')?.value||'';
     const pct=parseInt(document.getElementById('af-pct')?.value||'0');
@@ -6515,9 +6518,9 @@ function hlMatch(text,q){
     const data=_load();
     if(_editPid){
       const idx=data.projects.findIndex(p=>p.id===_editPid);
-      if(idx>=0)data.projects[idx]={...data.projects[idx],code,name,start,end,progress:pct,color,assignees};
+      if(idx>=0)data.projects[idx]={...data.projects[idx],code,name,stage,start,end,progress:pct,color,assignees};
     } else {
-      data.projects.push({id:_uid(),code,name,start,end,progress:pct,color,assignees});
+      data.projects.push({id:_uid(),code,name,stage,start,end,progress:pct,color,assignees});
     }
     _save(data);closeAllocModal();renderAllocPanel();
   };
@@ -6603,7 +6606,7 @@ function hlMatch(text,q){
       t1.alignment={vertical:'middle',horizontal:'center'};
       s1.getRow(1).height=30;
 
-      const hdr1=['Código','Projeto','Atribuídos','Progresso','Início','Término','Dias Úteis','Status'];
+      const hdr1=['Código','Projeto','Atribuídos','Progresso','Etapa','Início','Término','Dias Úteis','Status'];
       const hr1=s1.addRow(hdr1);
       hr1.height=22;
       hr1.eachCell(c=>{
@@ -6620,7 +6623,7 @@ function hlMatch(text,q){
         const bg=i%2===0?SB:DB;
         const row=s1.addRow([
           p.code||'',p.name||'',(p.assignees||[]).join(', '),
-          pct/100,
+          pct/100,p.stage||'',
           p.start?new Date(p.start+'T12:00:00'):'',
           p.end?new Date(p.end+'T12:00:00'):'',
           wd,status
@@ -6634,30 +6637,31 @@ function hlMatch(text,q){
           c.border={left:{style:'thin',color:{argb:`FF${MT}`}},right:{style:'thin',color:{argb:`FF${MT}`}}};
           if(col===1){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:pc}};c.font={bold:true,size:10,color:{argb:'FF000000'}};c.alignment={vertical:'middle',horizontal:'center'};}
           if(col===4){c.numFmt='0%';c.alignment={vertical:'middle',horizontal:'center'};}
-          if(col===5||col===6){c.numFmt='DD/MM/YYYY';c.alignment={vertical:'middle',horizontal:'center'};}
-          if(col===7){c.font={bold:true,size:10,color:{argb:`FF${BL}`}};c.alignment={vertical:'middle',horizontal:'center'};}
-          if(col===8){c.alignment={vertical:'middle',horizontal:'center'};}
+          if(col===5){c.alignment={vertical:'middle',horizontal:'center'};}
+          if(col===6||col===7){c.numFmt='DD/MM/YYYY';c.alignment={vertical:'middle',horizontal:'center'};}
+          if(col===8){c.font={bold:true,size:10,color:{argb:`FF${BL}`}};c.alignment={vertical:'middle',horizontal:'center'};}
+          if(col===9){c.alignment={vertical:'middle',horizontal:'center'};}
         });
       });
 
       // Totals
       const totWd=data.projects.reduce((s,p)=>s+_workDays(p.start||'',p.end||''),0);
-      const tr1=s1.addRow(['',`TOTAL: ${data.projects.length} projeto(s)`,'','','','',totWd,'']);
+      const tr1=s1.addRow(['',`TOTAL: ${data.projects.length} projeto(s)`,'','','','','',totWd,'']);
       tr1.height=22;
       tr1.eachCell((c,col)=>{
         c.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${MT}`}};
         c.font={bold:true,size:10,color:{argb:`FF${YL}`}};
-        c.alignment={vertical:'middle',...(col===7?{horizontal:'center'}:{})};
+        c.alignment={vertical:'middle',...(col===8?{horizontal:'center'}:{})};
       });
 
-      s1.columns=[{width:12},{width:38},{width:32},{width:13},{width:14},{width:14},{width:12},{width:18}];
+      s1.columns=[{width:12},{width:38},{width:32},{width:13},{width:16},{width:14},{width:14},{width:12},{width:18}];
       s1.views=[{state:'frozen',ySplit:2}];
 
       // ── Sheet 2: Calendário Gantt ──────────────────────────────────────────
       const s2=wb.addWorksheet('Calendario Gantt');
-      const FC=7; // fixed left cols
-      const fcLbl=['Código','Projeto','Atribuídos','%','Início','Término','Dias'];
-      [12,28,22,6,11,11,8].forEach((w,i)=>s2.getColumn(i+1).width=w);
+      const FC=8; // fixed left cols
+      const fcLbl=['Código','Projeto','Atribuídos','%','Etapa','Início','Término','Dias'];
+      [12,28,22,6,14,11,11,8].forEach((w,i)=>s2.getColumn(i+1).width=w);
       days.forEach((_,i)=>s2.getColumn(FC+i+1).width=3.5);
 
       // Row 1: fixed labels + month headers
@@ -6705,9 +6709,9 @@ function hlMatch(text,q){
         const pc=toArgb(p.color||'#f59e0b');
         const row=s2.addRow(new Array(FC+days.length).fill(''));
         row.height=18;
-        [p.code||'',p.name||'',(p.assignees||[]).join(', '),`${pct}%`,p.start?_fmt(p.start):'',p.end?_fmt(p.end):'',wd].forEach((v,i)=>{
+        [p.code||'',p.name||'',(p.assignees||[]).join(', '),`${pct}%`,p.stage||'',p.start?_fmt(p.start):'',p.end?_fmt(p.end):'',wd].forEach((v,i)=>{
           const c=row.getCell(i+1);c.value=v;
-          c.font={size:9,color:{argb:i===0?'FF000000':`FF${TX}`},bold:i===0||i===6};
+          c.font={size:9,color:{argb:i===0?'FF000000':`FF${TX}`},bold:i===0||i===7};
           c.fill={type:'pattern',pattern:'solid',fgColor:{argb:i===0?pc:`FF${SB}`}};
           c.alignment={vertical:'middle',horizontal:i===0||i>=3?'center':'left'};
           c.border={right:{style:'thin',color:{argb:`FF${MT}`}}};
