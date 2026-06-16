@@ -1253,6 +1253,7 @@ body.ck-active{padding-bottom:54px;}
     <div class="stat s-todos" onclick="switchTab('todos')"><div class="stat-icon">📋</div><div class="stat-info"><div class="stat-label">Total Hoje</div><div class="stat-value" id="s-todos">–</div></div></div>
     <div class="vol-chip"><span id="vol-arrow">📊</span><span style="color:var(--text-soft)">Volume:</span><span class="vol-num" id="vol-num">–</span><span class="vol-diff" id="vol-diff"></span></div>
     <div class="vol-chip" onclick="switchTab('checklist')" style="cursor:pointer;border-color:rgba(192,132,252,.3);color:#c084fc;gap:5px;" title="Checklist Semanal">⬡ Checklist</div>
+    <div class="vol-chip" onclick="switchTab('alloc')" style="cursor:pointer;border-color:rgba(251,146,60,.3);color:#fb923c;gap:5px;" title="Alocação de Equipe">🏗 Alocação</div>
   </div>
   <div class="tabs-wrapper" id="tabs-wrapper">
     <div class="tabs-fade tabs-fade-left hidden" id="tabs-fl"></div>
@@ -1268,7 +1269,6 @@ body.ck-active{padding-bottom:54px;}
       <div class="tab t-todos" id="tab-todos" onclick="switchTab('todos')">≡ Todos <span class="count" id="tc-todos">0</span></div>
       <div class="tab t-escrever" id="tab-escrever" onclick="switchTab('escrever')">✏️ Escrever</div>
       <div class="tab t-checklist" id="tab-checklist" onclick="switchTab('checklist')" style="color:#c084fc;">⬡ Checklist</div>
-      <div class="tab t-alloc" id="tab-alloc" onclick="switchTab('alloc')" style="color:#fb923c;">🏗 Alocação</div>
     </div>
     <span class="tabs-arr tabs-arr-right" id="tabs-ar">›</span>
     <div class="tabs-fade tabs-fade-right" id="tabs-fr"></div>
