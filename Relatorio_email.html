@@ -1179,6 +1179,114 @@ body.ck-active{padding-bottom:54px;}
 .alloc-resize-handle{position:absolute;right:-3px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:10;user-select:none;}
 .alloc-resize-handle::after{content:'';position:absolute;left:3px;top:15%;bottom:15%;width:2px;background:transparent;transition:background .15s;border-radius:1px;}
 .alloc-resize-handle:hover::after,.alloc-resize-handle.dragging::after{background:var(--yellow);}
+
+/* ── PREMISSAS ─────────────────────────────────────────────────────────────── */
+body.prem-active .content{max-width:100%;padding:8px 14px;}
+#panel-prem{padding:0;background:transparent;overflow:visible;}
+.prem-root{display:grid;grid-template-columns:270px 1fr;gap:12px;height:calc(100vh - 128px);min-height:500px;font-family:'Inter',sans-serif;}
+.prem-sidebar{display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.prem-sidebar-hdr{display:flex;align-items:center;gap:8px;padding:10px 12px;background:linear-gradient(135deg,#0d1b2a,#0a1628);border:1px solid rgba(6,182,212,.2);border-radius:12px;flex-shrink:0;}
+.prem-sidebar-title{font-size:.78rem;font-weight:700;color:#06b6d4;letter-spacing:.5px;text-transform:uppercase;flex:1;}
+.prem-search{background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.18);border-radius:8px;padding:6px 10px;font-size:.72rem;color:var(--text);width:100%;box-sizing:border-box;outline:none;flex-shrink:0;}
+.prem-search::placeholder{color:var(--text-muted);}
+.prem-search:focus{border-color:rgba(6,182,212,.5);background:rgba(6,182,212,.1);}
+.prem-proj-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-right:2px;}
+.prem-proj-list::-webkit-scrollbar{width:3px;}.prem-proj-list::-webkit-scrollbar-thumb{background:rgba(6,182,212,.3);border-radius:3px;}
+.prem-proj-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;flex-shrink:0;}
+.prem-proj-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pc,#06b6d4);border-radius:3px 0 0 3px;transition:width .18s;}
+.prem-proj-card:hover{border-color:rgba(6,182,212,.35);background:rgba(6,182,212,.06);transform:translateX(2px);}
+.prem-proj-card:hover::before,.prem-proj-card.active::before{width:4px;}
+.prem-proj-card.active{border-color:rgba(6,182,212,.5);background:linear-gradient(90deg,rgba(6,182,212,.08),rgba(6,182,212,.02));box-shadow:0 0 18px rgba(6,182,212,.1);}
+.prem-proj-card-hdr{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.prem-proj-code{font-size:.58rem;font-family:var(--mono);color:var(--text-muted);background:rgba(255,255,255,.05);border-radius:4px;padding:1px 5px;}
+.prem-proj-name{font-size:.75rem;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prem-proj-badges{display:flex;gap:5px;align-items:center;}
+.prem-badge{font-size:.58rem;font-weight:700;border-radius:5px;padding:1px 6px;}
+.prem-badge-prem{background:rgba(6,182,212,.15);color:#06b6d4;border:1px solid rgba(6,182,212,.25);}
+.prem-badge-nota{background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.22);}
+.prem-new-proj-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:transparent;border:1px dashed rgba(6,182,212,.3);border-radius:10px;color:#06b6d4;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .18s;flex-shrink:0;}
+.prem-new-proj-btn:hover{background:rgba(6,182,212,.08);border-color:rgba(6,182,212,.6);}
+/* main */
+.prem-main{display:flex;flex-direction:column;gap:10px;overflow:hidden;background:linear-gradient(145deg,#080f1c,#060c18);border:1px solid rgba(6,182,212,.15);border-radius:14px;padding:0;}
+.prem-main-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100%;color:var(--text-muted);}
+.prem-main-empty-icon{font-size:3rem;opacity:.3;}
+.prem-main-hdr{padding:14px 18px 10px;background:linear-gradient(90deg,rgba(6,182,212,.06),transparent);border-bottom:1px solid rgba(6,182,212,.1);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.prem-main-hdr-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;box-shadow:0 0 8px currentColor;}
+.prem-main-hdr-name{font-size:.95rem;font-weight:700;color:var(--text);flex:1;}
+.prem-main-hdr-code{font-size:.65rem;font-family:var(--mono);color:var(--text-muted);background:rgba(255,255,255,.06);padding:2px 7px;border-radius:5px;}
+.prem-hdr-btn{background:none;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:4px 10px;font-size:.68rem;color:var(--text-muted);cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;}
+.prem-hdr-btn:hover{border-color:rgba(6,182,212,.4);color:#06b6d4;}
+.prem-hdr-btn.danger:hover{border-color:rgba(239,68,68,.4);color:#ef4444;}
+.prem-body{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:18px;}
+.prem-body::-webkit-scrollbar{width:3px;}.prem-body::-webkit-scrollbar-thumb{background:rgba(6,182,212,.25);border-radius:3px;}
+.prem-section-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.prem-section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#06b6d4;}
+.prem-section-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(6,182,212,.3),transparent);}
+.prem-section-count{font-size:.62rem;color:var(--text-muted);font-family:var(--mono);}
+/* premissa item */
+.prem-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:9px;transition:all .15s;position:relative;}
+.prem-item:hover{background:rgba(6,182,212,.04);border-color:rgba(6,182,212,.15);}
+.prem-status-btn{width:18px;height:18px;border-radius:50%;border:2px solid;cursor:pointer;flex-shrink:0;margin-top:1px;transition:all .18s;background:none;display:flex;align-items:center;justify-content:center;font-size:.6rem;}
+.prem-status-btn.pendente{border-color:#64748b;color:#64748b;}
+.prem-status-btn.pendente:hover{border-color:#06b6d4;color:#06b6d4;}
+.prem-status-btn.verificado{border-color:#10b981;color:#10b981;background:rgba(16,185,129,.1);}
+.prem-status-btn.bloqueado{border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.1);}
+.prem-item-text{flex:1;font-size:.76rem;color:var(--text-soft);line-height:1.45;}
+.prem-item-text.verificado{text-decoration:line-through;opacity:.55;}
+.prem-item-meta{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;}
+.prem-tag{font-size:.55rem;font-weight:700;border-radius:4px;padding:1px 6px;text-transform:uppercase;letter-spacing:.5px;}
+.prem-tag-tecnica{background:rgba(59,130,246,.15);color:#3b82f6;border:1px solid rgba(59,130,246,.25);}
+.prem-tag-comercial{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.2);}
+.prem-tag-legal{background:rgba(139,92,246,.15);color:#8b5cf6;border:1px solid rgba(139,92,246,.25);}
+.prem-tag-risco{background:rgba(239,68,68,.13);color:#ef4444;border:1px solid rgba(239,68,68,.22);}
+.prem-tag-geral{background:rgba(100,116,139,.12);color:#94a3b8;border:1px solid rgba(100,116,139,.2);}
+.prem-item-date{font-size:.56rem;color:var(--text-muted);font-family:var(--mono);}
+.prem-item-del{background:none;border:none;color:transparent;cursor:pointer;font-size:.75rem;padding:0 2px;transition:color .15s;flex-shrink:0;}
+.prem-item:hover .prem-item-del{color:rgba(239,68,68,.4);}
+.prem-item-del:hover{color:#ef4444!important;}
+/* nota card */
+.prem-nota-card{background:linear-gradient(135deg,rgba(251,146,60,.05),rgba(251,146,60,.02));border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:12px 14px;position:relative;transition:all .15s;}
+.prem-nota-card:hover{border-color:rgba(251,146,60,.35);}
+.prem-nota-hdr{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.prem-nota-date{font-size:.58rem;color:rgba(251,146,60,.6);font-family:var(--mono);}
+.prem-nota-text{font-size:.76rem;color:var(--text-soft);line-height:1.55;white-space:pre-wrap;}
+.prem-nota-del{position:absolute;top:8px;right:10px;background:none;border:none;color:transparent;cursor:pointer;font-size:.75rem;transition:color .15s;}
+.prem-nota-card:hover .prem-nota-del{color:rgba(239,68,68,.4);}
+.prem-nota-del:hover{color:#ef4444!important;}
+/* add row */
+.prem-add-row{display:flex;gap-8px;align-items:center;gap:8px;padding:8px 10px;background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.12);border-radius:10px;transition:border-color .15s;}
+.prem-add-row:focus-within{border-color:rgba(6,182,212,.4);}
+.prem-add-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:.75rem;font-family:'Inter',sans-serif;placeholder-color:var(--text-muted);}
+.prem-add-input::placeholder{color:var(--text-muted);}
+.prem-add-nota-row{align-items:flex-start;padding:10px 12px;}
+.prem-add-textarea{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:.75rem;font-family:'Inter',sans-serif;resize:none;min-height:54px;line-height:1.5;}
+.prem-add-textarea::placeholder{color:var(--text-muted);}
+.prem-tag-sel{background:none;border:none;color:var(--text-muted);font-size:.68rem;cursor:pointer;font-family:'Inter',sans-serif;outline:none;padding:0 4px;}
+.prem-tag-sel option{background:#1e293b;}
+.prem-add-btn{background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.3);color:#06b6d4;border-radius:7px;padding:5px 12px;font-size:.7rem;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;font-family:'Inter',sans-serif;}
+.prem-add-btn:hover{background:rgba(6,182,212,.3);}
+/* mic button */
+.prem-mic-btn{background:none;border:1px solid rgba(6,182,212,.3);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;transition:all .2s;flex-shrink:0;}
+.prem-mic-btn:hover{background:rgba(6,182,212,.12);border-color:rgba(6,182,212,.6);}
+.prem-mic-btn.recording{border-color:#ef4444;background:rgba(239,68,68,.12);animation:prem-mic-pulse 1s infinite;}
+@keyframes prem-mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4);}50%{box-shadow:0 0 0 6px rgba(239,68,68,.0);}}
+.prem-mic-listening{font-size:.6rem;color:#ef4444;animation:prem-blink .8s infinite;}
+@keyframes prem-blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+/* modal */
+.prem-modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9800;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.prem-modal{background:#0d1628;border:1px solid rgba(6,182,212,.3);border-radius:16px;padding:24px;width:360px;box-shadow:0 24px 80px rgba(0,0,0,.7),0 0 40px rgba(6,182,212,.08);}
+.prem-modal-title{font-size:.9rem;font-weight:700;color:#06b6d4;margin-bottom:18px;}
+.prem-modal-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.prem-modal-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);}
+.prem-modal-input{background:rgba(255,255,255,.04);border:1px solid rgba(6,182,212,.2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:.8rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .15s;}
+.prem-modal-input:focus{border-color:rgba(6,182,212,.5);}
+.prem-modal-swatches{display:flex;gap:8px;flex-wrap:wrap;}
+.prem-modal-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;}
+.prem-modal-swatch.sel{border-color:#fff;transform:scale(1.2);}
+.prem-modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+.prem-modal-cancel{background:none;border:1px solid var(--border);color:var(--text-muted);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.75rem;font-family:'Inter',sans-serif;}
+.prem-modal-save{background:rgba(6,182,212,.2);border:1px solid rgba(6,182,212,.4);color:#06b6d4;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:.75rem;font-weight:700;font-family:'Inter',sans-serif;transition:all .15s;}
+.prem-modal-save:hover{background:rgba(6,182,212,.35);}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -1254,6 +1362,7 @@ body.ck-active{padding-bottom:54px;}
     <div class="vol-chip"><span id="vol-arrow">📊</span><span style="color:var(--text-soft)">Volume:</span><span class="vol-num" id="vol-num">–</span><span class="vol-diff" id="vol-diff"></span></div>
     <div class="vol-chip" onclick="switchTab('checklist')" style="cursor:pointer;border-color:rgba(192,132,252,.3);color:#c084fc;gap:5px;" title="Checklist Semanal">⬡ Checklist</div>
     <div class="vol-chip" onclick="switchTab('alloc')" style="cursor:pointer;border-color:rgba(251,146,60,.3);color:#fb923c;gap:5px;" title="Alocação de Equipe">🏗 Alocação</div>
+    <div class="vol-chip" onclick="switchTab('prem')" style="cursor:pointer;border-color:rgba(6,182,212,.3);color:#06b6d4;gap:5px;" title="Premissas & Anotações">📋 Premissas</div>
   </div>
   <div class="tabs-wrapper" id="tabs-wrapper">
     <div class="tabs-fade tabs-fade-left hidden" id="tabs-fl"></div>
@@ -1294,6 +1403,7 @@ body.ck-active{padding-bottom:54px;}
   <div class="email-panel" id="panel-escrever"></div>
   <div class="email-panel" id="panel-checklist"></div>
   <div class="email-panel" id="panel-alloc"></div>
+  <div class="email-panel" id="panel-prem"></div>
 </div>
 <div class="analytics-section" id="analytics-section"></div>
 <div id="ck-calendar" class="ck-calendar" style="display:none;"></div>
@@ -2388,7 +2498,7 @@ function updateVolume(){
   if(prev&&prev!==today){const diff=today-prev,pct=Math.round(Math.abs(diff/prev)*100);const el=document.getElementById('vol-diff');el.textContent=` ${diff>0?'+':''}${diff} (${pct}%)`;el.className='vol-diff '+(diff>0?'vol-up':'vol-down');document.getElementById('vol-arrow').textContent=diff>0?'📈':'📉';}
 }
 
-const NO_SEARCH=['urgencias','responder','reunioes','projetos','fixados','escrever','checklist','alloc'];
+const NO_SEARCH=['urgencias','responder','reunioes','projetos','fixados','escrever','checklist','alloc','prem'];
 function switchTab(tab){
   currentTab=tab;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+tab));
@@ -2402,10 +2512,12 @@ function switchTab(tab){
   else if(tab==='escrever'){setTimeout(()=>{initContactSearch();initComposerResize();if(!_peopleCache)loadPeople();},80);}
   document.body.classList.toggle('ck-active',tab==='checklist');
   document.body.classList.toggle('alloc-active',tab==='alloc');
+  document.body.classList.toggle('prem-active',tab==='prem');
   if(tab==='checklist'){renderChecklist();}
   document.getElementById('ck-calendar').style.display=tab==='checklist'?'':'none';
-  document.getElementById('analytics-section').style.display=(tab==='checklist'||tab==='alloc')?'none':'';
+  document.getElementById('analytics-section').style.display=(tab==='checklist'||tab==='alloc'||tab==='prem')?'none':'';
   if(tab==='alloc'){renderAllocPanel();}
+  if(tab==='prem'){renderPremPanel();}
 }
 function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();}
 function applyFilters(){
@@ -6750,6 +6862,337 @@ function hlMatch(text,q){
     }finally{
       if(btn){btn.disabled=false;btn.textContent='📥 Exportar Excel';}
     }
+  };
+})();
+
+// ── PREMISSAS & ANOTAÇÕES ─────────────────────────────────────────────────────
+(function(){
+  const STORE='_prem_v1';
+  const COLORS=['#06b6d4','#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#f97316','#84cc16','#6366f1'];
+  const TAGS=['geral','técnica','comercial','legal','risco'];
+  const STATUS_CYCLE={pendente:'verificado',verificado:'bloqueado',bloqueado:'pendente'};
+  const STATUS_ICON={pendente:'○',verificado:'✓',bloqueado:'✕'};
+  let _activePid=null;
+  let _micRec=null;
+  let _micTarget=null; // {pid, type:'prem'|'nota', inputId}
+
+  function _load(){
+    try{return JSON.parse(localStorage.getItem(STORE))||{projects:[]};}catch{return{projects:[]};}
+  }
+  function _save(d){localStorage.setItem(STORE,JSON.stringify(d));}
+  function _uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+  function _fmtDate(iso){
+    const d=new Date(iso);
+    return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+  }
+
+  // ── MIC ─────────────────────────────────────────────────────────────────────
+  function _startMic(pid,type,inputId){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){alert('Reconhecimento de voz não suportado neste navegador.');return;}
+    if(_micRec){_micRec.stop();return;}
+    _micTarget={pid,type,inputId};
+    _micRec=new SR();
+    _micRec.lang='pt-BR';_micRec.continuous=false;_micRec.interimResults=true;
+    const btn=document.getElementById('mic-'+inputId);
+    const lbl=document.getElementById('mic-lbl-'+inputId);
+    if(btn)btn.classList.add('recording');
+    if(lbl)lbl.style.display='inline';
+    _micRec.onresult=ev=>{
+      const t=Array.from(ev.results).map(r=>r[0].transcript).join('');
+      const el=document.getElementById(inputId);
+      if(el)el.value=t;
+    };
+    _micRec.onend=()=>{
+      _micRec=null;
+      if(btn)btn.classList.remove('recording');
+      if(lbl)lbl.style.display='none';
+    };
+    _micRec.onerror=()=>{
+      _micRec=null;
+      if(btn)btn.classList.remove('recording');
+      if(lbl)lbl.style.display='none';
+    };
+    _micRec.start();
+  }
+
+  // ── RENDER PANEL ────────────────────────────────────────────────────────────
+  function renderPremPanel(){
+    const panel=document.getElementById('panel-prem');
+    if(!panel)return;
+    const data=_load();
+    const proj=_activePid?data.projects.find(p=>p.id===_activePid):null;
+    if(!_activePid&&data.projects.length)_activePid=data.projects[0].id;
+
+    panel.innerHTML=`<div class="prem-root">
+      <div class="prem-sidebar">
+        <div class="prem-sidebar-hdr">
+          <span style="font-size:1.1rem">📋</span>
+          <span class="prem-sidebar-title">Projetos</span>
+          <span style="font-size:.6rem;color:var(--text-muted);font-family:var(--mono)">${data.projects.length} proj.</span>
+        </div>
+        <input class="prem-search" id="prem-search" placeholder="🔍  Buscar projeto..." oninput="premFilter(this.value)">
+        <div class="prem-proj-list" id="prem-proj-list">
+          ${data.projects.length?data.projects.map(p=>_projCard(p)).join(''):'<div style="font-size:.72rem;color:var(--text-muted);text-align:center;padding:20px 0">Nenhum projeto ainda</div>'}
+        </div>
+        <button class="prem-new-proj-btn" onclick="openPremModal()">＋ Novo Projeto</button>
+      </div>
+      <div class="prem-main" id="prem-main">
+        ${_activePid&&data.projects.find(p=>p.id===_activePid)?_renderMain(data.projects.find(p=>p.id===_activePid)):_emptyMain()}
+      </div>
+    </div>`;
+    _highlightActive();
+  }
+
+  function _projCard(p){
+    const np=(p.premissas||[]).length,nn=(p.notas||[]).length;
+    const pend=(p.premissas||[]).filter(i=>i.status==='pendente').length;
+    const verif=(p.premissas||[]).filter(i=>i.status==='verificado').length;
+    return `<div class="prem-proj-card${_activePid===p.id?' active':''}" style="--pc:${p.color||'#06b6d4'}" onclick="openPremProject('${p.id}')">
+      <div class="prem-proj-card-hdr">
+        <span class="prem-proj-code">${p.code||'—'}</span>
+        <span class="prem-proj-name">${p.name}</span>
+      </div>
+      <div class="prem-proj-badges">
+        ${np?`<span class="prem-badge prem-badge-prem">📌 ${np} prem.</span>`:''}
+        ${nn?`<span class="prem-badge prem-badge-nota">📝 ${nn} nota${nn>1?'s':''}</span>`:''}
+        ${pend?`<span class="prem-badge" style="background:rgba(100,116,139,.1);color:#64748b;border:1px solid rgba(100,116,139,.2)">⏳ ${pend}</span>`:''}
+        ${verif?`<span class="prem-badge" style="background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.2)">✓ ${verif}</span>`:''}
+      </div>
+    </div>`;
+  }
+
+  function _emptyMain(){
+    return `<div class="prem-main-empty">
+      <div class="prem-main-empty-icon">📋</div>
+      <div style="font-size:.8rem;font-weight:600;color:var(--text-muted)">Selecione um projeto</div>
+      <div style="font-size:.72rem;color:var(--text-muted)">ou crie um novo para começar</div>
+    </div>`;
+  }
+
+  function _renderMain(p){
+    const prems=(p.premissas||[]);
+    const notas=(p.notas||[]);
+    const tagOpts=TAGS.map(t=>`<option value="${t}">${t}</option>`).join('');
+
+    const premItems=prems.length?prems.map(it=>`
+      <div class="prem-item" id="pi-${it.id}">
+        <button class="prem-status-btn ${it.status||'pendente'}" onclick="premToggleStatus('${p.id}','${it.id}')" title="Status: ${it.status||'pendente'}">${STATUS_ICON[it.status||'pendente']}</button>
+        <div style="flex:1">
+          <div class="prem-item-text ${it.status==='verificado'?'verificado':''}">${it.text}</div>
+          <div class="prem-item-meta">
+            <span class="prem-tag prem-tag-${it.tag||'geral'}">${it.tag||'geral'}</span>
+            <span class="prem-item-date">${_fmtDate(it.createdAt)}</span>
+          </div>
+        </div>
+        <button class="prem-item-del" onclick="premDelItem('${p.id}','${it.id}')">✕</button>
+      </div>`).join(''):'<div style="font-size:.72rem;color:var(--text-muted);padding:8px 0">Nenhuma premissa ainda — adicione abaixo</div>';
+
+    const notaCards=notas.length?notas.map(n=>`
+      <div class="prem-nota-card">
+        <div class="prem-nota-hdr">
+          <span style="font-size:.7rem">📝</span>
+          <span class="prem-nota-date">${_fmtDate(n.createdAt)}</span>
+        </div>
+        <div class="prem-nota-text">${n.text}</div>
+        <button class="prem-nota-del" onclick="premDelNota('${p.id}','${n.id}')">✕</button>
+      </div>`).join(''):'<div style="font-size:.72rem;color:var(--text-muted);padding:8px 0">Nenhuma anotação ainda</div>';
+
+    return `
+      <div class="prem-main-hdr">
+        <div class="prem-main-hdr-dot" style="color:${p.color||'#06b6d4'};background:${p.color||'#06b6d4'}"></div>
+        <span class="prem-main-hdr-name">${p.name}</span>
+        <span class="prem-main-hdr-code">${p.code||''}</span>
+        <button class="prem-hdr-btn" onclick="openPremModal('${p.id}')">✏️ Editar</button>
+        <button class="prem-hdr-btn danger" onclick="premDelProject('${p.id}')">🗑</button>
+      </div>
+      <div class="prem-body">
+        <div>
+          <div class="prem-section-hdr">
+            <span class="prem-section-title">📌 Premissas</span>
+            <div class="prem-section-line"></div>
+            <span class="prem-section-count">${prems.length} item${prems.length!==1?'s':''}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">${premItems}</div>
+          <div class="prem-add-row">
+            <input class="prem-add-input" id="prem-inp-${p.id}" placeholder="Nova premissa... (ou use o microfone 🎙)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();premAddItem('${p.id}');}">
+            <select class="prem-tag-sel" id="prem-tag-${p.id}">${tagOpts}</select>
+            <button class="prem-mic-btn" id="mic-prem-inp-${p.id}" onclick="premStartMic('${p.id}','prem','prem-inp-${p.id}')" title="Gravar por voz">🎙</button>
+            <span class="prem-mic-listening" id="mic-lbl-prem-inp-${p.id}" style="display:none">● REC</span>
+            <button class="prem-add-btn" onclick="premAddItem('${p.id}')">＋ Adicionar</button>
+          </div>
+        </div>
+        <div>
+          <div class="prem-section-hdr">
+            <span class="prem-section-title">📝 Anotações</span>
+            <div class="prem-section-line"></div>
+            <span class="prem-section-count">${notas.length} nota${notas.length!==1?'s':''}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">${notaCards}</div>
+          <div class="prem-add-row prem-add-nota-row">
+            <textarea class="prem-add-textarea" id="nota-inp-${p.id}" placeholder="Nova anotação... (Shift+Enter para salvar)" onkeydown="if(event.key==='Enter'&&event.shiftKey){event.preventDefault();premAddNota('${p.id}');}"></textarea>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+              <button class="prem-mic-btn" id="mic-nota-inp-${p.id}" onclick="premStartMic('${p.id}','nota','nota-inp-${p.id}')" title="Gravar por voz">🎙</button>
+              <span class="prem-mic-listening" id="mic-lbl-nota-inp-${p.id}" style="display:none">● REC</span>
+              <button class="prem-add-btn" onclick="premAddNota('${p.id}')">＋ Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function _highlightActive(){
+    document.querySelectorAll('.prem-proj-card').forEach(c=>{
+      const id=c.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+      c.classList.toggle('active',id===_activePid);
+    });
+  }
+
+  // ── PUBLIC API ───────────────────────────────────────────────────────────────
+  window.renderPremPanel=renderPremPanel;
+
+  window.openPremProject=function(pid){
+    _activePid=pid;
+    const data=_load();
+    const p=data.projects.find(pr=>pr.id===pid);
+    if(!p)return;
+    document.getElementById('prem-main').innerHTML=_renderMain(p);
+    _highlightActive();
+  };
+
+  window.premFilter=function(q){
+    const ql=q.toLowerCase();
+    document.querySelectorAll('.prem-proj-card').forEach(c=>{
+      const name=c.querySelector('.prem-proj-name')?.textContent.toLowerCase()||'';
+      const code=c.querySelector('.prem-proj-code')?.textContent.toLowerCase()||'';
+      c.style.display=(name.includes(ql)||code.includes(ql))?'':'none';
+    });
+  };
+
+  window.premAddItem=function(pid){
+    const inp=document.getElementById('prem-inp-'+pid);
+    const tagSel=document.getElementById('prem-tag-'+pid);
+    const text=(inp?.value||'').trim();
+    if(!text)return;
+    const data=_load();
+    const p=data.projects.find(pr=>pr.id===pid);
+    if(!p)return;
+    if(!p.premissas)p.premissas=[];
+    p.premissas.push({id:_uid(),text,tag:tagSel?.value||'geral',status:'pendente',createdAt:new Date().toISOString()});
+    _save(data);
+    inp.value='';
+    renderPremPanel();
+    requestAnimationFrame(()=>openPremProject(pid));
+  };
+
+  window.premToggleStatus=function(pid,iid){
+    const data=_load();
+    const p=data.projects.find(pr=>pr.id===pid);
+    if(!p)return;
+    const it=p.premissas?.find(i=>i.id===iid);
+    if(!it)return;
+    it.status=STATUS_CYCLE[it.status||'pendente'];
+    _save(data);
+    openPremProject(pid);
+  };
+
+  window.premDelItem=function(pid,iid){
+    const data=_load();
+    const p=data.projects.find(pr=>pr.id===pid);
+    if(!p)return;
+    p.premissas=(p.premissas||[]).filter(i=>i.id!==iid);
+    _save(data);
+    openPremProject(pid);
+  };
+
+  window.premAddNota=function(pid){
+    const inp=document.getElementById('nota-inp-'+pid);
+    const text=(inp?.value||'').trim();
+    if(!text)return;
+    const data=_load();
+    const p=data.projects.find(pr=>pr.id===pid);
+    if(!p)return;
+    if(!p.notas)p.notas=[];
+    p.notas.unshift({id:_uid(),text,createdAt:new Date().toISOString()});
+    _save(data);
+    inp.value='';
+    renderPremPanel();
+    requestAnimationFrame(()=>openPremProject(pid));
+  };
+
+  window.premDelNota=function(pid,nid){
+    const data=_load();
+    const p=data.projects.find(pr=>pr.id===pid);
+    if(!p)return;
+    p.notas=(p.notas||[]).filter(n=>n.id!==nid);
+    _save(data);
+    openPremProject(pid);
+  };
+
+  window.premStartMic=function(pid,type,inputId){
+    _startMic(pid,type,inputId);
+  };
+
+  window.premDelProject=function(pid){
+    if(!confirm('Excluir este projeto e todas suas premissas/anotações?'))return;
+    const data=_load();
+    data.projects=data.projects.filter(p=>p.id!==pid);
+    _save(data);
+    _activePid=data.projects[0]?.id||null;
+    renderPremPanel();
+  };
+
+  window.openPremModal=function(pid){
+    const data=_load();
+    const p=pid?data.projects.find(pr=>pr.id===pid):null;
+    const selColor=p?.color||COLORS[0];
+    const swatches=COLORS.map(c=>`<div class="prem-modal-swatch${c===selColor?' sel':''}" style="background:${c}" data-color="${c}" onclick="document.querySelectorAll('.prem-modal-swatch').forEach(s=>s.classList.remove('sel'));this.classList.add('sel')"></div>`).join('');
+    const ov=document.createElement('div');
+    ov.className='prem-modal-ov';ov.id='prem-modal-ov';
+    ov.onclick=e=>{if(e.target===ov)closePremModal();};
+    ov.innerHTML=`<div class="prem-modal">
+      <div class="prem-modal-title">${pid?'✏️ Editar Projeto':'＋ Novo Projeto'}</div>
+      <div class="prem-modal-field">
+        <label class="prem-modal-label">Código</label>
+        <input class="prem-modal-input" id="pm-code" placeholder="Ex: MEC-01" value="${p?.code||''}">
+      </div>
+      <div class="prem-modal-field">
+        <label class="prem-modal-label">Nome do Projeto</label>
+        <input class="prem-modal-input" id="pm-name" placeholder="Nome completo" value="${p?.name||''}">
+      </div>
+      <div class="prem-modal-field">
+        <label class="prem-modal-label">Cor</label>
+        <div class="prem-modal-swatches">${swatches}</div>
+      </div>
+      <div class="prem-modal-actions">
+        <button class="prem-modal-cancel" onclick="closePremModal()">Cancelar</button>
+        <button class="prem-modal-save" onclick="savePremProject('${pid||''}')">💾 Salvar</button>
+      </div>
+    </div>`;
+    document.body.appendChild(ov);
+    setTimeout(()=>document.getElementById('pm-name')?.focus(),50);
+  };
+
+  window.closePremModal=function(){document.getElementById('prem-modal-ov')?.remove();};
+
+  window.savePremProject=function(pid){
+    const name=document.getElementById('pm-name')?.value.trim()||'';
+    const code=document.getElementById('pm-code')?.value.trim()||'';
+    const color=document.querySelector('.prem-modal-swatch.sel')?.dataset.color||COLORS[0];
+    if(!name){alert('Informe o nome do projeto.');return;}
+    const data=_load();
+    if(pid){
+      const p=data.projects.find(pr=>pr.id===pid);
+      if(p){p.name=name;p.code=code;p.color=color;}
+    } else {
+      const newP={id:_uid(),name,code,color,premissas:[],notas:[]};
+      data.projects.push(newP);
+      _activePid=newP.id;
+    }
+    _save(data);
+    closePremModal();
+    renderPremPanel();
+    if(_activePid)requestAnimationFrame(()=>openPremProject(_activePid));
   };
 })();
 
