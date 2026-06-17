@@ -1713,30 +1713,49 @@ async function handleCallback() {
 async function refreshToken() {
   const rt = localStorage.getItem('mail_refresh');
   if (!rt) return false;
-  const body = new URLSearchParams({
-    client_id: CLIENT_ID, grant_type: 'refresh_token',
-    refresh_token: rt, scope: SCOPES
-  });
-  const res = await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: body.toString()
-  });
-  const data = await res.json();
-  if (data.access_token) {
-    localStorage.setItem('mail_token', data.access_token);
-    localStorage.setItem('mail_token_exp', Date.now() + (data.expires_in||3600)*1000);
-    if (data.refresh_token) localStorage.setItem('mail_refresh', data.refresh_token);
-    return true;
+  try {
+    const body = new URLSearchParams({
+      client_id: CLIENT_ID, grant_type: 'refresh_token',
+      refresh_token: rt, scope: SCOPES
+    });
+    const res = await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: body.toString()
+    });
+    const data = await res.json();
+    if (data.access_token) {
+      localStorage.setItem('mail_token', data.access_token);
+      localStorage.setItem('mail_token_exp', Date.now() + (data.expires_in||3600)*1000);
+      if (data.refresh_token) localStorage.setItem('mail_refresh', data.refresh_token);
+      return true;
+    }
+    // Erro real de autenticação (ex: invalid_grant, consent_required)
+    // Só força re-login se não for erro de rede
+    if (data.error && data.error !== 'temporarily_unavailable') {
+      console.warn('[refreshToken] auth error:', data.error, data.error_description);
+      return 'auth_error';
+    }
+    return false;
+  } catch(e) {
+    // Rede offline ou fetch falhou — não apagar token, tentar na próxima vez
+    console.warn('[refreshToken] network error:', e.message);
+    return 'network_error';
   }
-  return false;
 }
 
 async function getToken() {
   const exp = parseInt(localStorage.getItem('mail_token_exp')||'0');
-  if (Date.now() < exp - 60000) return localStorage.getItem('mail_token');
-  if (await refreshToken()) return localStorage.getItem('mail_token');
-  // Expired and no refresh — need to login again
+  const tok = localStorage.getItem('mail_token');
+  if (tok && Date.now() < exp - 60000) return tok;
+  const refreshResult = await refreshToken();
+  if (refreshResult === true) return localStorage.getItem('mail_token');
+  // Erro de rede: mantém token expirado para não apagar sessão
+  if (refreshResult === 'network_error') {
+    console.warn('[getToken] offline — usando token existente provisoriamente');
+    return tok; // pode ser null se nunca logou
+  }
+  // Erro de auth real (invalid_grant etc.) — precisa re-login
   localStorage.removeItem('mail_token');
   localStorage.removeItem('mail_token_exp');
   localStorage.removeItem('mail_refresh');
@@ -1819,7 +1838,9 @@ async function fetchEmails() {
     graphGet(`/me/mailFolders/Inbox/messages?$filter=receivedDateTime ge ${since}&$orderby=receivedDateTime desc&$top=100&$select=${SEL}`),
     graphGet(`/me/messages?$filter=flag/flagStatus eq 'flagged'&$top=50&$select=${SEL}`)
   ]);
-  if (!inboxRes) return {unread:[],read:[],flagged:[],total:0};
+  // Se inboxRes for null (token inválido ou rede offline), lança erro para
+  // preservar DATA existente no loadEmails — e-mails NÃO são zerados.
+  if (!inboxRes) throw new Error('Sem token ou sem conexão — e-mails anteriores mantidos');
   const all=(inboxRes.value||[]).map(mapMsg);
   const flagged=(flaggedRes?.value||[]).map(mapMsg);
   return {unread:all.filter(e=>!e.isRead),read:all.filter(e=>e.isRead),flagged,total:all.length};
