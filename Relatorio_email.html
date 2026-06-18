@@ -187,15 +187,53 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .usub:not(.pin-sub) .usub-cnt{background:rgba(99,179,237,.15);color:var(--blue);}
 .usub.active.pin-sub .usub-cnt{background:rgba(250,204,21,.22);color:#facc15;}
 .usub-section{animation:fadeIn .18s ease;}
-.search-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;display:flex;align-items:center;gap:9px;margin-bottom:12px;transition:border-color .2s;}
+/* ── Advanced Search ───────────────────────────────────────────── */
+.srch-wrap{margin-bottom:12px;}
+.srch-row1{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.search-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;display:flex;align-items:center;gap:9px;flex:1;transition:border-color .2s;}
 .search-bar:focus-within{border-color:rgba(56,189,248,.4);box-shadow:0 0 0 3px var(--blue-dim);}
 .search-bar input{border:none;outline:none;flex:1;font-size:.84rem;color:var(--text);background:transparent;font-family:'Inter',sans-serif;}
 .search-bar input::placeholder{color:var(--text-muted);}
-.filter-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
-.filter-btn{font-size:.72rem;padding:4px 11px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;color:var(--text-soft);font-weight:500;transition:all .15s;font-family:'Inter',sans-serif;}
-.filter-btn:hover{border-color:var(--border2);color:var(--text);}
-.filter-btn.active{background:var(--blue-dim);border-color:rgba(56,189,248,.4);color:var(--blue);}
+.srch-adv-btn{display:flex;align-items:center;gap:5px;padding:8px 13px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text-soft);cursor:pointer;font-size:.76rem;font-weight:600;transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;flex-shrink:0;}
+.srch-adv-btn:hover{border-color:rgba(56,189,248,.35);color:var(--blue);}
+.srch-adv-btn.open{background:var(--blue-dim);border-color:rgba(56,189,248,.4);color:var(--blue);}
+.srch-adv-btn .badge{background:rgba(56,189,248,.85);color:#000;border-radius:99px;font-size:.6rem;font-weight:700;padding:1px 5px;margin-left:1px;}
+/* quick chips row */
+.srch-quick{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+.qchip{font-size:.69rem;padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;color:var(--text-soft);font-weight:500;transition:all .15s;font-family:'Inter',sans-serif;}
+.qchip:hover{border-color:var(--border2);color:var(--text);}
+.qchip.active{background:var(--blue-dim);border-color:rgba(56,189,248,.4);color:var(--blue);font-weight:600;}
 .results-count{font-size:.72rem;color:var(--text-muted);margin-left:auto;font-family:var(--mono);}
+/* advanced panel */
+.adv-panel{background:linear-gradient(135deg,rgba(13,22,42,.98),rgba(10,16,32,.98));border:1px solid rgba(56,189,248,.18);border-radius:13px;padding:16px;margin-bottom:10px;display:none;animation:advFadeIn .2s ease;box-shadow:0 8px 32px rgba(0,0,0,.4),0 0 0 1px rgba(56,189,248,.06);}
+.adv-panel.open{display:block;}
+@keyframes advFadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.adv-panel-title{font-size:.65rem;font-weight:700;letter-spacing:.1em;color:rgba(56,189,248,.7);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.adv-panel-title::after{content:'';flex:1;height:1px;background:rgba(56,189,248,.12);}
+.adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+@media(max-width:640px){.adv-grid{grid-template-columns:1fr;}}
+.adv-field{display:flex;flex-direction:column;gap:4px;}
+.adv-field label{font-size:.67rem;font-weight:600;color:var(--text-muted);letter-spacing:.04em;}
+.adv-field input,.adv-field select{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:7px 10px;font-size:.8rem;color:var(--text);outline:none;font-family:'Inter',sans-serif;transition:border-color .2s;}
+.adv-field input:focus,.adv-field select:focus{border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.05);}
+.adv-field select option{background:#0d1628;color:var(--text);}
+.adv-date-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.adv-date-row .adv-field input[type=date]{color-scheme:dark;}
+.adv-check-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;}
+.adv-check{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.77rem;color:var(--text-soft);font-weight:500;user-select:none;}
+.adv-check input[type=checkbox]{accent-color:var(--blue);width:14px;height:14px;cursor:pointer;}
+.adv-check:hover{color:var(--text);}
+.adv-actions{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.adv-apply{background:linear-gradient(135deg,var(--blue),#5a7af0);color:#fff;border:none;border-radius:8px;padding:7px 18px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:filter .15s;}
+.adv-apply:hover{filter:brightness(1.12);}
+.adv-clear{background:none;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 14px;font-size:.78rem;color:var(--text-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.adv-clear:hover{border-color:rgba(224,130,90,.5);color:rgba(224,130,90,.9);}
+/* active filter chips */
+.active-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.active-chips:empty{display:none;}
+.achip{display:flex;align-items:center;gap:4px;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);border-radius:99px;padding:2px 9px 2px 10px;font-size:.68rem;color:var(--blue);font-weight:600;cursor:pointer;transition:all .15s;}
+.achip:hover{background:rgba(224,130,90,.12);border-color:rgba(224,130,90,.35);color:rgba(224,130,90,.9);}
+.achip svg{flex-shrink:0;}
 
 /* ── EMAIL CARDS ── */
 .email-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:7px;cursor:pointer;transition:all .2s;overflow:hidden;position:relative;}
@@ -1385,12 +1423,75 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
 </div>
 
 <div class="content">
-  <div class="search-bar" id="searchbar"><span style="color:var(--text-muted)">⌕</span><input type="text" id="search-input" placeholder="Pesquisar e-mails..." oninput="applyFilters()"></div>
-  <div class="filter-bar" id="filter-bar">
-    <button class="filter-btn active" onclick="setFilter('all',this)">Todos</button>
-    <button class="filter-btn" onclick="setFilter('attach',this)">📎 Com Anexo</button>
-    <button class="filter-btn" onclick="setFilter('high',this)">⚠ Alta Prioridade</button>
-    <span class="results-count" id="results-count"></span>
+  <div class="srch-wrap" id="srch-wrap">
+    <!-- linha 1: busca + botão avançado -->
+    <div class="srch-row1">
+      <div class="search-bar" id="searchbar">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;color:var(--text-muted)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" placeholder="Pesquisar assunto, remetente, conteúdo..." oninput="applyFilters()">
+        <button id="srch-clear-x" onclick="clearSearch()" style="display:none;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;padding:0;line-height:1;" title="Limpar">×</button>
+      </div>
+      <button class="srch-adv-btn" id="srch-adv-btn" onclick="toggleAdvPanel()" title="Filtros avançados">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filtros
+        <span class="badge" id="adv-badge" style="display:none">0</span>
+      </button>
+    </div>
+    <!-- chips rápidos -->
+    <div class="srch-quick">
+      <button class="qchip" id="qc-hoje"     onclick="toggleQuickChip('hoje')"     title="E-mails de hoje">📅 Hoje</button>
+      <button class="qchip" id="qc-semana"   onclick="toggleQuickChip('semana')"   title="Últimos 7 dias">🗓 Semana</button>
+      <button class="qchip" id="qc-naoLidos" onclick="toggleQuickChip('naoLidos')" title="Não lidos">● Não lidos</button>
+      <button class="qchip" id="qc-anexo"    onclick="toggleQuickChip('anexo')"    title="Com anexo">📎 Anexo</button>
+      <button class="qchip" id="qc-alta"     onclick="toggleQuickChip('alta')"     title="Alta prioridade">⚡ Prioridade</button>
+      <span class="results-count" id="results-count"></span>
+    </div>
+    <!-- chips de filtros ativos -->
+    <div class="active-chips" id="active-chips"></div>
+    <!-- painel avançado colapsável -->
+    <div class="adv-panel" id="adv-panel">
+      <div class="adv-panel-title">Filtros Avançados</div>
+      <div class="adv-grid">
+        <div class="adv-field">
+          <label>De (remetente)</label>
+          <input type="text" id="af-de" placeholder="ex: samir@empresa.com" oninput="applyFilters()">
+        </div>
+        <div class="adv-field">
+          <label>Assunto contém</label>
+          <input type="text" id="af-assunto" placeholder="ex: proposta, reunião..." oninput="applyFilters()">
+        </div>
+        <div class="adv-field" style="grid-column:1/-1">
+          <label>Palavras-chave (em qualquer campo)</label>
+          <input type="text" id="af-palavras" placeholder="ex: PRIO, urgente, contrato..." oninput="applyFilters()">
+        </div>
+      </div>
+      <div class="adv-date-row">
+        <div class="adv-field">
+          <label>Recebido a partir de</label>
+          <input type="date" id="af-date-from" onchange="applyFilters()">
+        </div>
+        <div class="adv-field">
+          <label>Recebido até</label>
+          <input type="date" id="af-date-to" onchange="applyFilters()">
+        </div>
+      </div>
+      <div class="adv-check-row">
+        <label class="adv-check"><input type="checkbox" id="af-anexo" onchange="applyFilters()"> Apenas com anexo</label>
+        <label class="adv-check"><input type="checkbox" id="af-alta"  onchange="applyFilters()"> Apenas alta prioridade</label>
+        <div class="adv-field" style="flex-direction:row;align-items:center;gap:8px;flex:1;min-width:160px;">
+          <label style="white-space:nowrap">Status de leitura</label>
+          <select id="af-leitura" onchange="applyFilters()" style="flex:1;">
+            <option value="todos">Todos</option>
+            <option value="naoLidos">Não lidos</option>
+            <option value="lidos">Lidos</option>
+          </select>
+        </div>
+      </div>
+      <div class="adv-actions">
+        <button class="adv-clear" onclick="clearAdvFilters()">Limpar filtros</button>
+        <button class="adv-apply" onclick="toggleAdvPanel()">Fechar painel</button>
+      </div>
+    </div>
   </div>
   <div class="email-panel active" id="panel-urgencias"></div>
   <div class="email-panel" id="panel-unread"></div>
@@ -1994,7 +2095,7 @@ function hideLoading(){document.getElementById('loading-overlay').style.display=
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function emailCard(e, extraCls=''){
   const isU=!e.isRead,isPinned=PINNED_IDS.has(e.id),base=e.importance==='high'?'high-prio':(isU?'unread':''),cls=[base,extraCls,isPinned?'pinned':''].filter(Boolean).join(' '),s=clean(e.summary),link=esc(e.webLink||'#');
-  return `<div class="email-card ${cls}" onclick="openEmailReader('${esc(e.id)}')" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${(e.sender||'').toLowerCase()}" data-summary="${s.toLowerCase()}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}">
+  return `<div class="email-card ${cls}" onclick="openEmailReader('${esc(e.id)}')" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${(e.sender||'').toLowerCase()}" data-summary="${s.toLowerCase()}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}">
     <div class="email-inner">
       <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}${isPinned?'<span class="pin-badge">FIXADO</span>':''}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
       <div class="email-from">De: <strong>${sn(e)}</strong> · <span style="font-family:var(--mono);font-size:.68rem">${e.sender||''}</span></div>
@@ -2526,9 +2627,8 @@ function switchTab(tab){
   document.querySelectorAll('.stat').forEach(s=>{const k=s.getAttribute('onclick')?.match(/switchTab\('(\w+)'\)/)?.[1];if(k)s.classList.toggle('active',k===tab);});
   document.querySelectorAll('.email-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+tab));
   const hide=NO_SEARCH.includes(tab);
-  document.getElementById('searchbar').style.display=hide?'none':'';
-  document.getElementById('filter-bar').style.display=hide?'none':'';
-  if(!hide){document.getElementById('search-input').value='';currentFilter='all';document.querySelectorAll('.filter-btn').forEach((b,i)=>b.classList.toggle('active',i===0));applyFilters();}
+  document.getElementById('srch-wrap').style.display=hide?'none':'';
+  if(!hide) applyFilters();
   if(tab==='escrever'&&!document.getElementById('comp-body')){renderComposer();setTimeout(()=>{initBodyDrop();initImageEditing();initContactSearch();initComposerResize();_initTblBarEvents();},100);}
   else if(tab==='escrever'){setTimeout(()=>{initContactSearch();initComposerResize();if(!_peopleCache)loadPeople();},80);}
   document.body.classList.toggle('ck-active',tab==='checklist');
@@ -2540,13 +2640,141 @@ function switchTab(tab){
   if(tab==='alloc'){renderAllocPanel();}
   if(tab==='prem'){renderPremPanel();}
 }
-function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyFilters();}
+// ── ADVANCED FILTER STATE ────────────────────────────────────────────────────
+let _quickChips = new Set(); // 'hoje' | 'semana' | 'naoLidos' | 'anexo' | 'alta'
+let _advPanelOpen = false;
+
+function toggleAdvPanel(){
+  _advPanelOpen = !_advPanelOpen;
+  document.getElementById('adv-panel').classList.toggle('open', _advPanelOpen);
+  document.getElementById('srch-adv-btn').classList.toggle('open', _advPanelOpen);
+}
+
+function toggleQuickChip(key){
+  if(_quickChips.has(key)) _quickChips.delete(key);
+  else _quickChips.add(key);
+  document.getElementById('qc-'+key).classList.toggle('active', _quickChips.has(key));
+  applyFilters();
+}
+
+function clearSearch(){
+  document.getElementById('search-input').value='';
+  applyFilters();
+}
+
+function clearAdvFilters(){
+  document.getElementById('af-de').value='';
+  document.getElementById('af-assunto').value='';
+  document.getElementById('af-palavras').value='';
+  document.getElementById('af-date-from').value='';
+  document.getElementById('af-date-to').value='';
+  document.getElementById('af-anexo').checked=false;
+  document.getElementById('af-alta').checked=false;
+  document.getElementById('af-leitura').value='todos';
+  _quickChips.clear();
+  document.querySelectorAll('.qchip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('search-input').value='';
+  applyFilters();
+}
+
+function _getAdvState(){
+  return {
+    q:        (document.getElementById('search-input')?.value||'').toLowerCase().trim(),
+    de:       (document.getElementById('af-de')?.value||'').toLowerCase().trim(),
+    assunto:  (document.getElementById('af-assunto')?.value||'').toLowerCase().trim(),
+    palavras: (document.getElementById('af-palavras')?.value||'').toLowerCase().trim(),
+    dateFrom: document.getElementById('af-date-from')?.value||'',
+    dateTo:   document.getElementById('af-date-to')?.value||'',
+    anexo:    document.getElementById('af-anexo')?.checked||false,
+    alta:     document.getElementById('af-alta')?.checked||false,
+    leitura:  document.getElementById('af-leitura')?.value||'todos',
+  };
+}
+
+function _countActiveFilters(s){
+  let n=0;
+  if(s.de) n++;
+  if(s.assunto) n++;
+  if(s.palavras) n++;
+  if(s.dateFrom||s.dateTo) n++;
+  if(s.anexo) n++;
+  if(s.alta) n++;
+  if(s.leitura!=='todos') n++;
+  n += _quickChips.size;
+  return n;
+}
+
+function _renderActiveChips(s){
+  const el = document.getElementById('active-chips');
+  if(!el) return;
+  const chips = [];
+  const mk = (label, clear) =>
+    `<span class="achip" onclick="${clear}" title="Remover filtro">${label}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>`;
+  if(s.de)       chips.push(mk('De: '+s.de,       "document.getElementById('af-de').value='';applyFilters()"));
+  if(s.assunto)  chips.push(mk('Assunto: '+s.assunto, "document.getElementById('af-assunto').value='';applyFilters()"));
+  if(s.palavras) chips.push(mk('Palavra: '+s.palavras,"document.getElementById('af-palavras').value='';applyFilters()"));
+  if(s.dateFrom) chips.push(mk('De: '+s.dateFrom,  "document.getElementById('af-date-from').value='';applyFilters()"));
+  if(s.dateTo)   chips.push(mk('Até: '+s.dateTo,   "document.getElementById('af-date-to').value='';applyFilters()"));
+  if(s.anexo)    chips.push(mk('Com anexo',         "document.getElementById('af-anexo').checked=false;applyFilters()"));
+  if(s.alta)     chips.push(mk('Alta prioridade',   "document.getElementById('af-alta').checked=false;applyFilters()"));
+  if(s.leitura==='naoLidos') chips.push(mk('Não lidos',"document.getElementById('af-leitura').value='todos';applyFilters()"));
+  if(s.leitura==='lidos')    chips.push(mk('Lidos',    "document.getElementById('af-leitura').value='todos';applyFilters()"));
+  if(_quickChips.has('hoje'))     chips.push(mk('📅 Hoje',    "toggleQuickChip('hoje')"));
+  if(_quickChips.has('semana'))   chips.push(mk('🗓 Semana',  "toggleQuickChip('semana')"));
+  if(_quickChips.has('naoLidos')) chips.push(mk('● Não lidos',"toggleQuickChip('naoLidos')"));
+  if(_quickChips.has('anexo'))    chips.push(mk('📎 Anexo',   "toggleQuickChip('anexo')"));
+  if(_quickChips.has('alta'))     chips.push(mk('⚡ Prioridade',"toggleQuickChip('alta')"));
+  el.innerHTML = chips.join('');
+}
+
 function applyFilters(){
-  const q=document.getElementById('search-input').value.toLowerCase();
-  const cards=document.getElementById('panel-'+currentTab)?.querySelectorAll('.email-card')||[];
-  let v=0;cards.forEach(c=>{const ms=!q||c.dataset.subject?.includes(q)||c.dataset.sender?.includes(q)||c.dataset.summary?.includes(q),mf=currentFilter==='all'||(currentFilter==='attach'&&c.dataset.attach==='true')||(currentFilter==='high'&&c.dataset.high==='true');const show=ms&&mf;c.style.display=show?'':'none';if(show)v++;});
-  const map={unread:DATA.unread.length,lidos:DATA.read.length,todos:DATA.unread.length+DATA.read.length};
-  document.getElementById('results-count').textContent=(q||currentFilter!=='all')?`${v} / ${map[currentTab]||0}`:map[currentTab]?`${map[currentTab]} e-mails`:'';}
+  const s = _getAdvState();
+  // badge & clear-x
+  const n = _countActiveFilters(s);
+  const badge = document.getElementById('adv-badge');
+  if(badge){ badge.style.display = n>0?'':'none'; badge.textContent=n; }
+  const cx = document.getElementById('srch-clear-x');
+  if(cx) cx.style.display = s.q ? '' : 'none';
+  _renderActiveChips(s);
+
+  // date helpers
+  const todayStr = new Date().toISOString().slice(0,10);
+  const weekAgo  = new Date(Date.now()-7*864e5).toISOString().slice(0,10);
+
+  const cards = document.getElementById('panel-'+currentTab)?.querySelectorAll('.email-card')||[];
+  let visible = 0;
+  cards.forEach(c=>{
+    const cd = c.dataset;
+    // text search (main bar)
+    const mq = !s.q || cd.subject?.includes(s.q) || cd.sender?.includes(s.q) || cd.summary?.includes(s.q);
+    // advanced fields
+    const mDe      = !s.de      || (cd.sender||'').includes(s.de);
+    const mAssunto  = !s.assunto || (cd.subject||'').includes(s.assunto);
+    const mPalavras = !s.palavras|| (cd.subject||'').includes(s.palavras)||(cd.sender||'').includes(s.palavras)||(cd.summary||'').includes(s.palavras);
+    const mDateFrom = !s.dateFrom|| (cd.date||'') >= s.dateFrom;
+    const mDateTo   = !s.dateTo  || (cd.date||'') <= s.dateTo;
+    const mAnexo    = !s.anexo   || cd.attach==='true';
+    const mAlta     = !s.alta    || cd.high==='true';
+    const mLeitura  = s.leitura==='todos'||(s.leitura==='naoLidos'&&cd.read==='0')||(s.leitura==='lidos'&&cd.read==='1');
+    // quick chips
+    const mHoje   = !_quickChips.has('hoje')     || (cd.date||'')===todayStr;
+    const mSemana = !_quickChips.has('semana')   || (cd.date||'')>=weekAgo;
+    const mQNL    = !_quickChips.has('naoLidos') || cd.read==='0';
+    const mQAnx   = !_quickChips.has('anexo')    || cd.attach==='true';
+    const mQAlta  = !_quickChips.has('alta')     || cd.high==='true';
+
+    const show = mq && mDe && mAssunto && mPalavras && mDateFrom && mDateTo && mAnexo && mAlta && mLeitura && mHoje && mSemana && mQNL && mQAnx && mQAlta;
+    c.style.display = show ? '' : 'none';
+    if(show) visible++;
+  });
+
+  const total = cards.length;
+  const hasFilter = s.q || n > 0;
+  document.getElementById('results-count').textContent = hasFilter ? `${visible} / ${total}` : (total ? `${total} e-mails` : '');
+}
+
+// legacy compat (tabs still call applyFilters after render)
+function setFilter(f,btn){}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // CHECKLIST SEMANAL
