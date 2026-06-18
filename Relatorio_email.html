@@ -7445,8 +7445,8 @@ function hlMatch(text,q){
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 (async () => {
-  document.getElementById('searchbar').style.display='none';
-  document.getElementById('filter-bar').style.display='none';
+  const _sw = document.getElementById('srch-wrap');
+  if(_sw) _sw.style.display='none';
 
   // Check if returning from OAuth redirect (has ?code= in URL)
   const urlParams = new URLSearchParams(window.location.search);
