@@ -2146,7 +2146,7 @@ function emailCard(e, extraCls=''){
 
 function replyCard(e){
   const isPinned=PINNED_IDS.has(e.id),isU=!e.isRead;
-  return `<div class="reply-card" onclick="openEmailReader('${esc(e.id)}')">
+  return `<div class="reply-card" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${clean(e.summary||'').toLowerCase()}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')">
     <div class="reply-inner">
       <div class="reply-reason">↩ AGUARDA RESPOSTA${isPinned?'<span class="pin-badge" style="margin-left:8px">FIXADO</span>':''}</div>
       <div class="reply-subject">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}</div>
@@ -2366,7 +2366,8 @@ async function fetchSentEmails(){
 
 function sentCard(e){
   const tos=(e.toRecipients||[]).map(r=>r.emailAddress?.name||r.emailAddress?.address||'').filter(Boolean).join(', ')||'—';
-  return `<div class="sent-card" onclick="openEmailReader('${esc(e.id)}')">
+  const _sTos=(e.toRecipients||[]).map(r=>(r.emailAddress?.name||r.emailAddress?.address||'')).join(' ').toLowerCase();
+  return `<div class="sent-card" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${_sTos}" data-summary="${clean(e.summary||'').toLowerCase()}" data-date="${(e.sentDateTime||'').slice(0,10)}" data-read="1" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')">
     <div class="sent-inner">
       <div class="sent-label">📤 ENVIADO${e.hasAttachments?' &nbsp;📎':''}</div>
       <div class="sent-subject">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}</div>
@@ -2391,7 +2392,7 @@ function renderSentPanel(){
 
 function renderAll(){
   _buildEmailMap();
-  document.getElementById('panel-urgencias').innerHTML=URGENCIAS.length?sh('var(--red)','🔥 URGÊNCIAS DO DIA',URGENCIAS.length)+URGENCIAS.map(e=>`<div class="urgency-card" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`).join(''):empty('✓','Sem urgências','Nenhum e-mail crítico. Bom dia!');
+  document.getElementById('panel-urgencias').innerHTML=URGENCIAS.length?sh('var(--red)','🔥 URGÊNCIAS DO DIA',URGENCIAS.length)+URGENCIAS.map(e=>`<div class="urgency-card" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${clean(e.summary).toLowerCase()}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`).join(''):empty('✓','Sem urgências','Nenhum e-mail crítico. Bom dia!');
   {
     const pinnedAll=(()=>{const seen=new Set(),arr=[...DATA.unread,...DATA.read,...DATA.flagged];return arr.filter(e=>PINNED_IDS.has(e.id)&&!seen.has(e.id)&&seen.add(e.id));})();
     const unreadHtml=DATA.unread.length?sh('var(--blue)','📥 NÃO LIDOS',DATA.unread.length)+sortPinnedFirst(DATA.unread).map(emailCard).join(''):empty('📭','Inbox limpo','Nenhum e-mail não lido.');
@@ -2679,7 +2680,7 @@ function updateVolume(){
   if(prev&&prev!==today){const diff=today-prev,pct=Math.round(Math.abs(diff/prev)*100);const el=document.getElementById('vol-diff');el.textContent=` ${diff>0?'+':''}${diff} (${pct}%)`;el.className='vol-diff '+(diff>0?'vol-up':'vol-down');document.getElementById('vol-arrow').textContent=diff>0?'📈':'📉';}
 }
 
-const NO_SEARCH=['urgencias','responder','enviados','reunioes','projetos','fixados','escrever','checklist','alloc','prem'];
+const NO_SEARCH=['reunioes','escrever','checklist','alloc','prem'];
 function switchTab(tab){
   currentTab=tab;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+tab));
@@ -2810,7 +2811,7 @@ function applyFilters(){
   const todayStr = new Date().toISOString().slice(0,10);
   const weekAgo  = new Date(Date.now()-7*864e5).toISOString().slice(0,10);
 
-  const cards = document.getElementById('panel-'+currentTab)?.querySelectorAll('.email-card')||[];
+  const cards = document.getElementById('panel-'+currentTab)?.querySelectorAll('.email-card,.reply-card,.urgency-card,.sent-card')||[];
   let visible = 0;
   cards.forEach(c=>{
     const cd = c.dataset;
