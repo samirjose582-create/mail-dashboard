@@ -1452,9 +1452,10 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
     <div class="adv-panel" id="adv-panel">
       <div class="adv-panel-title">Filtros Avançados</div>
       <div class="adv-grid">
-        <div class="adv-field">
+        <div class="adv-field" style="position:relative">
           <label>De (remetente)</label>
-          <input type="text" id="af-de" placeholder="ex: samir@empresa.com" oninput="applyFilters()">
+          <input type="text" id="af-de" placeholder="ex: Renato, samir@empresa.com" oninput="_afDeInput()" autocomplete="off">
+          <div class="contact-dd" id="dd-af-de"></div>
         </div>
         <div class="adv-field">
           <label>Assunto contém</label>
@@ -2093,7 +2094,7 @@ function hideLoading(){document.getElementById('loading-overlay').style.display=
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function emailCard(e, extraCls=''){
   const isU=!e.isRead,isPinned=PINNED_IDS.has(e.id),base=e.importance==='high'?'high-prio':(isU?'unread':''),cls=[base,extraCls,isPinned?'pinned':''].filter(Boolean).join(' '),s=clean(e.summary),link=esc(e.webLink||'#');
-  return `<div class="email-card ${cls}" onclick="openEmailReader('${esc(e.id)}')" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${(e.sender||'').toLowerCase()}" data-summary="${s.toLowerCase()}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}">
+  return `<div class="email-card ${cls}" onclick="openEmailReader('${esc(e.id)}')" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${s.toLowerCase()}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}">
     <div class="email-inner">
       <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}${isPinned?'<span class="pin-badge">FIXADO</span>':''}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
       <div class="email-from">De: <strong>${sn(e)}</strong> · <span style="font-family:var(--mono);font-size:.68rem">${e.sender||''}</span></div>
@@ -2646,6 +2647,7 @@ function toggleAdvPanel(){
   _advPanelOpen = !_advPanelOpen;
   document.getElementById('adv-panel').classList.toggle('open', _advPanelOpen);
   document.getElementById('srch-adv-btn').classList.toggle('open', _advPanelOpen);
+  if(_advPanelOpen) initFilterContactSearch();
 }
 
 function toggleQuickChip(key){
@@ -2769,6 +2771,84 @@ function applyFilters(){
   const total = cards.length;
   const hasFilter = s.q || n > 0;
   document.getElementById('results-count').textContent = hasFilter ? `${visible} / ${total}` : (total ? `${total} e-mails` : '');
+}
+
+// ── AUTOCOMPLETE DE REMETENTE NO FILTRO AVANÇADO ─────────────────────────────
+let _afDeTimer = null;
+
+function initFilterContactSearch(){
+  const inp = document.getElementById('af-de');
+  if(!inp || inp._filterContactInit) return;
+  inp._filterContactInit = true;
+  inp.addEventListener('keydown', e => {
+    const dd = document.getElementById('dd-af-de');
+    const items = dd?.querySelectorAll('.c-item');
+    if(!items?.length) return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); focusC(items, ++_focusIdx); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); focusC(items, --_focusIdx); }
+    else if((e.key==='Enter'||e.key==='Tab') && _focusIdx>=0){ e.preventDefault(); items[_focusIdx]?.click(); }
+    else if(e.key==='Escape') hideDd('af-de');
+  });
+  inp.addEventListener('blur', () => setTimeout(() => hideDd('af-de'), 220));
+  loadPeople();
+}
+
+function _afDeInput(){
+  applyFilters();
+  clearTimeout(_afDeTimer);
+  const q = (document.getElementById('af-de')?.value||'').trim();
+  if(q.length < 1){ hideDd('af-de'); return; }
+  _afDeTimer = setTimeout(async () => {
+    const inp = document.getElementById('af-de');
+    if(!inp) return;
+    const people = await loadPeople();
+    const ql = q.toLowerCase();
+    const results = people.filter(p =>
+      p.displayName?.toLowerCase().includes(ql) ||
+      p.emailAddresses?.some(e => e.address?.toLowerCase().includes(ql))
+    ).slice(0, 8);
+    _showDdFilter(results, q);
+  }, 200);
+}
+
+function _showDdFilter(people, q){
+  const dd = document.getElementById('dd-af-de');
+  const inp = document.getElementById('af-de');
+  if(!dd || !inp) return;
+  _focusIdx = -1;
+  if(!people.length){ dd.classList.remove('open'); return; }
+  const rect = inp.getBoundingClientRect();
+  dd.style.top  = (rect.bottom + 4) + 'px';
+  dd.style.left = rect.left + 'px';
+  dd.style.width = Math.max(280, rect.width) + 'px';
+  dd.innerHTML = people.map(p => {
+    const name = p.displayName || '';
+    const em   = p.emailAddresses?.find(e => e.address)?.address || '';
+    const sub  = [p.jobTitle, p.department].filter(Boolean).join(' · ');
+    const initials = name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0,2).toUpperCase() || '?';
+    const color = nameColor(name);
+    const safeName = name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    const safeEm   = em.replace(/'/g,"\\'");
+    return `<div class="c-item" onmousedown="pickFilterContact('${safeName}','${safeEm}')">
+      <div class="c-av" style="background:${color}20;color:${color};border-color:${color}33">${initials}</div>
+      <div class="c-info">
+        <div class="c-name">${hlMatch(name,q)}</div>
+        <div class="c-email">${hlMatch(em,q)}</div>
+        ${sub?`<div class="c-title">${sub}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  dd.classList.add('open');
+  loadPhotos('af-de', people);
+}
+
+function pickFilterContact(name, email){
+  const inp = document.getElementById('af-de');
+  if(!inp) return;
+  inp.value = name || email;
+  hideDd('af-de');
+  applyFilters();
+  inp.focus();
 }
 
 // legacy compat (tabs still call applyFilters after render)
