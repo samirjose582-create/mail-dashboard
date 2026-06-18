@@ -24,6 +24,7 @@
   --green:#4ade80;--green-dim:rgba(74,222,128,.08);
   --purple:#c084fc;--purple-dim:rgba(192,132,252,.08);
   --yellow:#fbbf24;--yellow-dim:rgba(251,191,36,.08);
+  --cyan:#22d3ee;--cyan-glow:rgba(34,211,238,.18);--cyan-dim:rgba(34,211,238,.08);
   --text:#e2e8f0;--text-soft:#8892a4;--text-muted:#4a5568;
   --mono:'JetBrains Mono',monospace;
 }
@@ -118,6 +119,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .stat.s-reunioes::before{background:var(--purple-dim);}
 .stat.s-projetos::before{background:var(--green-dim);}
 .stat.s-fixados::before{background:var(--orange-dim);}
+.stat.s-enviados::before{background:var(--cyan-dim);}
 .stat.s-todos::before{background:var(--surface3);}
 .stat:hover{border-color:var(--border2);transform:translateY(-1px);}
 .stat.active{transform:translateY(-1px);}
@@ -127,6 +129,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .stat.active.s-reunioes{border-color:rgba(192,132,252,.4);box-shadow:0 0 12px rgba(192,132,252,.18);}
 .stat.active.s-projetos{border-color:rgba(74,222,128,.4);box-shadow:0 0 12px rgba(74,222,128,.18);}
 .stat.active.s-fixados{border-color:rgba(251,146,60,.4);box-shadow:0 0 12px rgba(251,146,60,.18);}
+.stat.active.s-enviados{border-color:rgba(34,211,238,.4);box-shadow:0 0 12px var(--cyan-glow);}
 .stat-icon{font-size:1.1rem;position:relative;}
 .stat-info{position:relative;}
 .stat-label{font-size:.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;}
@@ -137,6 +140,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .stat.s-responder .stat-value{color:var(--yellow);}
 .stat.s-reunioes .stat-value{color:var(--purple);}
 .stat.s-projetos .stat-value{color:var(--green);}
+.stat.s-enviados .stat-value{color:var(--cyan);}
 .vol-chip{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 11px;font-size:.72rem;color:var(--text-soft);font-family:var(--mono);}
 .vol-num{font-weight:700;font-size:.9rem;color:var(--text);}
 .vol-diff{font-size:.68rem;}
@@ -159,6 +163,7 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .tab.t-urgencias.active{color:var(--red);border-bottom-color:var(--red);}
 .tab.t-unread.active{color:var(--blue);border-bottom-color:var(--blue);}
 .tab.t-responder.active{color:var(--yellow);border-bottom-color:var(--yellow);}
+.tab.t-enviados.active{color:var(--cyan);border-bottom-color:var(--cyan);}
 .tab.t-reunioes.active{color:var(--purple);border-bottom-color:var(--purple);}
 .tab.t-projetos.active{color:var(--green);border-bottom-color:var(--green);}
 .tab.t-fixados.active{color:var(--orange);border-bottom-color:var(--orange);}
@@ -345,6 +350,17 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .join-btn{font-size:.73rem;font-weight:600;color:var(--bg);background:var(--purple);border:none;padding:5px 13px;border-radius:6px;cursor:pointer;text-decoration:none;display:inline-block;transition:all .2s;}
 .join-btn:hover{background:#a855f7;box-shadow:0 0 12px rgba(192,132,252,.4);}
 .meeting-id{font-size:.68rem;color:var(--text-muted);font-family:var(--mono);}
+
+/* ── ENVIADOS ── */
+.sent-card{background:var(--surface);border:1px solid rgba(34,211,238,.15);border-radius:12px;margin-bottom:7px;cursor:pointer;transition:all .2s;overflow:hidden;position:relative;}
+.sent-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan);}
+.sent-card:hover{background:var(--cyan-dim);border-color:rgba(34,211,238,.35);transform:translateY(-1px);}
+.sent-inner{padding:12px 16px 12px 19px;}
+.sent-label{font-size:.62rem;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;font-family:var(--mono);}
+.sent-subject{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:3px;}
+.sent-to{font-size:.73rem;color:var(--text-muted);margin-bottom:2px;}
+.sent-time{font-size:.68rem;color:var(--text-muted);font-family:var(--mono);}
+.sent-snippet{font-size:.73rem;color:var(--text-soft);margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 
 /* ── RESPONDER ── */
 .reply-card{background:var(--surface);border:1px solid rgba(251,191,36,.18);border-radius:12px;margin-bottom:7px;cursor:pointer;transition:all .2s;overflow:hidden;position:relative;}
@@ -1394,6 +1410,7 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
     <div class="stat s-fixados" onclick="switchTab('fixados')"><div class="stat-icon">🚩</div><div class="stat-info"><div class="stat-label">Sinalizados</div><div class="stat-value" id="s-fixados">–</div></div></div>
     <div class="stat s-unread" onclick="switchTab('unread')"><div class="stat-icon">📥</div><div class="stat-info"><div class="stat-label">Não Lidos</div><div class="stat-value" id="s-unread">–</div></div></div>
     <div class="stat s-responder" onclick="switchTab('responder')"><div class="stat-icon">💬</div><div class="stat-info"><div class="stat-label">Responder</div><div class="stat-value" id="s-responder">–</div></div></div>
+    <div class="stat s-enviados" onclick="switchTab('enviados')"><div class="stat-icon">📤</div><div class="stat-info"><div class="stat-label">Enviados</div><div class="stat-value" id="s-enviados">–</div></div></div>
     <div class="stat s-reunioes" onclick="switchTab('reunioes')"><div class="stat-icon">📅</div><div class="stat-info"><div class="stat-label">Reuniões</div><div class="stat-value" id="s-reunioes">–</div></div></div>
     <div class="stat s-projetos" onclick="switchTab('projetos')"><div class="stat-icon">🗂</div><div class="stat-info"><div class="stat-label">Projetos</div><div class="stat-value" id="s-projetos">–</div></div></div>
     <div class="stat s-todos" onclick="switchTab('todos')"><div class="stat-icon">📋</div><div class="stat-info"><div class="stat-label">Total Hoje</div><div class="stat-value" id="s-todos">–</div></div></div>
@@ -1410,6 +1427,7 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
       <div class="tab t-fixados" id="tab-fixados" onclick="switchTab('fixados')">🚩 Sinalizados <span class="count" id="tc-fixados">0</span></div>
       <div class="tab t-unread" id="tab-unread" onclick="switchTab('unread')">📥 Não Lidos <span class="count" id="tc-unread">0</span></div>
       <div class="tab t-responder" id="tab-responder" onclick="switchTab('responder')">💬 Responder <span class="count" id="tc-responder">0</span></div>
+      <div class="tab t-enviados" id="tab-enviados" onclick="switchTab('enviados')">📤 Enviados <span class="count" id="tc-enviados">0</span></div>
       <div class="tab t-reunioes" id="tab-reunioes" onclick="switchTab('reunioes')">📅 Reuniões <span class="count" id="tc-reunioes">0</span></div>
       <div class="tab t-projetos" id="tab-projetos" onclick="switchTab('projetos')">🗂 Projetos <span class="count" id="tc-projetos">0</span></div>
       <div class="tab t-lidos" id="tab-lidos" onclick="switchTab('lidos')">✓ Lidos <span class="count" id="tc-lidos">0</span></div>
@@ -1497,6 +1515,7 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
   <div class="email-panel active" id="panel-urgencias"></div>
   <div class="email-panel" id="panel-unread"></div>
   <div class="email-panel" id="panel-responder"></div>
+  <div class="email-panel" id="panel-enviados"></div>
   <div class="email-panel" id="panel-reunioes"></div>
   <div class="email-panel" id="panel-projetos"></div>
   <div class="email-panel" id="panel-fixados"></div>
@@ -2026,7 +2045,8 @@ function esc(s){return(s||'').replace(/'/g,"\'");}
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let currentTab='urgencias',currentFilter='all';
 let DATA={unread:[],read:[],flagged:[],total:0};
-let URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[];
+let URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[],SENT_EMAILS=[];
+let _sentLoaded=false;
 let _fetchSinceDays=7;
 let _fetchSinceCustom=null; // ISO date string quando modo personalizado
 let refreshTimer=null;
@@ -2329,6 +2349,46 @@ async function unpinEmail(id, btn) {
 function sh(color,label,count){return `<div class="section-heading"><div class="sh-line"></div><h2 style="color:${color}">${label}</h2><span class="sh-count">${count}</span><div class="sh-line"></div></div>`;}
 function empty(icon,title,msg){return `<div class="empty"><div class="icon">${icon}</div><h3>${title}</h3><p>${msg}</p></div>`;}
 
+// ── ENVIADOS ──────────────────────────────────────────────────────────────────
+async function fetchSentEmails(){
+  const SEL_S='id,subject,toRecipients,sentDateTime,bodyPreview,hasAttachments,importance,webLink';
+  const res=await graphGet(`/me/mailFolders/SentItems/messages?$orderby=sentDateTime desc&$top=50&$select=${SEL_S}`);
+  return (res?.value||[]).map(m=>({
+    id:m.id, subject:m.subject||'',
+    toRecipients:m.toRecipients||[],
+    sentDateTime:m.sentDateTime,
+    summary:m.bodyPreview||'',
+    hasAttachments:m.hasAttachments||false,
+    importance:m.importance||'normal',
+    webLink:m.webLink||'#',
+  }));
+}
+
+function sentCard(e){
+  const tos=(e.toRecipients||[]).map(r=>r.emailAddress?.name||r.emailAddress?.address||'').filter(Boolean).join(', ')||'—';
+  return `<div class="sent-card" onclick="openEmailReader('${esc(e.id)}')">
+    <div class="sent-inner">
+      <div class="sent-label">📤 ENVIADO${e.hasAttachments?' &nbsp;📎':''}</div>
+      <div class="sent-subject">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}</div>
+      <div class="sent-to">Para: <strong>${tos}</strong></div>
+      <div class="sent-time">${fmtTime(e.sentDateTime)}</div>
+      ${e.summary?`<div class="sent-snippet">${clean(e.summary)}</div>`:''}
+    </div>
+    <div class="email-actions" onclick="event.stopPropagation()">
+      <button class="eact fwd" onclick="openReply('${esc(e.id)}','forward')">➡ Encaminhar</button>
+      <button class="eact" onclick="window.open('${esc(e.webLink)}','_blank')" style="color:var(--cyan)">↗ Abrir no Outlook</button>
+    </div>
+  </div>`;
+}
+
+function renderSentPanel(){
+  const p=document.getElementById('panel-enviados');
+  if(!p) return;
+  p.innerHTML=SENT_EMAILS.length
+    ? sh('var(--cyan)','📤 ENVIADOS',SENT_EMAILS.length)+SENT_EMAILS.map(sentCard).join('')
+    : sh('var(--cyan)','📤 ENVIADOS',0)+empty('📤','Nenhum e-mail enviado','');
+}
+
 function renderAll(){
   _buildEmailMap();
   document.getElementById('panel-urgencias').innerHTML=URGENCIAS.length?sh('var(--red)','🔥 URGÊNCIAS DO DIA',URGENCIAS.length)+URGENCIAS.map(e=>`<div class="urgency-card" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`).join(''):empty('✓','Sem urgências','Nenhum e-mail crítico. Bom dia!');
@@ -2608,7 +2668,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElement
 
 function updateCounts(){
   const all=[...DATA.unread,...DATA.read];
-  const m={urgencias:URGENCIAS.length,unread:DATA.unread.length,responder:RESPONDER.length,reunioes:Math.max(CALENDAR_EVENTS.length,REUNIOES.length),projetos:Object.keys(PROJETOS).length,fixados:DATA.flagged.length,lidos:DATA.read.length,todos:all.length};
+  const m={urgencias:URGENCIAS.length,unread:DATA.unread.length,responder:RESPONDER.length,enviados:SENT_EMAILS.length,reunioes:Math.max(CALENDAR_EVENTS.length,REUNIOES.length),projetos:Object.keys(PROJETOS).length,fixados:DATA.flagged.length,lidos:DATA.read.length,todos:all.length};
   for(const[k,v]of Object.entries(m)){['s-','tc-'].forEach(p=>{const el=document.getElementById(p+k);if(el)el.textContent=v;});}
 }
 
@@ -2619,7 +2679,7 @@ function updateVolume(){
   if(prev&&prev!==today){const diff=today-prev,pct=Math.round(Math.abs(diff/prev)*100);const el=document.getElementById('vol-diff');el.textContent=` ${diff>0?'+':''}${diff} (${pct}%)`;el.className='vol-diff '+(diff>0?'vol-up':'vol-down');document.getElementById('vol-arrow').textContent=diff>0?'📈':'📉';}
 }
 
-const NO_SEARCH=['urgencias','responder','reunioes','projetos','fixados','escrever','checklist','alloc','prem'];
+const NO_SEARCH=['urgencias','responder','enviados','reunioes','projetos','fixados','escrever','checklist','alloc','prem'];
 function switchTab(tab){
   currentTab=tab;
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+tab));
@@ -2628,6 +2688,15 @@ function switchTab(tab){
   const hide=NO_SEARCH.includes(tab);
   document.getElementById('srch-wrap').style.display=hide?'none':'';
   if(!hide) applyFilters();
+  if(tab==='enviados'&&!_sentLoaded){
+    _sentLoaded=true;
+    const p=document.getElementById('panel-enviados');
+    if(p) p.innerHTML=sh('var(--cyan)','📤 ENVIADOS','...')+`<div class="empty"><div class="icon">📤</div><h3>A carregar...</h3></div>`;
+    fetchSentEmails().then(arr=>{SENT_EMAILS=arr;renderSentPanel();updateCounts();}).catch(()=>{
+      const p2=document.getElementById('panel-enviados');
+      if(p2) p2.innerHTML=sh('var(--cyan)','📤 ENVIADOS',0)+empty('⚠','Erro ao carregar','Verifique a ligação e tente de novo.');
+    });
+  } else if(tab==='enviados'){renderSentPanel();}
   if(tab==='escrever'&&!document.getElementById('comp-body')){renderComposer();setTimeout(()=>{initBodyDrop();initImageEditing();initContactSearch();initComposerResize();_initTblBarEvents();},100);}
   else if(tab==='escrever'){setTimeout(()=>{initContactSearch();initComposerResize();if(!_peopleCache)loadPeople();},80);}
   document.body.classList.toggle('ck-active',tab==='checklist');
