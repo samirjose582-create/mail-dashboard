@@ -1190,6 +1190,9 @@ body.ck-active{padding-bottom:54px;}
 .alloc-bar-end{left:0;right:5px;border-radius:0 5px 5px 0;}
 .alloc-bar-solo{left:5px;right:5px;border-radius:5px;}
 .alloc-bar-pct{position:absolute;top:50%;transform:translateY(-50%);left:8px;font-size:.5rem;font-weight:700;color:rgba(255,255,255,.95);white-space:nowrap;pointer-events:none;z-index:1;}
+.alloc-bar-conflict{box-shadow:inset 0 0 0 2px rgba(249,115,22,.9);}
+.alloc-bar-conflict::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0,transparent 4px,rgba(249,115,22,.2) 4px,rgba(249,115,22,.2) 7px);pointer-events:none;}
+.alloc-conflict-dot{position:absolute;top:3px;right:3px;width:13px;height:13px;border-radius:50%;background:#f97316;color:#fff;font-size:7px;font-weight:900;display:flex;align-items:center;justify-content:center;z-index:4;box-shadow:0 1px 4px rgba(0,0,0,.5);pointer-events:none;line-height:1;}
 .alloc-proj-code{font-size:.6rem;color:var(--text-muted);font-family:var(--mono);}
 .alloc-proj-name{font-size:.7rem;font-weight:600;color:var(--text);white-space:normal;line-height:1.25;max-width:118px;}
 .alloc-progress-bar{height:5px;border-radius:3px;background:var(--border);margin-top:3px;}
@@ -6715,6 +6718,24 @@ function hlMatch(text,q){
       return `<th class="${cls}"${title}><span class="day-num">${d.getDate()}</span><span class="day-dow">${DAY_ABBR[dow]}</span>${dot}</th>`;
     }).join('');
 
+    // Conflict map: "assignee|date" → nº de projetos neste dia
+    const conflictKeys=new Set();
+    {
+      const pdMap=new Map();
+      data.projects.forEach(p=>{
+        if(!p.start||!p.end)return;
+        (p.assignees||[]).forEach(a=>{
+          days.forEach(ds=>{
+            if(ds>=p.start&&ds<=p.end){
+              const k=a+'|'+ds;
+              pdMap.set(k,(pdMap.get(k)||0)+1);
+            }
+          });
+        });
+      });
+      for(const[k,v]of pdMap)if(v>1)conflictKeys.add(k);
+    }
+
     // Project rows
     let rows='';
     if(!data.projects.length){
@@ -6731,12 +6752,16 @@ function hlMatch(text,q){
           const isT=ds===todayStr,isW=_isWe(ds),isH=_isHol(ds);
           const inRange=p.start&&p.end&&ds>=p.start&&ds<=p.end;
           let cls='alloc-td-day';if(isW)cls+=' is-weekend';if(isH)cls+=' is-holiday';if(isT)cls+=' is-today';
+          const conflictAssignees=inRange?(p.assignees||[]).filter(a=>conflictKeys.has(a+'|'+ds)):[];
+          const hasConflict=conflictAssignees.length>0;
           let bar='';
           if(inRange){
             const isFirst=ds===p.start,isLast=ds===p.end;
             let bc='alloc-bar ';bc+=isFirst&&isLast?'alloc-bar-solo':isFirst?'alloc-bar-start':isLast?'alloc-bar-end':'alloc-bar-mid';
+            if(hasConflict)bc+=' alloc-bar-conflict';
             const lbl=isFirst?`<span class="alloc-bar-pct">${pct}%</span>`:'';
-            bar=`<div class="${bc}" style="background:${p.color||ALLOC_COLORS[0]};overflow:hidden">${lbl}</div>`;
+            const dot=hasConflict&&isFirst?`<span class="alloc-conflict-dot" title="Sobreposição: ${conflictAssignees.join(', ')}">!</span>`:'';
+            bar=`<div class="${bc}" style="background:${p.color||ALLOC_COLORS[0]};overflow:hidden">${lbl}</div>${dot}`;
           }
           return `<td class="${cls}"><div class="alloc-day-inner">${bar}</div></td>`;
         }).join('');
