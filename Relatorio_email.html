@@ -1190,11 +1190,12 @@ body.ck-active{padding-bottom:54px;}
 .alloc-bar-end{left:0;right:5px;border-radius:0 5px 5px 0;}
 .alloc-bar-solo{left:5px;right:5px;border-radius:5px;}
 .alloc-bar-pct{position:absolute;top:50%;transform:translateY(-50%);left:8px;font-size:.5rem;font-weight:700;color:rgba(255,255,255,.95);white-space:nowrap;pointer-events:none;z-index:1;}
-.alloc-bar-conflict{box-shadow:inset 0 0 0 2px rgba(249,115,22,.85);}
-.alloc-bar-conflict::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0,transparent 4px,rgba(249,115,22,.18) 4px,rgba(249,115,22,.18) 7px);pointer-events:none;}
-.alloc-td-day.is-conflict{box-shadow:inset 0 -3px 0 rgba(249,115,22,.75);}
-.alloc-conflict-dot{position:absolute;top:2px;left:50%;transform:translateX(-50%);height:5px;min-width:5px;border-radius:3px;background:#f97316;z-index:4;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.5);}
-.alloc-conflict-label{position:absolute;top:1px;left:50%;transform:translateX(-50%);font-size:6px;font-weight:900;color:#fff;white-space:nowrap;background:#f97316;padding:1px 4px;border-radius:3px;z-index:4;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:default;}
+.alloc-bar-conflict{opacity:.85;}
+.alloc-td-day.is-conflict{background:rgba(239,68,68,.14);}
+.alloc-conflict-label{position:absolute;top:1px;left:50%;transform:translateX(-50%);font-size:6px;font-weight:900;color:#fff;white-space:nowrap;background:rgba(239,68,68,.8);padding:1px 4px;border-radius:3px;z-index:4;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:default;}
+.alloc-conflict-summary{margin-top:10px;padding:10px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:10px;font-size:.75rem;color:var(--text-soft);line-height:1.7;}
+.alloc-conflict-summary strong{color:rgba(239,68,68,.9);}
+.alloc-conflict-summary .acp-item{display:block;padding-left:8px;}
 .alloc-proj-code{font-size:.6rem;color:var(--text-muted);font-family:var(--mono);}
 .alloc-proj-name{font-size:.7rem;font-weight:600;color:var(--text);white-space:normal;line-height:1.25;max-width:118px;}
 .alloc-progress-bar{height:5px;border-radius:3px;background:var(--border);margin-top:3px;}
@@ -6722,20 +6723,31 @@ function hlMatch(text,q){
 
     // Conflict map: "assignee|date" → nº de projetos neste dia
     const conflictKeys=new Set();
+    const conflictByPerson=new Map(); // assignee → {dates:Set, projects:Set}
     {
-      const pdMap=new Map();
+      const pdMap=new Map(); // "assignee|date" → [projectName,...]
       data.projects.forEach(p=>{
         if(!p.start||!p.end)return;
         (p.assignees||[]).forEach(a=>{
           days.forEach(ds=>{
             if(ds>=p.start&&ds<=p.end){
               const k=a+'|'+ds;
-              pdMap.set(k,(pdMap.get(k)||0)+1);
+              if(!pdMap.has(k))pdMap.set(k,[]);
+              pdMap.get(k).push(p.name||p.code||'Projeto');
             }
           });
         });
       });
-      for(const[k,v]of pdMap)if(v>1)conflictKeys.add(k);
+      for(const[k,projs]of pdMap){
+        if(projs.length>1){
+          conflictKeys.add(k);
+          const[a,ds]=k.split('|');
+          if(!conflictByPerson.has(a))conflictByPerson.set(a,{dates:new Set(),projects:new Set()});
+          const info=conflictByPerson.get(a);
+          info.dates.add(ds);
+          projs.forEach(n=>info.projects.add(n));
+        }
+      }
     }
 
     // Project rows
@@ -6824,6 +6836,18 @@ function hlMatch(text,q){
           <tbody>${rows}</tbody>
         </table>
       </div>
+      ${(()=>{
+        if(!conflictByPerson.size)return'';
+        const fmtDate=ds=>{const d=new Date(ds+'T12:00:00');return d.getDate()+'/'+(d.getMonth()+1);};
+        const items=[...conflictByPerson.entries()].map(([person,info])=>{
+          const dates=[...info.dates].sort();
+          const datesStr=dates.length>6?dates.slice(0,6).map(fmtDate).join(', ')+` (+${dates.length-6})`
+                                       :dates.map(fmtDate).join(', ');
+          const projs=[...info.projects].join(', ');
+          return`<span class="acp-item">• <strong>${person}</strong> tem sobreposição em ${datesStr} — projetos: ${projs}</span>`;
+        }).join('');
+        return`<div class="alloc-conflict-summary">⚠ <strong>Conflito de alocação detectado</strong>${items}</div>`;
+      })()}
     </div>`;
     _initAllocResize();
     _applyZoom(_allocLoadZoom());
