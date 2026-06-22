@@ -1190,9 +1190,11 @@ body.ck-active{padding-bottom:54px;}
 .alloc-bar-end{left:0;right:5px;border-radius:0 5px 5px 0;}
 .alloc-bar-solo{left:5px;right:5px;border-radius:5px;}
 .alloc-bar-pct{position:absolute;top:50%;transform:translateY(-50%);left:8px;font-size:.5rem;font-weight:700;color:rgba(255,255,255,.95);white-space:nowrap;pointer-events:none;z-index:1;}
-.alloc-bar-conflict{box-shadow:inset 0 0 0 2px rgba(249,115,22,.9);}
-.alloc-bar-conflict::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0,transparent 4px,rgba(249,115,22,.2) 4px,rgba(249,115,22,.2) 7px);pointer-events:none;}
-.alloc-conflict-dot{position:absolute;top:3px;right:3px;width:13px;height:13px;border-radius:50%;background:#f97316;color:#fff;font-size:7px;font-weight:900;display:flex;align-items:center;justify-content:center;z-index:4;box-shadow:0 1px 4px rgba(0,0,0,.5);pointer-events:none;line-height:1;}
+.alloc-bar-conflict{box-shadow:inset 0 0 0 2px rgba(249,115,22,.85);}
+.alloc-bar-conflict::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0,transparent 4px,rgba(249,115,22,.18) 4px,rgba(249,115,22,.18) 7px);pointer-events:none;}
+.alloc-td-day.is-conflict{box-shadow:inset 0 -3px 0 rgba(249,115,22,.75);}
+.alloc-conflict-dot{position:absolute;top:2px;left:50%;transform:translateX(-50%);height:5px;min-width:5px;border-radius:3px;background:#f97316;z-index:4;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.5);}
+.alloc-conflict-label{position:absolute;top:1px;left:50%;transform:translateX(-50%);font-size:6px;font-weight:900;color:#fff;white-space:nowrap;background:#f97316;padding:1px 4px;border-radius:3px;z-index:4;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:default;}
 .alloc-proj-code{font-size:.6rem;color:var(--text-muted);font-family:var(--mono);}
 .alloc-proj-name{font-size:.7rem;font-weight:600;color:var(--text);white-space:normal;line-height:1.25;max-width:118px;}
 .alloc-progress-bar{height:5px;border-radius:3px;background:var(--border);margin-top:3px;}
@@ -6747,21 +6749,27 @@ function hlMatch(text,q){
         const pctColor=pct>=80?'var(--green)':pct>=40?'var(--yellow)':'var(--orange)';
         const avatars=(p.assignees||[]).map(a=>`<span class="alloc-avatar" style="background:${_nameColor(a)}" title="${a}">${_initials(a)}</span>`).join('');
         const assignStr=(p.assignees||[]).join(', ').slice(0,18)||'—';
-        const dayCells=days.map(ds=>{
+        const dayCells=days.map((ds,dIdx)=>{
           const d=new Date(ds+'T12:00:00');const dow=d.getDay();
           const isT=ds===todayStr,isW=_isWe(ds),isH=_isHol(ds);
           const inRange=p.start&&p.end&&ds>=p.start&&ds<=p.end;
-          let cls='alloc-td-day';if(isW)cls+=' is-weekend';if(isH)cls+=' is-holiday';if(isT)cls+=' is-today';
           const conflictAssignees=inRange?(p.assignees||[]).filter(a=>conflictKeys.has(a+'|'+ds)):[];
           const hasConflict=conflictAssignees.length>0;
+          let cls='alloc-td-day';
+          if(isW)cls+=' is-weekend';if(isH)cls+=' is-holiday';if(isT)cls+=' is-today';
+          if(hasConflict)cls+=' is-conflict';
           let bar='';
           if(inRange){
             const isFirst=ds===p.start,isLast=ds===p.end;
             let bc='alloc-bar ';bc+=isFirst&&isLast?'alloc-bar-solo':isFirst?'alloc-bar-start':isLast?'alloc-bar-end':'alloc-bar-mid';
             if(hasConflict)bc+=' alloc-bar-conflict';
             const lbl=isFirst?`<span class="alloc-bar-pct">${pct}%</span>`:'';
-            const dot=hasConflict&&isFirst?`<span class="alloc-conflict-dot" title="Sobreposição: ${conflictAssignees.join(', ')}">!</span>`:'';
-            bar=`<div class="${bc}" style="background:${p.color||ALLOC_COLORS[0]};overflow:hidden">${lbl}</div>${dot}`;
+            // Badge só no 1º dia de cada secção de conflito (quando o dia anterior NÃO conflitava)
+            const prevDs=dIdx>0?days[dIdx-1]:null;
+            const prevConflict=prevDs&&inRange&&(p.assignees||[]).some(a=>conflictKeys.has(a+'|'+prevDs));
+            const isConflictStart=hasConflict&&!prevConflict;
+            const badge=isConflictStart?`<span class="alloc-conflict-label" title="Sobreposição: ${conflictAssignees.join(', ')}">⚠ ${conflictAssignees.join(', ')}</span>`:'';
+            bar=`<div class="${bc}" style="background:${p.color||ALLOC_COLORS[0]};overflow:hidden">${lbl}</div>${badge}`;
           }
           return `<td class="${cls}"><div class="alloc-day-inner">${bar}</div></td>`;
         }).join('');
