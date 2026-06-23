@@ -2258,9 +2258,12 @@ function _computeUrgencias(){
   const cutoff=_urgCustomDate
     ? new Date(_urgCustomDate+'T00:00:00')
     : _urgPeriodDays===0 ? null
-    : _urgPeriodDays===1
-      ? (()=>{const d=new Date();d.setHours(0,0,0,0);return d;})()
-      : (()=>{const d=new Date();d.setDate(d.getDate()-(_urgPeriodDays-1));d.setHours(0,0,0,0);return d;})();
+    : (()=>{
+        const d=new Date();
+        if(_urgPeriodDays===1){d.setHours(0,0,0,0);}
+        else{d.setDate(d.getDate()-_urgPeriodDays);d.setHours(0,0,0,0);}
+        return d;
+      })();
   return cutoff
     ? ALL_URGENCIAS.filter(e=>new Date(e.receivedDateTime||0)>=cutoff)
     : ALL_URGENCIAS;
@@ -2269,7 +2272,8 @@ function buildDerived(){
   const all=[...DATA.unread,...DATA.read];
   ALL_EMAILS=all;
   all.forEach(e=>{e._urgency=detectUrgency(e);});
-  ALL_URGENCIAS=all.filter(e=>!!e._urgency&&!e.isRead);
+  // Inclui todos os urgentes (lidos e não lidos) — filtro de data aplicado em _computeUrgencias
+  ALL_URGENCIAS=all.filter(e=>!!e._urgency);
   URGENCIAS=_computeUrgencias();
   RESPONDER=all.filter(e=>needsReply(e)&&!REPLIED_IDS.has(e.id));
   REUNIOES=all.filter(isMeeting);
