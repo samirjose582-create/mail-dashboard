@@ -2210,7 +2210,7 @@ function buildDerived(){
   const all=[...DATA.unread,...DATA.read];
   ALL_EMAILS=all;
   all.forEach(e=>{e._urgency=detectUrgency(e);});
-  URGENCIAS=all.filter(e=>!!e._urgency);
+  URGENCIAS=all.filter(e=>!!e._urgency&&!e.isRead);
   RESPONDER=all.filter(e=>needsReply(e)&&!REPLIED_IDS.has(e.id));
   REUNIOES=all.filter(isMeeting);
   PROJETOS={};
