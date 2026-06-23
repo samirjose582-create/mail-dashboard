@@ -2598,35 +2598,37 @@ async function openEmailReader(id){
     _erRenderActions(msg,msg.flag?.flagStatus==='flagged');
     // attachments + substituição de imagens inline (cid:)
     let _bodyContent=msg.body?.content||'';
-    const _isHtmlBody=msg.body?.contentType?.toLowerCase()==='html';
-    const _hasCidRefs=_isHtmlBody&&_bodyContent.includes('cid:');
-    // hasAttachments é false para e-mails com APENAS imagens inline (bug da API MS Graph)
-    // por isso também buscamos se o corpo HTML tiver referências cid:
+    const _isHtmlBody=(msg.body?.contentType||'').toLowerCase()==='html';
+    const _hasCidRefs=_isHtmlBody&&/cid:/i.test(_bodyContent);
+    // hasAttachments=false para e-mails com APENAS inline images (quirk do Graph API)
     if(msg.hasAttachments||_hasCidRefs){
       try{
-        const att=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments?$select=id,name,size,contentType,isInline,contentId`);
-        const allAtts=(att.value||[]).filter(f=>f.contentType!=='application/ms-tnef');
-        // Ficheiros normais → barra de anexos
+        // Quando há refs cid:, busca contentBytes já nesta chamada (evita round-trip extra)
+        const sel=_hasCidRefs
+          ?'id,name,size,contentType,isInline,contentId,contentBytes'
+          :'id,name,size,contentType,isInline,contentId';
+        const att=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments?$select=${sel}`);
+        const allAtts=(att?.value||[]).filter(f=>f.contentType!=='application/ms-tnef');
+        // Ficheiros visíveis → barra de anexos
         const files=allAtts.filter(f=>!f.isInline);
         if(files.length){
           const el=document.getElementById('er-attachments');
           el.className='er-attachments visible';
           el.innerHTML=`<span class="er-att-label">📎 ANEXOS</span>`+files.map(f=>`<span class="er-att-chip">📄 ${he(f.name||'')}<span>${(f.size/1024).toFixed(0)} KB</span><button class="er-att-dl" onclick="downloadAttachment('${esc(id)}','${esc(f.id)}','${esc(f.name)}','${esc(f.contentType||'')}',this)">⬇ Baixar</button></span>`).join('');
         }
-        // Imagens inline → buscar contentBytes e substituir cid: por data URL
+        // Substituir cid: por data URL (inclui VML <v:imagedata src="cid:...">)
         if(_hasCidRefs){
-          const inlines=allAtts.filter(f=>f.isInline&&f.contentId);
-          await Promise.all(inlines.map(f=>
-            graphGet(`/me/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(f.id)}?$select=contentType,contentId,contentBytes`)
-              .then(full=>{
-                if(!full?.contentBytes||!full?.contentId)return;
-                const cid=full.contentId.replace(/[<>]/g,'');
-                const re=new RegExp('cid:'+cid.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
-                _bodyContent=_bodyContent.replace(re,`data:${full.contentType};base64,${full.contentBytes}`);
-              }).catch(()=>{})
-          ));
+          const inlines=allAtts.filter(f=>f.contentId&&f.contentBytes);
+          for(const f of inlines){
+            const cid=f.contentId.replace(/^<|>$/g,'');
+            const dataUrl=`data:${f.contentType};base64,${f.contentBytes}`;
+            // Substitui cid:XXXX e cid:<XXXX> em src= e em atributos VML
+            _bodyContent=_bodyContent
+              .replace(new RegExp('cid:<'+cid.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'>','gi'),dataUrl)
+              .replace(new RegExp('cid:'+cid.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),dataUrl);
+          }
         }
-      }catch(e){/* ignore */}
+      }catch(e){console.warn('[email img]',e);}
     }
     // body
     _erRenderBody(_bodyContent,msg.body?.contentType||'text');
