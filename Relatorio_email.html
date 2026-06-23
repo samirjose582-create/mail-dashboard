@@ -461,6 +461,43 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .project-emails.open{display:block;}
 .project-group.open .project-chevron{transform:rotate(90deg);}
 
+/* ── PROJETOS — CONTRATOS COM REGRAS ── */
+.proj-block{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--pc,var(--green));border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.proj-block-hdr{padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;background:var(--surface2);transition:background .15s;}
+.proj-block-hdr:hover{background:var(--surface3);}
+.proj-block-code{font-size:.63rem;font-weight:700;color:#fff;background:var(--pc,var(--green));padding:2px 8px;border-radius:4px;font-family:var(--mono);white-space:nowrap;flex-shrink:0;}
+.proj-block-name{font-size:.83rem;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.proj-block-count{font-size:.68rem;font-family:var(--mono);color:var(--text-muted);white-space:nowrap;flex-shrink:0;}
+.proj-block-chevron{color:var(--text-muted);font-size:.8rem;transition:transform .2s;flex-shrink:0;}
+.proj-block.open .proj-block-chevron{transform:rotate(90deg);}
+.proj-block-body{display:none;}
+.proj-block.open .proj-block-body{display:block;}
+/* rule editor */
+.proj-rules-panel{padding:10px 14px 8px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);}
+.proj-rules-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.proj-rules-title{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);}
+.proj-rules-hint{font-size:.6rem;color:var(--text-muted);font-style:italic;}
+.proj-rule-item{background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;}
+.proj-rule-top{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.proj-rule-logic{font-size:.6rem;font-weight:800;font-family:var(--mono);padding:2px 9px;border-radius:20px;border:1px solid;cursor:pointer;transition:all .15s;user-select:none;flex-shrink:0;}
+.proj-rule-logic.or{color:#38bdf8;border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.1);}
+.proj-rule-logic.and{color:#c084fc;border-color:rgba(192,132,252,.4);background:rgba(192,132,252,.1);}
+.proj-rule-desc{font-size:.6rem;color:var(--text-muted);flex:1;}
+.proj-rule-del{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.75rem;padding:2px 6px;border-radius:4px;line-height:1;transition:all .13s;flex-shrink:0;}
+.proj-rule-del:hover{background:rgba(239,68,68,.15);color:#ef4444;}
+.proj-rule-kws{display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
+.proj-kw-chip{display:inline-flex;align-items:center;gap:3px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:2px 7px 2px 10px;font-size:.68rem;font-family:var(--mono);color:var(--text);}
+.proj-kw-chip button{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:.72rem;padding:0 1px;line-height:1;transition:color .12s;}
+.proj-kw-chip button:hover{color:#ef4444;}
+.proj-kw-input{border:1px dashed var(--border2);border-radius:20px;background:transparent;color:var(--text);font-size:.68rem;font-family:var(--mono);padding:3px 10px;outline:none;width:130px;transition:border-color .15s;}
+.proj-kw-input:focus{border-style:solid;border-color:var(--blue);}
+.proj-kw-add-hint{font-size:.58rem;color:var(--text-muted);font-style:italic;}
+.proj-rules-add-btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;background:none;border:1px dashed var(--border2);border-radius:7px;color:var(--text-muted);font-size:.7rem;cursor:pointer;padding:6px 12px;transition:all .15s;margin-top:4px;}
+.proj-rules-add-btn:hover{border-color:var(--green);color:var(--green);background:rgba(74,222,128,.06);}
+.proj-emails-wrap{padding:8px;}
+.proj-no-emails{text-align:center;padding:24px 16px;font-size:.75rem;color:var(--text-muted);font-style:italic;}
+.proj-rule-or-sep{text-align:center;font-size:.58rem;color:var(--text-muted);margin:2px 0;letter-spacing:.5px;}
+
 /* ── EMPTY ── */
 .empty{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:48px;text-align:center;}
 .empty .icon{font-size:2.4rem;margin-bottom:12px;opacity:.5;}
@@ -2130,6 +2167,7 @@ function he(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replac
 let currentTab='urgencias',currentFilter='all';
 let DATA={unread:[],read:[],flagged:[],total:0};
 let URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[],SENT_EMAILS=[];
+let ALL_EMAILS=[];
 let _sentLoaded=false;
 let _fetchSinceDays=7;
 let _fetchSinceCustom=null; // ISO date string quando modo personalizado
@@ -2153,6 +2191,7 @@ function _buildEmailMap(){
 
 function buildDerived(){
   const all=[...DATA.unread,...DATA.read];
+  ALL_EMAILS=all;
   all.forEach(e=>{e._urgency=detectUrgency(e);});
   URGENCIAS=all.filter(e=>!!e._urgency);
   RESPONDER=all.filter(e=>needsReply(e)&&!REPLIED_IDS.has(e.id));
@@ -2501,8 +2540,7 @@ function renderAll(){
   }
   document.getElementById('panel-responder').innerHTML=RESPONDER.length?sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',RESPONDER.length)+RESPONDER.map(e=>replyCard(e)).join(''):empty('✓','Nada a responder','');
   renderMeetingCal();
-  const keys=Object.keys(PROJETOS).sort();
-  document.getElementById('panel-projetos').innerHTML=keys.length?sh('var(--green)','🗂 PROJECTOS',keys.length)+keys.map(proj=>{const emails=PROJETOS[proj],hasU=emails.some(e=>!e.isRead),uid='proj_'+proj.replace(/[^a-z0-9]/gi,'_');return `<div class="project-group" id="pg_${uid}"><div class="project-header" onclick="toggleProject('${uid}')"><span class="project-code">${proj}</span><span class="project-name">${emails[0]?.subject?.split('|').slice(2).join('|').trim().slice(0,55)||''}</span><span class="project-count">${emails.length} msg${hasU?` · <span style="color:var(--blue)">${emails.filter(e=>!e.isRead).length} unread</span>`:''}</span><span class="project-chevron">›</span></div><div class="project-emails" id="${uid}">${emails.map(emailCard).join('')}</div></div>`}).join(''):empty('🗂','Sem projectos','');
+  if(window.renderProjetosPanel)renderProjetosPanel();
   document.getElementById('panel-fixados').innerHTML=DATA.flagged.length?sh('var(--orange)','🚩 SINALIZADOS',DATA.flagged.length)+sortPinnedFirst(DATA.flagged).map(e=>emailCard(e,'flagged')).join(''):empty('🚩','Nenhum sinalizado','Marque e-mails com 🚩 no Outlook para aparecerem aqui.');
   document.getElementById('panel-lidos').innerHTML=DATA.read.length?sh('var(--text-soft)','✓ LIDOS',DATA.read.length)+sortPinnedFirst(DATA.read).map(emailCard).join(''):empty('✓','Nenhum lido','');
   const allE=sortPinnedFirst([...DATA.unread,...DATA.read]);
@@ -2816,6 +2854,7 @@ function switchTab(tab){
   document.getElementById('analytics-section').style.display=(tab==='checklist'||tab==='alloc'||tab==='prem')?'none':'';
   if(tab==='alloc'){renderAllocPanel();}
   if(tab==='prem'){renderPremPanel();}
+  if(tab==='projetos'&&window.renderProjetosPanel){renderProjetosPanel();}
 }
 // ── ADVANCED FILTER STATE ────────────────────────────────────────────────────
 let _quickChips = new Set(); // 'hoje' | 'semana' | 'naoLidos' | 'anexo' | 'alta'
@@ -7841,6 +7880,189 @@ function hlMatch(text,q){
         setTimeout(()=>ov.remove(),320);
       },210);
     });
+  };
+})();
+
+// ── PROJETOS — REGRAS DE E-MAIL POR CONTRATO ──────────────────────────────────
+(function(){
+  const PREM_STORE='_prem_v1';
+  function _pLoad(){try{return JSON.parse(localStorage.getItem(PREM_STORE))||{projects:[]};}catch{return{projects:[]};}}
+  function _pSave(d){localStorage.setItem(PREM_STORE,JSON.stringify(d));}
+  function _uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+  // Verifica se um e-mail satisfaz um conjunto de regras
+  function _matchEmail(email,rules){
+    if(!rules||!rules.length)return false;
+    const hay=[email.subject||'',email.senderName||'',email.sender||'',email.bodyPreview||''].join(' ').toLowerCase();
+    return rules.some(r=>{
+      const kws=(r.keywords||[]).map(k=>k.toLowerCase().trim()).filter(Boolean);
+      if(!kws.length)return false;
+      return r.logic==='AND'?kws.every(k=>hay.includes(k)):kws.some(k=>hay.includes(k));
+    });
+  }
+
+  // ── RENDER PRINCIPAL ────────────────────────────────────────────────────────
+  function renderProjetosPanel(){
+    const el=document.getElementById('panel-projetos');
+    if(!el)return;
+    const d=_pLoad();
+    const projs=d.projects||[];
+    if(!projs.length){
+      el.innerHTML=`<div class="empty"><div class="icon">🗂</div><h3>Nenhum contrato criado</h3><p>Crie contratos na aba <strong>📋 Premissas</strong> para organizar e-mails por contrato.</p></div>`;
+      return;
+    }
+    const all=ALL_EMAILS||[];
+    // Preservar estado aberto
+    const openSet=new Set();
+    el.querySelectorAll('.proj-block.open').forEach(b=>openSet.add(b.dataset.pid));
+    let html=`<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);padding:0 2px 10px;">🗂 CONTRATOS · ${projs.length}</div>`;
+    projs.forEach(p=>{
+      const rules=p.emailRules||[];
+      const matched=all.filter(e=>_matchEmail(e,rules));
+      const unread=matched.filter(e=>!e.isRead).length;
+      const isOpen=openSet.has(p.id);
+      const color=p.color||'#06b6d4';
+      html+=`<div class="proj-block${isOpen?' open':''}" data-pid="${p.id}" style="--pc:${color}">
+        <div class="proj-block-hdr" onclick="toggleProjBlock('${p.id}')">
+          <span class="proj-block-code">${he(p.code||'—')}</span>
+          <span class="proj-block-name">${he(p.name)}</span>
+          <span class="proj-block-count">${_countLabel(matched.length,unread,rules.length)}</span>
+          <span class="proj-block-chevron">›</span>
+        </div>
+        <div class="proj-block-body">
+          ${_renderRulesEditor(p)}
+          <div class="proj-emails-wrap" id="pj-mails-${p.id}">
+            ${matched.length?matched.map(e=>emailCard(e)).join(''):`<div class="proj-no-emails">${rules.length?'Nenhum e-mail encontrado com os filtros configurados.':'Configure palavras-chave acima para filtrar e-mails neste contrato.'}</div>`}
+          </div>
+        </div>
+      </div>`;
+    });
+    el.innerHTML=html;
+  }
+
+  function _countLabel(total,unread,ruleCount){
+    let s=`${total} e-mail${total!==1?'s':''}`;
+    if(unread)s+=` · <span style="color:var(--blue)">${unread} não lido${unread!==1?'s':''}</span>`;
+    if(!ruleCount)s+=` · <em style="color:var(--text-muted);font-style:italic">sem filtros</em>`;
+    return s;
+  }
+
+  function _renderRulesEditor(p){
+    const rules=p.emailRules||[];
+    const pid=p.id;
+    const rulesHtml=rules.map((r,i)=>`
+      ${i>0?`<div class="proj-rule-or-sep">— OU —</div>`:''}
+      <div class="proj-rule-item" id="pr-${r.id}">
+        <div class="proj-rule-top">
+          <span class="proj-rule-logic ${r.logic==='AND'?'and':'or'}" onclick="pjToggleLogic('${pid}','${r.id}')" title="Clique para alternar OR / AND">${r.logic}</span>
+          <span class="proj-rule-desc">${r.logic==='AND'?'Todos os termos devem estar presentes':'Qualquer termo é suficiente'}</span>
+          <button class="proj-rule-del" onclick="pjRemoveRule('${pid}','${r.id}')" title="Remover regra">✕</button>
+        </div>
+        <div class="proj-rule-kws">
+          ${(r.keywords||[]).map(kw=>`<span class="proj-kw-chip">${he(kw)}<button onclick="pjRemoveKw('${pid}','${r.id}','${esc(kw)}')" title="Remover">×</button></span>`).join('')}
+          <input class="proj-kw-input" id="kwi-${r.id}" placeholder="Palavra… Enter para add"
+            onkeydown="pjInputKw(event,'${pid}','${r.id}')"
+            onfocus="this.select()" autocomplete="off">
+        </div>
+      </div>`).join('');
+    return `<div class="proj-rules-panel" id="pj-rules-${pid}">
+      <div class="proj-rules-hdr">
+        <span class="proj-rules-title">🔍 Filtros por palavras-chave</span>
+        <span class="proj-rules-hint">Regras são unidas por OR · palavras dentro de uma regra seguem a lógica da regra</span>
+      </div>
+      ${rulesHtml}
+      <button class="proj-rules-add-btn" onclick="pjAddRule('${pid}')">＋ Adicionar Regra</button>
+    </div>`;
+  }
+
+  // ── FUNÇÕES REATIVAS ────────────────────────────────────────────────────────
+  function _refresh(pid){
+    const block=document.querySelector(`.proj-block[data-pid="${pid}"]`);
+    if(!block)return;
+    const d=_pLoad();
+    const p=d.projects.find(x=>x.id===pid);
+    if(!p)return;
+    const all=ALL_EMAILS||[];
+    const rules=p.emailRules||[];
+    const matched=all.filter(e=>_matchEmail(e,rules));
+    const unread=matched.filter(e=>!e.isRead).length;
+    // Atualiza contador no header
+    const cnt=block.querySelector('.proj-block-count');
+    if(cnt)cnt.innerHTML=_countLabel(matched.length,unread,rules.length);
+    // Re-renderiza editor de regras
+    const rp=block.querySelector('.proj-rules-panel');
+    if(rp){
+      const tmp=document.createElement('div');
+      tmp.innerHTML=_renderRulesEditor(p);
+      rp.replaceWith(tmp.firstElementChild);
+    }
+    // Re-renderiza lista de e-mails
+    const ml=block.querySelector(`#pj-mails-${pid}`);
+    if(ml)ml.innerHTML=matched.length?matched.map(e=>emailCard(e)).join(''):`<div class="proj-no-emails">${rules.length?'Nenhum e-mail encontrado com os filtros configurados.':'Configure palavras-chave acima para filtrar e-mails neste contrato.'}</div>`;
+  }
+
+  // ── API PÚBLICA ─────────────────────────────────────────────────────────────
+  window.renderProjetosPanel=renderProjetosPanel;
+
+  window.toggleProjBlock=function(pid){
+    document.querySelector(`.proj-block[data-pid="${pid}"]`)?.classList.toggle('open');
+  };
+
+  window.pjAddRule=function(pid){
+    const d=_pLoad();
+    const p=d.projects.find(x=>x.id===pid);
+    if(!p)return;
+    if(!p.emailRules)p.emailRules=[];
+    p.emailRules.push({id:_uid(),keywords:[],logic:'OR'});
+    _pSave(d);
+    _refresh(pid);
+  };
+
+  window.pjRemoveRule=function(pid,rid){
+    const d=_pLoad();
+    const p=d.projects.find(x=>x.id===pid);
+    if(!p||!p.emailRules)return;
+    p.emailRules=p.emailRules.filter(r=>r.id!==rid);
+    _pSave(d);
+    _refresh(pid);
+  };
+
+  window.pjToggleLogic=function(pid,rid){
+    const d=_pLoad();
+    const p=d.projects.find(x=>x.id===pid);
+    const r=p?.emailRules?.find(x=>x.id===rid);
+    if(!r)return;
+    r.logic=r.logic==='OR'?'AND':'OR';
+    _pSave(d);
+    _refresh(pid);
+  };
+
+  window.pjInputKw=function(ev,pid,rid){
+    if(ev.key!=='Enter'&&ev.key!==',')return;
+    ev.preventDefault();
+    const val=ev.target.value.replace(/,/g,'').trim();
+    if(!val)return;
+    ev.target.value='';
+    const d=_pLoad();
+    const p=d.projects.find(x=>x.id===pid);
+    const r=p?.emailRules?.find(x=>x.id===rid);
+    if(!r)return;
+    if(!r.keywords)r.keywords=[];
+    if(!r.keywords.includes(val))r.keywords.push(val);
+    _pSave(d);
+    _refresh(pid);
+    // Restaura foco no input da mesma regra
+    setTimeout(()=>document.getElementById('kwi-'+rid)?.focus(),30);
+  };
+
+  window.pjRemoveKw=function(pid,rid,kw){
+    const d=_pLoad();
+    const p=d.projects.find(x=>x.id===pid);
+    const r=p?.emailRules?.find(x=>x.id===rid);
+    if(!r)return;
+    r.keywords=(r.keywords||[]).filter(k=>k!==kw);
+    _pSave(d);
+    _refresh(pid);
   };
 })();
 </script>
