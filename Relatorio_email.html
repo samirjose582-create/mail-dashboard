@@ -2227,6 +2227,7 @@ function he(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replac
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let currentTab='urgencias',currentFilter='all';
 let DATA={unread:[],read:[],flagged:[],total:0};
+let _userProfile={name:'',email:'',firstName:''};
 let URGENCIAS=[],ALL_URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[],SENT_EMAILS=[];
 let _urgPeriodDays=1; // 1=hoje, 3, 7, 15, 30, 90, 0=tudo
 let _urgCustomDate=null; // ISO date string para período personalizado
@@ -2281,11 +2282,27 @@ function buildDerived(){
   for(const e of all){const p=extractProject(e.subject);if(p){if(!PROJETOS[p])PROJETOS[p]=[];PROJETOS[p].push(e);}}
 }
 
+async function fetchUserProfile(){
+  try{
+    const p=await graphGet('/me?$select=displayName,mail,userPrincipalName');
+    if(!p) return;
+    const email=p.mail||p.userPrincipalName||'';
+    const name=p.displayName||email.split('@')[0]||'';
+    const firstName=name.split(' ')[0]||name;
+    _userProfile={name,email,firstName};
+    // título da aba
+    document.title=`Mail Dashboard — ${firstName}`;
+    // ecrã de login
+    const ls=document.querySelector('.login-sub');
+    if(ls) ls.textContent=email;
+  }catch(e){console.warn('[profile]',e);}
+}
 async function loadEmails(manual=false){
   const btn=document.getElementById('refresh-btn');
   if(manual){btn.disabled=true;btn.textContent='↺ A carregar...';}
   try{
     showLoading('A buscar e-mails e reuniões...');
+    if(!_lastSyncTime) await fetchUserProfile();
     const [result,calEvents]=await Promise.all([fetchEmails(manual),fetchCalendarEvents()]);
     CALENDAR_EVENTS=calEvents;
     DATA=result;
@@ -2296,7 +2313,7 @@ async function loadEmails(manual=false){
     const now=new Date();
     document.getElementById('updated-meta').textContent='atualizado às '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});
     document.getElementById('header-date').innerHTML=fmtFull(now)+'<br>auto-refresh 5min';
-    document.getElementById('page-footer').textContent=`samir.goncalves@jpprojetos.com · ${DATA.total} emails · ${URGENCIAS.length} urgências · ${REUNIOES.length} reuniões · live`;
+    document.getElementById('page-footer').textContent=`${_userProfile.email||'–'} · ${DATA.total} emails · ${URGENCIAS.length} urgências · ${REUNIOES.length} reuniões · live`;
   }catch(e){
     console.error('[loadEmails]',e);
     // mostra erro no rodapé em vez de alert
