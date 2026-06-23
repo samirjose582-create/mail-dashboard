@@ -2227,7 +2227,9 @@ function he(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replac
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let currentTab='urgencias',currentFilter='all';
 let DATA={unread:[],read:[],flagged:[],total:0};
-let URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[],SENT_EMAILS=[];
+let URGENCIAS=[],ALL_URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[],SENT_EMAILS=[];
+let _urgPeriodDays=1; // 1=hoje, 3, 7, 15, 30, 90, 0=tudo
+let _urgCustomDate=null; // ISO date string para período personalizado
 let ALL_EMAILS=[];
 let _sentLoaded=false;
 let _fetchSinceDays=7;
@@ -2252,12 +2254,23 @@ function _buildEmailMap(){
   PINNED_IDS=new Set(Object.values(_emailMap).filter(e=>e.categories?.includes(PIN_CAT)).map(e=>e.id));
 }
 
+function _computeUrgencias(){
+  const cutoff=_urgCustomDate
+    ? new Date(_urgCustomDate+'T00:00:00')
+    : _urgPeriodDays===0 ? null
+    : _urgPeriodDays===1
+      ? (()=>{const d=new Date();d.setHours(0,0,0,0);return d;})()
+      : (()=>{const d=new Date();d.setDate(d.getDate()-(_urgPeriodDays-1));d.setHours(0,0,0,0);return d;})();
+  return cutoff
+    ? ALL_URGENCIAS.filter(e=>new Date(e.receivedDateTime||0)>=cutoff)
+    : ALL_URGENCIAS;
+}
 function buildDerived(){
   const all=[...DATA.unread,...DATA.read];
   ALL_EMAILS=all;
   all.forEach(e=>{e._urgency=detectUrgency(e);});
-  const _today=new Date().toISOString().slice(0,10);
-  URGENCIAS=all.filter(e=>!!e._urgency&&!e.isRead&&(e.receivedDateTime||'').slice(0,10)===_today);
+  ALL_URGENCIAS=all.filter(e=>!!e._urgency&&!e.isRead);
+  URGENCIAS=_computeUrgencias();
   RESPONDER=all.filter(e=>needsReply(e)&&!REPLIED_IDS.has(e.id));
   REUNIOES=all.filter(isMeeting);
   PROJETOS={};
@@ -2614,12 +2627,7 @@ function renderAll(){
   _buildEmailMap();
 
   // Urgências
-  const _urgEl=document.getElementById('panel-urgencias');
-  if(URGENCIAS.length){
-    _lazyRender(_urgEl,URGENCIAS,
-      e=>`<div class="urgency-card" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${clean(e.summary).toLowerCase()}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`,
-      sh('var(--red)','🔥 URGÊNCIAS DO DIA',URGENCIAS.length));
-  }else{_urgEl.innerHTML=empty('✓','Sem urgências','Nenhum e-mail crítico. Bom dia!');}
+  renderUrgencias();
 
   // Não lidos + fixados (estrutura com subtabs)
   {
@@ -2685,6 +2693,50 @@ function switchUnreadSub(tab, btn){
   document.getElementById('usub-pinned').style.display=tab==='pinned'?'':'none';
 }
 
+function renderUrgencias(){
+  const _urgEl=document.getElementById('panel-urgencias');
+  const _chips=[
+    {d:1,l:'Hoje'},
+    {d:3,l:'3 dias'},
+    {d:7,l:'7 dias'},
+    {d:15,l:'15 dias'},
+    {d:30,l:'30 dias'},
+    {d:90,l:'3 meses'},
+    {d:0,l:'Tudo'}
+  ];
+  const _isCustom=!!_urgCustomDate;
+  const _customVal=_urgCustomDate||'';
+  const _periodBar=`<div class="fetch-filter urg-period-bar">
+    <span class="fetch-filter-label">📅 PERÍODO:</span>
+    ${_chips.map(c=>`<button class="fetch-chip${!_isCustom&&_urgPeriodDays===c.d?' active':''}" onclick="setUrgPeriod(${c.d})">${c.l}</button>`).join('')}
+    <button class="fetch-chip${_isCustom?' active':''}" onclick="document.getElementById('urg-custom-dt').showPicker?.()??document.getElementById('urg-custom-dt').click()">📆 Personalizado</button>
+    <input type="date" id="urg-custom-dt" class="fetch-date-input" value="${_customVal}" max="${new Date().toISOString().slice(0,10)}" onchange="setUrgCustomDate(this.value)" style="${_isCustom?'':'display:none'}">
+  </div>`;
+  const _label=_isCustom?`desde ${_customVal}`:_urgPeriodDays===0?'todos':_urgPeriodDays===1?'hoje':`últimos ${_urgPeriodDays} dias`;
+  const _title=`🔥 URGÊNCIAS — ${_label.toUpperCase()}`;
+  const _prefix=_periodBar+sh('var(--red)',_title,URGENCIAS.length);
+  if(URGENCIAS.length){
+    _lazyRender(_urgEl,URGENCIAS,
+      e=>`<div class="urgency-card" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${clean(e.summary).toLowerCase()}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`,
+      _prefix);
+  }else{
+    _urgEl.innerHTML=_periodBar+empty('✓','Sem urgências',`Nenhum e-mail crítico ${_label}.`);
+  }
+}
+function setUrgPeriod(days){
+  _urgPeriodDays=days;
+  _urgCustomDate=null;
+  URGENCIAS=_computeUrgencias();
+  updateCounts();
+  renderUrgencias();
+}
+function setUrgCustomDate(dateStr){
+  if(!dateStr)return;
+  _urgCustomDate=dateStr;
+  URGENCIAS=_computeUrgencias();
+  updateCounts();
+  renderUrgencias();
+}
 async function setFetchPeriod(days){
   _fetchSinceDays=days;
   _fetchSinceCustom=null;
