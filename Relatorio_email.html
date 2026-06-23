@@ -1523,7 +1523,7 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
     <div class="header-right">
       <div class="live-badge"><span class="live-dot"></span>LIVE</div>
       <div class="header-date-chip" id="header-date">–</div>
-      <button class="history-btn" id="btn-history" onclick="toggleLoadAllHistory()" title="Por defeito carrega e-mails do último ano. Clique para carregar todo o histórico (mais lento).">📅 Último ano</button>
+      <button class="history-btn" id="btn-history" onclick="toggleLoadAllHistory()" title="Clique para carregar todo o histórico da caixa de correio (mais lento).">📦 Histórico completo</button>
       <button class="refresh-btn" id="refresh-btn" onclick="loadEmails(true)">↺ Actualizar</button>
       <button class="pdf-btn" onclick="downloadPDF()">⬇ PDF</button>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme(event)" title="Alternar tema"><span class="theme-btn-icon" id="theme-btn-icon">◈</span><span id="theme-btn-label">Cyber</span></button>
@@ -2718,10 +2718,10 @@ function _updateHistoryBtn(){
   const btn=document.getElementById('btn-history');
   if(!btn)return;
   if(_loadAllHistory){
-    btn.textContent='📦 Histórico completo ON';
+    btn.textContent='📦 Histórico completo ✓';
     btn.classList.add('history-btn-on');
   }else{
-    btn.textContent='📅 Último ano';
+    btn.textContent='📦 Histórico completo';
     btn.classList.remove('history-btn-on');
   }
 }
