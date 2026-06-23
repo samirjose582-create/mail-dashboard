@@ -2116,14 +2116,27 @@ async function fetchEmails(isRefresh=false) {
     _lastSyncTime=new Date().toISOString();
     return{unread:merged.filter(e=>!e.isRead),read:merged.filter(e=>e.isRead),flagged,total:merged.length};
   }
-  // Carga completa — sempre uma única página, sem paginação automática
-  // _loadAllHistory=true remove o filtro de data mas mantém o limite de 500
-  const dateFilter=_loadAllHistory?'':
-    `&$filter=receivedDateTime ge ${(()=>{const d=new Date();d.setFullYear(d.getFullYear()-1);return d.toISOString().slice(0,10)+'T00:00:00Z';})()}`;
-  const label=_loadAllHistory?' (histórico, sem filtro de data)':' (último ano)';
-  showLoading(`A buscar e-mails${label}…`);
+  // Histórico completo: pagina TUDO (escolha explícita do utilizador — pode ser lento)
+  if(_loadAllHistory){
+    showLoading('A carregar histórico completo… 0 carregados');
+    const [allRaw,flaggedRes]=await Promise.all([
+      graphGetAll(
+        `/me/mailFolders/Inbox/messages?$orderby=receivedDateTime desc&$top=999&$select=${SEL}`,
+        n=>showLoading(`A carregar histórico completo… ${n} carregados`)
+      ),
+      graphGet(`/me/messages?$filter=flag/flagStatus eq 'flagged'&$top=100&$select=${SEL}`)
+    ]);
+    if(!allRaw) throw new Error('Sem token ou sem conexão');
+    const all=allRaw.map(mapMsg);
+    const flagged=(flaggedRes?.value||[]).map(mapMsg);
+    _lastSyncTime=new Date().toISOString();
+    return{unread:all.filter(e=>!e.isRead),read:all.filter(e=>e.isRead),flagged,total:all.length};
+  }
+  // Modo normal: uma única página, os 500 mais recentes do último ano
+  const yearAgo=(()=>{const d=new Date();d.setFullYear(d.getFullYear()-1);return d.toISOString().slice(0,10)+'T00:00:00Z';})();
+  showLoading('A buscar e-mails (último ano)…');
   const [inboxRes,flaggedRes]=await Promise.all([
-    graphGet(`/me/mailFolders/Inbox/messages?$orderby=receivedDateTime desc&$top=500&$select=${SEL}${dateFilter}`),
+    graphGet(`/me/mailFolders/Inbox/messages?$orderby=receivedDateTime desc&$top=500&$select=${SEL}&$filter=receivedDateTime ge ${yearAgo}`),
     graphGet(`/me/messages?$filter=flag/flagStatus eq 'flagged'&$top=100&$select=${SEL}`)
   ]);
   if(!inboxRes) throw new Error('Sem token ou sem conexão');
