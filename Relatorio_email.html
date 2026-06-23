@@ -2603,11 +2603,9 @@ async function openEmailReader(id){
     // hasAttachments=false para e-mails com APENAS inline images (quirk do Graph API)
     if(msg.hasAttachments||_hasCidRefs){
       try{
-        // Quando há refs cid:, busca contentBytes já nesta chamada (evita round-trip extra)
-        const sel=_hasCidRefs
-          ?'id,name,size,contentType,isInline,contentId,contentBytes'
-          :'id,name,size,contentType,isInline,contentId';
-        const att=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments?$select=${sel}`);
+        // IMPORTANTE: contentId e contentBytes NÃO são suportados em $select na coleção
+        // → buscar apenas metadata aqui; conteúdo de cada inline vem em chamada separada
+        const att=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments?$select=id,name,size,contentType,isInline,contentId`);
         const allAtts=(att?.value||[]).filter(f=>f.contentType!=='application/ms-tnef');
         // Ficheiros visíveis → barra de anexos
         const files=allAtts.filter(f=>!f.isInline);
@@ -2616,19 +2614,23 @@ async function openEmailReader(id){
           el.className='er-attachments visible';
           el.innerHTML=`<span class="er-att-label">📎 ANEXOS</span>`+files.map(f=>`<span class="er-att-chip">📄 ${he(f.name||'')}<span>${(f.size/1024).toFixed(0)} KB</span><button class="er-att-dl" onclick="downloadAttachment('${esc(id)}','${esc(f.id)}','${esc(f.name)}','${esc(f.contentType||'')}',this)">⬇ Baixar</button></span>`).join('');
         }
-        // Substituir cid: por data URL (inclui VML <v:imagedata src="cid:...">)
+        // Buscar cada inline individualmente (sem $select, assim contentBytes é retornado)
         if(_hasCidRefs){
-          const inlines=allAtts.filter(f=>f.contentId&&f.contentBytes);
+          const inlines=allAtts.filter(f=>f.isInline&&f.contentId);
           for(const f of inlines){
-            const cid=f.contentId.replace(/^<|>$/g,'');
-            const dataUrl=`data:${f.contentType};base64,${f.contentBytes}`;
-            // Substitui cid:XXXX e cid:<XXXX> em src= e em atributos VML
-            _bodyContent=_bodyContent
-              .replace(new RegExp('cid:<'+cid.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'>','gi'),dataUrl)
-              .replace(new RegExp('cid:'+cid.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),dataUrl);
+            try{
+              const full=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(f.id)}`);
+              if(!full?.contentBytes)continue;
+              const cid=(full.contentId||f.contentId).replace(/^<|>$/g,'');
+              const dataUrl=`data:${full.contentType};base64,${full.contentBytes}`;
+              const cidEsc=cid.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+              _bodyContent=_bodyContent
+                .replace(new RegExp('cid:<'+cidEsc+'>','gi'),dataUrl)
+                .replace(new RegExp('cid:'+cidEsc,'gi'),dataUrl);
+            }catch(ie){console.warn('[email img inline]',f.name,ie);}
           }
         }
-      }catch(e){console.warn('[email img]',e);}
+      }catch(e){console.warn('[email att]',e);}
     }
     // body
     _erRenderBody(_bodyContent,msg.body?.contentType||'text');
