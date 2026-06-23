@@ -2598,7 +2598,11 @@ async function openEmailReader(id){
     _erRenderActions(msg,msg.flag?.flagStatus==='flagged');
     // attachments + substituição de imagens inline (cid:)
     let _bodyContent=msg.body?.content||'';
-    if(msg.hasAttachments){
+    const _isHtmlBody=msg.body?.contentType?.toLowerCase()==='html';
+    const _hasCidRefs=_isHtmlBody&&_bodyContent.includes('cid:');
+    // hasAttachments é false para e-mails com APENAS imagens inline (bug da API MS Graph)
+    // por isso também buscamos se o corpo HTML tiver referências cid:
+    if(msg.hasAttachments||_hasCidRefs){
       try{
         const att=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments?$select=id,name,size,contentType,isInline,contentId`);
         const allAtts=(att.value||[]).filter(f=>f.contentType!=='application/ms-tnef');
@@ -2610,8 +2614,8 @@ async function openEmailReader(id){
           el.innerHTML=`<span class="er-att-label">📎 ANEXOS</span>`+files.map(f=>`<span class="er-att-chip">📄 ${he(f.name||'')}<span>${(f.size/1024).toFixed(0)} KB</span><button class="er-att-dl" onclick="downloadAttachment('${esc(id)}','${esc(f.id)}','${esc(f.name)}','${esc(f.contentType||'')}',this)">⬇ Baixar</button></span>`).join('');
         }
         // Imagens inline → buscar contentBytes e substituir cid: por data URL
-        const inlines=allAtts.filter(f=>f.isInline&&f.contentId);
-        if(inlines.length&&msg.body?.contentType?.toLowerCase()==='html'){
+        if(_hasCidRefs){
+          const inlines=allAtts.filter(f=>f.isInline&&f.contentId);
           await Promise.all(inlines.map(f=>
             graphGet(`/me/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(f.id)}?$select=contentType,contentId,contentBytes`)
               .then(full=>{
