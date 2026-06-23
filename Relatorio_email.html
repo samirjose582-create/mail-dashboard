@@ -2070,12 +2070,9 @@ function mapMsg(m) {
 const SEL = 'id,subject,sender,receivedDateTime,bodyPreview,hasAttachments,importance,isRead,webLink,categories';
 
 async function fetchEmails() {
-  const since = _fetchSinceCustom
-    ? new Date(_fetchSinceCustom).toISOString()
-    : new Date(Date.now()-_fetchSinceDays*24*3600*1000).toISOString();
   const [inboxRes, flaggedRes] = await Promise.all([
-    graphGet(`/me/mailFolders/Inbox/messages?$filter=receivedDateTime ge ${since}&$orderby=receivedDateTime desc&$top=100&$select=${SEL}`),
-    graphGet(`/me/messages?$filter=flag/flagStatus eq 'flagged'&$top=50&$select=${SEL}`)
+    graphGet(`/me/mailFolders/Inbox/messages?$orderby=receivedDateTime desc&$top=500&$select=${SEL}`),
+    graphGet(`/me/messages?$filter=flag/flagStatus eq 'flagged'&$top=100&$select=${SEL}`)
   ]);
   // Se inboxRes for null (token inválido ou rede offline), lança erro para
   // preservar DATA existente no loadEmails — e-mails NÃO são zerados.
@@ -7917,12 +7914,13 @@ function hlMatch(text,q){
   }
 
   // Constrói query KQL: todos os termos únicos unidos por OR (rede ampla para a API)
+  // Retorna somente o conteúdo interno — as aspas externas são adicionadas na URL
   function _buildKQL(rules){
     const kws=[...new Set(
-      rules.flatMap(r=>r.keywords||[]).map(k=>k.trim()).filter(Boolean)
+      rules.flatMap(r=>r.keywords||[]).map(k=>k.trim().replace(/"/g,'')).filter(Boolean)
     )];
     if(!kws.length)return null;
-    return kws.map(k=>`"${k.replace(/"/g,'')}"`).join(' OR ');
+    return kws.join(' OR ');
   }
 
   // Busca na API e aplica filtragem local exata
@@ -7931,23 +7929,17 @@ function hlMatch(text,q){
     if(cached&&Date.now()-cached.ts<CACHE_TTL)return cached.emails;
     const kql=_buildKQL(rules);
     if(!kql)return[];
+    // Graph API: $search="<KQL>" — aspas externas são obrigatórias
+    const searchParam=encodeURIComponent('"'+kql+'"');
     try{
-      // Busca em toda a caixa de correio (sem limitação de data nem pasta)
-      const res=await graphGet(`/me/messages?$search=${encodeURIComponent('"'+kql+'"')}&$select=${SEL}&$top=50&$orderby=receivedDateTime desc`);
+      const res=await graphGet(`/me/messages?$search=${searchParam}&$select=${SEL}&$top=50`);
       const raw=(res?.value||[]).map(mapMsg);
-      // Pós-filtragem para garantir lógica AND/OR exata
       const emails=raw.filter(e=>_matchEmail(e,rules));
       _cache.set(pid,{emails,ts:Date.now()});
       return emails;
     }catch(err){
-      // $orderby não suportado com $search — retry sem
-      try{
-        const res2=await graphGet(`/me/messages?$search=${encodeURIComponent('"'+kql+'"')}&$select=${SEL}&$top=50`);
-        const raw2=(res2?.value||[]).map(mapMsg);
-        const emails2=raw2.filter(e=>_matchEmail(e,rules));
-        _cache.set(pid,{emails:emails2,ts:Date.now()});
-        return emails2;
-      }catch(err2){console.warn('[pj search]',err2);return[];}
+      console.warn('[pj search]',err);
+      return[];
     }
   }
 
