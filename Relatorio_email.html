@@ -143,6 +143,11 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .refresh-btn{background:var(--green-dim);border:1px solid rgba(74,222,128,.3);color:var(--green);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;}
 .refresh-btn:hover{background:rgba(74,222,128,.2);box-shadow:0 0 12px rgba(74,222,128,.15);}
 .refresh-btn:disabled{opacity:.4;cursor:not-allowed;}
+.history-btn{background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.25);color:var(--text-muted);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:600;transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;}
+.history-btn:hover{border-color:rgba(148,163,184,.5);color:var(--text);}
+.history-btn.history-btn-on{background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.4);color:#fbbf24;}
+html[data-theme="white"] .history-btn{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.15);color:#555;}
+html[data-theme="white"] .history-btn.history-btn-on{background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.35);color:#d97706;}
 .pdf-btn{background:var(--blue-dim);border:1px solid rgba(56,189,248,.3);color:var(--blue);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;}
 .pdf-btn:hover{background:rgba(56,189,248,.2);box-shadow:0 0 12px var(--blue-glow);}
 .logout-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:.72rem;font-weight:500;transition:all .2s;white-space:nowrap;font-family:'Inter',sans-serif;}
@@ -1518,6 +1523,7 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
     <div class="header-right">
       <div class="live-badge"><span class="live-dot"></span>LIVE</div>
       <div class="header-date-chip" id="header-date">–</div>
+      <button class="history-btn" id="btn-history" onclick="toggleLoadAllHistory()" title="Por defeito carrega e-mails do último ano. Clique para carregar todo o histórico (mais lento).">📅 Último ano</button>
       <button class="refresh-btn" id="refresh-btn" onclick="loadEmails(true)">↺ Actualizar</button>
       <button class="pdf-btn" onclick="downloadPDF()">⬇ PDF</button>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme(event)" title="Alternar tema"><span class="theme-btn-icon" id="theme-btn-icon">◈</span><span id="theme-btn-label">Cyber</span></button>
@@ -1675,7 +1681,11 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Garante que "Histórico completo" nunca fica ligado entre sessões por acidente
+  _loadAllHistory = false;
+  localStorage.removeItem('_loadAllHistory');
   _initTabsScroll();
+  _updateHistoryBtn();
 });
 
 function _initTabsScroll(){
@@ -2087,19 +2097,40 @@ function mapMsg(m) {
 
 const SEL = 'id,subject,sender,receivedDateTime,bodyPreview,hasAttachments,importance,isRead,webLink,categories';
 
-async function fetchEmails() {
-  showLoading('A buscar e-mails… 0 carregados');
-  const [allRaw, flaggedRes] = await Promise.all([
-    graphGetAll(
-      `/me/mailFolders/Inbox/messages?$orderby=receivedDateTime desc&$top=500&$select=${SEL}`,
-      n => showLoading(`A buscar e-mails… ${n} carregados`)
-    ),
+async function fetchEmails(isRefresh=false) {
+  // Incremental: só e-mails novos desde o último sync (1h de margem)
+  if(isRefresh && _lastSyncTime){
+    const since=new Date(new Date(_lastSyncTime).getTime()-60*60*1000).toISOString();
+    showLoading('A verificar novidades…');
+    const [recentRes,flaggedRes]=await Promise.all([
+      graphGet(`/me/mailFolders/Inbox/messages?$orderby=receivedDateTime desc&$top=200&$select=${SEL}&$filter=receivedDateTime ge ${since}`),
+      graphGet(`/me/messages?$filter=flag/flagStatus eq 'flagged'&$top=100&$select=${SEL}`)
+    ]);
+    if(!recentRes) throw new Error('Sem conexão — e-mails anteriores mantidos');
+    const freshMap=new Map((recentRes.value||[]).map(m=>[m.id,mapMsg(m)]));
+    const existing=[...DATA.unread,...DATA.read];
+    const existingIds=new Set(existing.map(e=>e.id));
+    const merged=existing.map(e=>freshMap.has(e.id)?freshMap.get(e.id):e);
+    for(const[id,email]of freshMap) if(!existingIds.has(id)) merged.push(email);
+    const flagged=(flaggedRes?.value||[]).map(mapMsg);
+    _lastSyncTime=new Date().toISOString();
+    return{unread:merged.filter(e=>!e.isRead),read:merged.filter(e=>e.isRead),flagged,total:merged.length};
+  }
+  // Carga completa — sempre uma única página, sem paginação automática
+  // _loadAllHistory=true remove o filtro de data mas mantém o limite de 500
+  const dateFilter=_loadAllHistory?'':
+    `&$filter=receivedDateTime ge ${(()=>{const d=new Date();d.setFullYear(d.getFullYear()-1);return d.toISOString().slice(0,10)+'T00:00:00Z';})()}`;
+  const label=_loadAllHistory?' (histórico, sem filtro de data)':' (último ano)';
+  showLoading(`A buscar e-mails${label}…`);
+  const [inboxRes,flaggedRes]=await Promise.all([
+    graphGet(`/me/mailFolders/Inbox/messages?$orderby=receivedDateTime desc&$top=500&$select=${SEL}${dateFilter}`),
     graphGet(`/me/messages?$filter=flag/flagStatus eq 'flagged'&$top=100&$select=${SEL}`)
   ]);
-  if (!allRaw) throw new Error('Sem token ou sem conexão — e-mails anteriores mantidos');
-  const all = allRaw.map(mapMsg);
-  const flagged = (flaggedRes?.value||[]).map(mapMsg);
-  return {unread:all.filter(e=>!e.isRead), read:all.filter(e=>e.isRead), flagged, total:all.length};
+  if(!inboxRes) throw new Error('Sem token ou sem conexão');
+  const all=(inboxRes.value||[]).map(mapMsg);
+  const flagged=(flaggedRes?.value||[]).map(mapMsg);
+  _lastSyncTime=new Date().toISOString();
+  return{unread:all.filter(e=>!e.isRead),read:all.filter(e=>e.isRead),flagged,total:all.length};
 }
 
 async function fetchCalendarEvents(){
@@ -2188,6 +2219,8 @@ let ALL_EMAILS=[];
 let _sentLoaded=false;
 let _fetchSinceDays=7;
 let _fetchSinceCustom=null; // ISO date string quando modo personalizado
+let _loadAllHistory=localStorage.getItem('_loadAllHistory')==='1'; // false = limita 1 ano
+let _lastSyncTime=null; // ISO datetime após primeira carga completa — habilita sync incremental
 let refreshTimer=null;
 const PIN_CAT='📌 Fixado';
 let PINNED_IDS=new Set();
@@ -2223,7 +2256,7 @@ async function loadEmails(manual=false){
   if(manual){btn.disabled=true;btn.textContent='↺ A carregar...';}
   try{
     showLoading('A buscar e-mails e reuniões...');
-    const [result,calEvents]=await Promise.all([fetchEmails(),fetchCalendarEvents()]);
+    const [result,calEvents]=await Promise.all([fetchEmails(manual),fetchCalendarEvents()]);
     CALENDAR_EVENTS=calEvents;
     DATA=result;
     buildDerived();
@@ -2245,7 +2278,7 @@ async function loadEmails(manual=false){
     _checkIOSInstall();
     if(manual){btn.disabled=false;btn.textContent='↺ Actualizar';}
     if(refreshTimer)clearTimeout(refreshTimer);
-    refreshTimer=setTimeout(()=>loadEmails(),5*60*1000);
+    refreshTimer=setTimeout(()=>loadEmails(true),5*60*1000);
   }
 }
 
@@ -2531,13 +2564,53 @@ function renderSentPanel(){
     : sh('var(--cyan)','📤 ENVIADOS',0)+empty('📤','Nenhum e-mail enviado','');
 }
 
+// Renderiza lista de itens em lotes de PAGE conforme o scroll (scroll infinito)
+function _lazyRender(container, items, renderFn, prefixHtml=''){
+  container.innerHTML=prefixHtml;
+  if(!items.length)return;
+  const PAGE=50;
+  let offset=0;
+  const root=container.closest('.email-panel')||container.parentElement;
+  function more(){
+    container.querySelector('.lazy-sentinel')?.remove();
+    const chunk=items.slice(offset,offset+PAGE);
+    if(!chunk.length)return;
+    const frag=document.createDocumentFragment();
+    chunk.forEach(item=>{
+      const t=document.createElement('template');
+      t.innerHTML=renderFn(item);
+      frag.appendChild(t.content);
+    });
+    container.appendChild(frag);
+    offset+=chunk.length;
+    applyFilters();
+    if(offset<items.length){
+      const s=document.createElement('div');
+      s.className='lazy-sentinel';
+      s.style.cssText='height:4px;pointer-events:none;';
+      container.appendChild(s);
+      new IntersectionObserver(([e],obs)=>{
+        if(e.isIntersecting){obs.disconnect();more();}
+      },{root,rootMargin:'500px'}).observe(s);
+    }
+  }
+  more();
+}
+
 function renderAll(){
   _buildEmailMap();
-  document.getElementById('panel-urgencias').innerHTML=URGENCIAS.length?sh('var(--red)','🔥 URGÊNCIAS DO DIA',URGENCIAS.length)+URGENCIAS.map(e=>`<div class="urgency-card" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${clean(e.summary).toLowerCase()}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`).join(''):empty('✓','Sem urgências','Nenhum e-mail crítico. Bom dia!');
+
+  // Urgências
+  const _urgEl=document.getElementById('panel-urgencias');
+  if(URGENCIAS.length){
+    _lazyRender(_urgEl,URGENCIAS,
+      e=>`<div class="urgency-card" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${clean(e.summary).toLowerCase()}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="window.open('${esc(e.webLink||'#')}','_blank')"><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`,
+      sh('var(--red)','🔥 URGÊNCIAS DO DIA',URGENCIAS.length));
+  }else{_urgEl.innerHTML=empty('✓','Sem urgências','Nenhum e-mail crítico. Bom dia!');}
+
+  // Não lidos + fixados (estrutura com subtabs)
   {
     const pinnedAll=(()=>{const seen=new Set(),arr=[...DATA.unread,...DATA.read,...DATA.flagged];return arr.filter(e=>PINNED_IDS.has(e.id)&&!seen.has(e.id)&&seen.add(e.id));})();
-    const unreadHtml=DATA.unread.length?sh('var(--blue)','📥 NÃO LIDOS',DATA.unread.length)+sortPinnedFirst(DATA.unread).map(emailCard).join(''):empty('📭','Inbox limpo','Nenhum e-mail não lido.');
-    const pinnedHtml=pinnedAll.length?sh('var(--yellow)','📌 FIXADOS',pinnedAll.length)+pinnedAll.map(e=>emailCard(e,DATA.flagged.find(f=>f.id===e.id)?'flagged':'')).join(''):empty('📌','Nenhum fixado','Clique em 📌 Fixar em qualquer e-mail para ele aparecer aqui.');
     const _chips=[{d:3,l:'3 dias'},{d:7,l:'7 dias'},{d:15,l:'15 dias'},{d:30,l:'30 dias'},{d:90,l:'3 meses'}];
     const _customDateVal=_fetchSinceCustom?_fetchSinceCustom.slice(0,10):'';
     const _isCustom=!!_fetchSinceCustom;
@@ -2553,16 +2626,41 @@ function renderAll(){
         <button class="usub active" id="usub-btn-all" onclick="switchUnreadSub('all',this)">📥 Não Lidos <span class="usub-cnt">${DATA.unread.length}</span></button>
         <button class="usub pin-sub" id="usub-btn-pinned" onclick="switchUnreadSub('pinned',this)">📌 Fixados <span class="usub-cnt">${pinnedAll.length}</span></button>
       </div>
-      <div class="usub-section" id="usub-all">${unreadHtml}</div>
-      <div class="usub-section" id="usub-pinned" style="display:none">${pinnedHtml}</div>`;
+      <div class="usub-section" id="usub-all"></div>
+      <div class="usub-section" id="usub-pinned" style="display:none"></div>`;
+    const unreadItems=sortPinnedFirst(DATA.unread);
+    if(unreadItems.length) _lazyRender(document.getElementById('usub-all'),unreadItems,emailCard,sh('var(--blue)','📥 NÃO LIDOS',unreadItems.length));
+    else document.getElementById('usub-all').innerHTML=empty('📭','Inbox limpo','Nenhum e-mail não lido.');
+    if(pinnedAll.length) _lazyRender(document.getElementById('usub-pinned'),pinnedAll,e=>emailCard(e,DATA.flagged.find(f=>f.id===e.id)?'flagged':''),sh('var(--yellow)','📌 FIXADOS',pinnedAll.length));
+    else document.getElementById('usub-pinned').innerHTML=empty('📌','Nenhum fixado','Clique em 📌 Fixar em qualquer e-mail para ele aparecer aqui.');
   }
-  document.getElementById('panel-responder').innerHTML=RESPONDER.length?sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',RESPONDER.length)+RESPONDER.map(e=>replyCard(e)).join(''):empty('✓','Nada a responder','');
+
+  // Responder
+  const _respEl=document.getElementById('panel-responder');
+  if(RESPONDER.length) _lazyRender(_respEl,RESPONDER,e=>replyCard(e),sh('var(--yellow)','💬 AGUARDANDO RESPOSTA',RESPONDER.length));
+  else _respEl.innerHTML=empty('✓','Nada a responder','');
+
   renderMeetingCal();
   if(window.renderProjetosPanel)renderProjetosPanel();
-  document.getElementById('panel-fixados').innerHTML=DATA.flagged.length?sh('var(--orange)','🚩 SINALIZADOS',DATA.flagged.length)+sortPinnedFirst(DATA.flagged).map(e=>emailCard(e,'flagged')).join(''):empty('🚩','Nenhum sinalizado','Marque e-mails com 🚩 no Outlook para aparecerem aqui.');
-  document.getElementById('panel-lidos').innerHTML=DATA.read.length?sh('var(--text-soft)','✓ LIDOS',DATA.read.length)+sortPinnedFirst(DATA.read).map(emailCard).join(''):empty('✓','Nenhum lido','');
+
+  // Fixados
+  const _flagEl=document.getElementById('panel-fixados');
+  const _flagItems=sortPinnedFirst(DATA.flagged);
+  if(_flagItems.length) _lazyRender(_flagEl,_flagItems,e=>emailCard(e,'flagged'),sh('var(--orange)','🚩 SINALIZADOS',_flagItems.length));
+  else _flagEl.innerHTML=empty('🚩','Nenhum sinalizado','Marque e-mails com 🚩 no Outlook para aparecerem aqui.');
+
+  // Lidos
+  const _lidEl=document.getElementById('panel-lidos');
+  const _lidItems=sortPinnedFirst(DATA.read);
+  if(_lidItems.length) _lazyRender(_lidEl,_lidItems,emailCard,sh('var(--text-soft)','✓ LIDOS',_lidItems.length));
+  else _lidEl.innerHTML=empty('✓','Nenhum lido','');
+
+  // Todos
   const allE=sortPinnedFirst([...DATA.unread,...DATA.read]);
-  document.getElementById('panel-todos').innerHTML=allE.length?sh('var(--text-soft)','≡ TODOS',allE.length)+allE.map(emailCard).join(''):empty('📋','Vazio','');
+  const _todosEl=document.getElementById('panel-todos');
+  if(allE.length) _lazyRender(_todosEl,allE,emailCard,sh('var(--text-soft)','≡ TODOS',allE.length));
+  else _todosEl.innerHTML=empty('📋','Vazio','');
+
   applyFilters();
   setTimeout(renderAnalytics,80);
 }
@@ -2579,8 +2677,8 @@ async function setFetchPeriod(days){
   _fetchSinceCustom=null;
   const ind=document.getElementById('fetch-loading-indicator');
   if(ind){ind.style.display='inline';}
-  await loadEmails();
-  // re-activate the tab after reload
+  _lastSyncTime=null;
+  await loadEmails(false);
   setTimeout(()=>{ switchTab('unread'); },50);
 }
 
@@ -2592,8 +2690,27 @@ async function setFetchCustomDate(dateStr){
   if(inp)inp.style.display='';
   const ind=document.getElementById('fetch-loading-indicator');
   if(ind)ind.style.display='inline';
-  await loadEmails();
+  _lastSyncTime=null;
+  await loadEmails(false);
   setTimeout(()=>{ switchTab('unread'); },50);
+}
+async function toggleLoadAllHistory(){
+  _loadAllHistory=!_loadAllHistory;
+  localStorage.setItem('_loadAllHistory',_loadAllHistory?'1':'0');
+  _updateHistoryBtn();
+  _lastSyncTime=null; // força carga completa com nova configuração
+  await loadEmails(false);
+}
+function _updateHistoryBtn(){
+  const btn=document.getElementById('btn-history');
+  if(!btn)return;
+  if(_loadAllHistory){
+    btn.textContent='📦 Histórico completo ON';
+    btn.classList.add('history-btn-on');
+  }else{
+    btn.textContent='📅 Último ano';
+    btn.classList.remove('history-btn-on');
+  }
 }
 function toggleProject(uid){const el=document.getElementById(uid),pg=document.getElementById('pg_'+uid);if(el){el.classList.toggle('open');if(pg)pg.classList.toggle('open');}}
 
