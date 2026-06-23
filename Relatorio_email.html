@@ -7892,58 +7892,30 @@ function hlMatch(text,q){
   };
 })();
 
-// ── PROJETOS — CONTRATOS COM BUSCA NA API ─────────────────────────────────────
+// ── PROJETOS — CONTRATOS COM REGRAS ──────────────────────────────────────────
 (function(){
   const PREM_STORE='_prem_v1';
-  const CACHE_TTL=3*60*1000; // 3 min por projeto
-  const _cache=new Map(); // pid → {emails,ts}
-
   function _pLoad(){try{return JSON.parse(localStorage.getItem(PREM_STORE))||{projects:[]};}catch{return{projects:[]};}}
   function _pSave(d){localStorage.setItem(PREM_STORE,JSON.stringify(d));}
   function _uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 
-  // Verifica e-mail contra regras (sujeito+remetente+preview — pós-filtragem local)
-  function _matchEmail(email,rules){
-    if(!rules||!rules.length)return false;
-    const hay=[email.subject||'',email.senderName||'',email.sender||'',email.summary||email.bodyPreview||''].join(' ').toLowerCase();
-    return rules.some(r=>{
-      const kws=(r.keywords||[]).map(k=>k.toLowerCase().trim()).filter(Boolean);
-      if(!kws.length)return false;
-      return r.logic==='AND'?kws.every(k=>hay.includes(k)):kws.some(k=>hay.includes(k));
+  // Retorna todos os e-mails carregados que satisfazem as regras
+  function _filter(rules){
+    const all=ALL_EMAILS||[];
+    if(!rules||!rules.length)return all; // sem regras → mostra todos
+    const hasKw=rules.some(r=>(r.keywords||[]).some(k=>k.trim()));
+    if(!hasKw)return all; // regras sem palavras → mostra todos
+    return all.filter(email=>{
+      const hay=[email.subject||'',email.senderName||'',email.sender||'',email.summary||''].join(' ').toLowerCase();
+      return rules.some(r=>{
+        const kws=(r.keywords||[]).map(k=>k.toLowerCase().trim()).filter(Boolean);
+        if(!kws.length)return true; // regra vazia aceita tudo
+        return r.logic==='AND'?kws.every(k=>hay.includes(k)):kws.some(k=>hay.includes(k));
+      });
     });
   }
 
-  // Constrói query KQL: todos os termos únicos unidos por OR (rede ampla para a API)
-  // Retorna somente o conteúdo interno — as aspas externas são adicionadas na URL
-  function _buildKQL(rules){
-    const kws=[...new Set(
-      rules.flatMap(r=>r.keywords||[]).map(k=>k.trim().replace(/"/g,'')).filter(Boolean)
-    )];
-    if(!kws.length)return null;
-    return kws.join(' OR ');
-  }
-
-  // Busca na API e aplica filtragem local exata
-  async function _searchEmails(pid,rules){
-    const cached=_cache.get(pid);
-    if(cached&&Date.now()-cached.ts<CACHE_TTL)return cached.emails;
-    const kql=_buildKQL(rules);
-    if(!kql)return[];
-    // Graph API: $search="<KQL>" — aspas externas são obrigatórias
-    const searchParam=encodeURIComponent('"'+kql+'"');
-    try{
-      const res=await graphGet(`/me/messages?$search=${searchParam}&$select=${SEL}&$top=50`);
-      const raw=(res?.value||[]).map(mapMsg);
-      const emails=raw.filter(e=>_matchEmail(e,rules));
-      _cache.set(pid,{emails,ts:Date.now()});
-      return emails;
-    }catch(err){
-      console.warn('[pj search]',err);
-      return[];
-    }
-  }
-
-  // ── RENDER PRINCIPAL ────────────────────────────────────────────────────────
+  // ── RENDER PRINCIPAL ───────────────────────────────────────────────────────
   function renderProjetosPanel(){
     const el=document.getElementById('panel-projetos');
     if(!el)return;
@@ -7953,137 +7925,105 @@ function hlMatch(text,q){
       el.innerHTML=`<div class="empty"><div class="icon">🗂</div><h3>Nenhum contrato criado</h3><p>Crie contratos na aba <strong>📋 Premissas</strong> para organizar e-mails por contrato.</p></div>`;
       return;
     }
+    // Preservar blocos abertos
     const openSet=new Set();
     el.querySelectorAll('.proj-block.open').forEach(b=>openSet.add(b.dataset.pid));
-    let html=`<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);padding:0 2px 10px;">🗂 CONTRATOS · ${projs.length} <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted)">· busca em toda a caixa de correio</span></div>`;
+    let html=`<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--green);padding:0 2px 10px;">🗂 CONTRATOS · ${projs.length}</div>`;
     projs.forEach(p=>{
       const rules=p.emailRules||[];
+      const matched=_filter(rules);
+      const unread=matched.filter(e=>!e.isRead).length;
       const isOpen=openSet.has(p.id);
       const color=p.color||'#06b6d4';
-      // Mostra cache se disponível, senão placeholder
-      const cached=_cache.get(p.id);
-      const cachedEmails=cached?cached.emails:null;
-      const emailsHtml=cachedEmails
-        ?( cachedEmails.length?cachedEmails.map(e=>emailCard(e)).join(''):`<div class="proj-no-emails">Nenhum e-mail encontrado com os filtros configurados.</div>`)
-        :(rules.length?`<div class="proj-no-emails pj-loading" id="pj-loading-${p.id}">⏳ Clique para buscar e-mails…</div>`:`<div class="proj-no-emails">Configure palavras-chave acima para filtrar e-mails neste contrato.</div>`);
-      const count=cachedEmails?`${_countLabel(cachedEmails.length,cachedEmails.filter(e=>!e.isRead).length,rules.length)}`:(rules.length?'<em style="color:var(--text-muted)">— aguardando busca</em>':'<em style="color:var(--text-muted)">sem filtros</em>');
       html+=`<div class="proj-block${isOpen?' open':''}" data-pid="${p.id}" style="--pc:${color}">
         <div class="proj-block-hdr" onclick="toggleProjBlock('${p.id}')">
           <span class="proj-block-code">${he(p.code||'—')}</span>
           <span class="proj-block-name">${he(p.name)}</span>
-          <span class="proj-block-count" id="pj-cnt-${p.id}">${count}</span>
+          <span class="proj-block-count">${_lbl(matched.length,unread)}</span>
           <span class="proj-block-chevron">›</span>
         </div>
         <div class="proj-block-body">
-          ${_renderRulesEditor(p)}
-          <div class="proj-emails-wrap" id="pj-mails-${p.id}">${emailsHtml}</div>
+          ${_rulesEditor(p)}
+          <div class="proj-emails-wrap">${matched.map(e=>emailCard(e)).join('')||'<div class="proj-no-emails">Nenhum e-mail encontrado nos carregados.</div>'}</div>
         </div>
       </div>`;
     });
     el.innerHTML=html;
-    // Dispara busca para blocos abertos que não têm cache
-    projs.forEach(p=>{if(openSet.has(p.id)&&!_cache.has(p.id))_loadEmails(p.id);});
   }
 
-  function _countLabel(total,unread,ruleCount){
-    let s=`${total} e-mail${total!==1?'s':''}`;
-    if(unread)s+=` · <span style="color:var(--blue)">${unread} não lido${unread!==1?'s':''}</span>`;
-    if(!ruleCount)s+=` · <em style="color:var(--text-muted)">sem filtros</em>`;
+  function _lbl(n,u){
+    let s=`${n} e-mail${n!==1?'s':''}`;
+    if(u)s+=` · <span style="color:var(--blue)">${u} não lido${u!==1?'s':''}</span>`;
     return s;
   }
 
-  function _renderRulesEditor(p){
+  function _rulesEditor(p){
     const rules=p.emailRules||[];
     const pid=p.id;
-    const rulesHtml=rules.map((r,i)=>`
-      ${i>0?`<div class="proj-rule-or-sep">— OU —</div>`:''}
-      <div class="proj-rule-item" id="pr-${r.id}">
+    const rows=rules.map((r,i)=>`
+      ${i>0?'<div class="proj-rule-or-sep">— OU —</div>':''}
+      <div class="proj-rule-item">
         <div class="proj-rule-top">
-          <span class="proj-rule-logic ${r.logic==='AND'?'and':'or'}" onclick="pjToggleLogic('${pid}','${r.id}')" title="Clique para alternar OR / AND">${r.logic}</span>
-          <span class="proj-rule-desc">${r.logic==='AND'?'Todos os termos devem estar presentes':'Qualquer termo é suficiente'}</span>
-          <button class="proj-rule-del" onclick="pjRemoveRule('${pid}','${r.id}')" title="Remover regra">✕</button>
+          <span class="proj-rule-logic ${r.logic==='AND'?'and':'or'}" onclick="pjToggleLogic('${pid}','${r.id}')" title="Clique para alternar">${r.logic}</span>
+          <span class="proj-rule-desc">${r.logic==='AND'?'Todos os termos presentes':'Qualquer termo é suficiente'}</span>
+          <button class="proj-rule-del" onclick="pjRemoveRule('${pid}','${r.id}')">✕</button>
         </div>
         <div class="proj-rule-kws">
-          ${(r.keywords||[]).map(kw=>`<span class="proj-kw-chip">${he(kw)}<button onclick="pjRemoveKw('${pid}','${r.id}','${esc(kw)}')" title="Remover">×</button></span>`).join('')}
+          ${(r.keywords||[]).map(kw=>`<span class="proj-kw-chip">${he(kw)}<button onclick="pjRemoveKw('${pid}','${r.id}','${esc(kw)}')">×</button></span>`).join('')}
           <input class="proj-kw-input" id="kwi-${r.id}" placeholder="Palavra… Enter para add"
-            onkeydown="pjInputKw(event,'${pid}','${r.id}')"
-            onfocus="this.select()" autocomplete="off">
+            onkeydown="pjInputKw(event,'${pid}','${r.id}')" onfocus="this.select()" autocomplete="off">
         </div>
       </div>`).join('');
-    return `<div class="proj-rules-panel" id="pj-rules-${pid}">
+    return `<div class="proj-rules-panel">
       <div class="proj-rules-hdr">
         <span class="proj-rules-title">🔍 Filtros por palavras-chave</span>
-        <span class="proj-rules-hint">Regras separadas por OR · palavras dentro de uma regra seguem a lógica escolhida</span>
+        <span class="proj-rules-hint">Sem regras = todos os e-mails · regras unidas por OR · lógica interna configurável</span>
       </div>
-      ${rulesHtml}
+      ${rows}
       <button class="proj-rules-add-btn" onclick="pjAddRule('${pid}')">＋ Adicionar Regra</button>
     </div>`;
   }
 
-  // Busca assíncrona e atualiza o bloco
-  async function _loadEmails(pid){
+  function _refresh(pid){
+    const block=document.querySelector(`.proj-block[data-pid="${pid}"]`);
+    if(!block)return;
     const d=_pLoad();
     const p=d.projects.find(x=>x.id===pid);
     if(!p)return;
     const rules=p.emailRules||[];
-    const mailsWrap=document.getElementById(`pj-mails-${pid}`);
-    if(!mailsWrap)return;
-    if(!rules.length){mailsWrap.innerHTML=`<div class="proj-no-emails">Configure palavras-chave acima para filtrar e-mails neste contrato.</div>`;return;}
-    mailsWrap.innerHTML=`<div class="proj-no-emails">⏳ Buscando e-mails em toda a caixa de correio…</div>`;
-    const emails=await _searchEmails(pid,rules);
-    const block=document.querySelector(`.proj-block[data-pid="${pid}"]`);
-    if(!block)return;
-    const freshWrap=document.getElementById(`pj-mails-${pid}`);
-    if(freshWrap)freshWrap.innerHTML=emails.length?emails.map(e=>emailCard(e)).join(''):`<div class="proj-no-emails">Nenhum e-mail encontrado para os filtros configurados.</div>`;
-    const cnt=document.getElementById(`pj-cnt-${pid}`);
-    if(cnt)cnt.innerHTML=_countLabel(emails.length,emails.filter(e=>!e.isRead).length,rules.length);
-  }
-
-  // Invalida cache e re-busca
-  function _refreshAndSearch(pid){
-    _cache.delete(pid);
-    const d=_pLoad();
-    const p=d.projects.find(x=>x.id===pid);
-    if(!p)return;
-    const block=document.querySelector(`.proj-block[data-pid="${pid}"]`);
-    if(!block)return;
-    // Re-renderiza editor de regras
+    const matched=_filter(rules);
+    const unread=matched.filter(e=>!e.isRead).length;
+    // Header
+    const cnt=block.querySelector('.proj-block-count');
+    if(cnt)cnt.innerHTML=_lbl(matched.length,unread);
+    // Editor
     const rp=block.querySelector('.proj-rules-panel');
-    if(rp){const tmp=document.createElement('div');tmp.innerHTML=_renderRulesEditor(p);rp.replaceWith(tmp.firstElementChild);}
-    // Re-busca e-mails se bloco aberto
-    if(block.classList.contains('open'))_loadEmails(pid);
+    if(rp){const t=document.createElement('div');t.innerHTML=_rulesEditor(p);rp.replaceWith(t.firstElementChild);}
+    // Lista
+    const wrap=block.querySelector('.proj-emails-wrap');
+    if(wrap)wrap.innerHTML=matched.map(e=>emailCard(e)).join('')||'<div class="proj-no-emails">Nenhum e-mail encontrado nos carregados.</div>';
   }
 
-  // ── API PÚBLICA ─────────────────────────────────────────────────────────────
+  // ── API PÚBLICA ────────────────────────────────────────────────────────────
   window.renderProjetosPanel=renderProjetosPanel;
-
-  window.toggleProjBlock=function(pid){
-    const block=document.querySelector(`.proj-block[data-pid="${pid}"]`);
-    if(!block)return;
-    block.classList.toggle('open');
-    if(block.classList.contains('open'))_loadEmails(pid);
-  };
-
+  window.toggleProjBlock=function(pid){document.querySelector(`.proj-block[data-pid="${pid}"]`)?.classList.toggle('open');};
   window.pjAddRule=function(pid){
     const d=_pLoad();const p=d.projects.find(x=>x.id===pid);if(!p)return;
     if(!p.emailRules)p.emailRules=[];
     p.emailRules.push({id:_uid(),keywords:[],logic:'OR'});
-    _pSave(d);_refreshAndSearch(pid);
+    _pSave(d);_refresh(pid);
   };
-
   window.pjRemoveRule=function(pid,rid){
     const d=_pLoad();const p=d.projects.find(x=>x.id===pid);if(!p||!p.emailRules)return;
     p.emailRules=p.emailRules.filter(r=>r.id!==rid);
-    _pSave(d);_refreshAndSearch(pid);
+    _pSave(d);_refresh(pid);
   };
-
   window.pjToggleLogic=function(pid,rid){
     const d=_pLoad();const p=d.projects.find(x=>x.id===pid);
     const r=p?.emailRules?.find(x=>x.id===rid);if(!r)return;
     r.logic=r.logic==='OR'?'AND':'OR';
-    _pSave(d);_refreshAndSearch(pid);
+    _pSave(d);_refresh(pid);
   };
-
   window.pjInputKw=function(ev,pid,rid){
     if(ev.key!=='Enter'&&ev.key!==',')return;
     ev.preventDefault();
@@ -8093,15 +8033,14 @@ function hlMatch(text,q){
     const r=p?.emailRules?.find(x=>x.id===rid);if(!r)return;
     if(!r.keywords)r.keywords=[];
     if(!r.keywords.includes(val))r.keywords.push(val);
-    _pSave(d);_refreshAndSearch(pid);
+    _pSave(d);_refresh(pid);
     setTimeout(()=>document.getElementById('kwi-'+rid)?.focus(),30);
   };
-
   window.pjRemoveKw=function(pid,rid,kw){
     const d=_pLoad();const p=d.projects.find(x=>x.id===pid);
     const r=p?.emailRules?.find(x=>x.id===rid);if(!r)return;
     r.keywords=(r.keywords||[]).filter(k=>k!==kw);
-    _pSave(d);_refreshAndSearch(pid);
+    _pSave(d);_refresh(pid);
   };
 })();
 </script>
