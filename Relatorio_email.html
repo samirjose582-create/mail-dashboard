@@ -28,6 +28,69 @@
   --text:#e2e8f0;--text-soft:#8892a4;--text-muted:#4a5568;
   --mono:'JetBrains Mono',monospace;
 }
+/* ── CYBER PURPLE THEME ── */
+html[data-theme="cyber"]{
+  --bg:#06020f;--surface:#0d0623;--surface2:#150a30;--surface3:#1d1145;
+  --border:rgba(168,85,247,.13);--border2:rgba(168,85,247,.26);
+  --blue:#a855f7;--blue-glow:rgba(168,85,247,.26);--blue-dim:rgba(168,85,247,.1);
+  --red:#f472b6;--red-glow:rgba(244,114,182,.18);--red-dim:rgba(244,114,182,.08);
+  --green:#34d399;--green-dim:rgba(52,211,153,.08);
+  --orange:#fb923c;--orange-dim:rgba(251,146,60,.08);
+  --purple:#e879f9;--purple-dim:rgba(232,121,249,.12);
+  --yellow:#fbbf24;--yellow-dim:rgba(251,191,36,.08);
+  --cyan:#818cf8;--cyan-glow:rgba(129,140,248,.2);--cyan-dim:rgba(129,140,248,.1);
+  --text:#ede9fe;--text-soft:#9d8ec0;--text-muted:#5a4a80;
+}
+html[data-theme="cyber"] body{
+  background-image:
+    radial-gradient(ellipse 100% 45% at 50% -8%,rgba(168,85,247,.13) 0%,transparent 65%),
+    radial-gradient(ellipse 60% 30% at 85% 80%,rgba(232,121,249,.05) 0%,transparent 60%);
+}
+html[data-theme="cyber"] .header{
+  background:linear-gradient(180deg,rgba(10,2,24,.97) 0%,rgba(8,1,20,.99) 100%);
+  border-bottom-color:rgba(168,85,247,.22);
+}
+html[data-theme="cyber"] .header::after{
+  background:linear-gradient(90deg,transparent 0%,#7c3aed 35%,#e879f9 50%,#7c3aed 65%,transparent 100%);
+  opacity:.6;
+}
+html[data-theme="cyber"] .brand-icon{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.35);}
+html[data-theme="cyber"] .login-box{box-shadow:0 0 80px rgba(168,85,247,.12);border-color:rgba(168,85,247,.2);}
+html[data-theme="cyber"] .login-logo{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.3);}
+html[data-theme="cyber"] .email-card{border-color:rgba(168,85,247,.09);}
+html[data-theme="cyber"] .email-card:hover{border-color:rgba(168,85,247,.32);box-shadow:0 0 22px rgba(168,85,247,.13),0 4px 28px rgba(0,0,0,.45);}
+html[data-theme="cyber"] .email-card.unread-card{border-left-color:#a855f7;box-shadow:-2px 0 12px rgba(168,85,247,.18);}
+html[data-theme="cyber"] .stat:hover{box-shadow:0 0 16px rgba(168,85,247,.1);}
+html[data-theme="cyber"] .stat.active.s-unread{border-color:rgba(168,85,247,.45);box-shadow:0 0 16px rgba(168,85,247,.22);}
+html[data-theme="cyber"] .search-bar:focus-within{border-color:rgba(168,85,247,.42);box-shadow:0 0 0 3px rgba(168,85,247,.1);}
+html[data-theme="cyber"] .fetch-chip.active{background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.45);color:#a855f7;}
+html[data-theme="cyber"] .fetch-date-input:focus{border-color:#a855f7;}
+html[data-theme="cyber"] .tab.t-unread.active{text-shadow:0 0 12px rgba(168,85,247,.55);}
+html[data-theme="cyber"] .tab.t-urgencias.active{text-shadow:0 0 10px rgba(244,114,182,.4);}
+html[data-theme="cyber"] .tabs-fade-left{background:linear-gradient(to right,rgba(10,2,24,.95) 30%,transparent);}
+html[data-theme="cyber"] .tabs-fade-right{background:linear-gradient(to left,rgba(10,2,24,.95) 30%,transparent);}
+html[data-theme="cyber"] .alloc-wrap{border-color:rgba(168,85,247,.2);}
+html[data-theme="cyber"] .alloc-nav-btn{border-color:rgba(168,85,247,.25);color:#a855f7;}
+html[data-theme="cyber"] .alloc-nav-btn:hover{background:rgba(168,85,247,.12);}
+html[data-theme="cyber"] .alloc-add-btn{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.35);color:#a855f7;}
+html[data-theme="cyber"] .alloc-add-btn:hover{background:rgba(168,85,247,.22);}
+html[data-theme="cyber"] ::-webkit-scrollbar-thumb{background:rgba(168,85,247,.28);}
+html[data-theme="cyber"] .refresh-btn{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.3);color:#34d399;}
+html[data-theme="cyber"] .pdf-btn{background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.3);color:#a855f7;}
+html[data-theme="cyber"] .pdf-btn:hover{background:rgba(168,85,247,.2);box-shadow:0 0 12px rgba(168,85,247,.18);}
+html[data-theme="cyber"] .reply-card{border-color:rgba(251,191,36,.18);}
+html[data-theme="cyber"] .urgency-card{border-left-color:#f472b6;}
+html[data-theme="cyber"] .sent-card{border-color:rgba(129,140,248,.15);}
+/* Transição suave ao trocar tema */
+html.theme-fx,html.theme-fx *{transition:background-color .38s ease,border-color .36s ease,color .3s ease,box-shadow .38s ease,background .38s ease !important;}
+/* Botão de tema */
+.theme-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--text-muted);padding:7px 11px;border-radius:8px;cursor:pointer;font-size:.75rem;font-weight:600;display:flex;align-items:center;gap:5px;transition:all .25s;white-space:nowrap;font-family:'Inter',sans-serif;}
+.theme-btn:hover{border-color:rgba(168,85,247,.45);color:#a855f7;box-shadow:0 0 14px rgba(168,85,247,.16);}
+html[data-theme="cyber"] .theme-btn{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.4);color:#a855f7;box-shadow:0 0 10px rgba(168,85,247,.14);}
+html[data-theme="cyber"] .theme-btn:hover{background:rgba(168,85,247,.22);box-shadow:0 0 18px rgba(168,85,247,.22);}
+.theme-btn-icon{font-size:1rem;display:inline-block;transition:transform .45s;}
+.theme-btn:hover .theme-btn-icon{transform:rotate(30deg) scale(1.15);}
+
 *{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
@@ -1407,6 +1470,7 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
       <div class="header-date-chip" id="header-date">–</div>
       <button class="refresh-btn" id="refresh-btn" onclick="loadEmails(true)">↺ Actualizar</button>
       <button class="pdf-btn" onclick="downloadPDF()">⬇ PDF</button>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme(event)" title="Alternar tema"><span class="theme-btn-icon" id="theme-btn-icon">◈</span><span id="theme-btn-label">Cyber</span></button>
       <button class="install-btn" id="install-btn" onclick="installPWA()" title="Instalar como aplicação no computador">⬇ Instalar App</button>
       <button class="logout-btn" onclick="logout()">Sair</button>
     </div>
@@ -7691,6 +7755,57 @@ function hlMatch(text,q){
     await loadEmails();
   }
   // Otherwise show login screen
+})();
+
+// ── THEME TOGGLE ──────────────────────────────────────────────────────────────
+(function(){
+  const STORE='_ui_theme_v1';
+  function _applyTheme(t){
+    if(t==='cyber') document.documentElement.setAttribute('data-theme','cyber');
+    else document.documentElement.removeAttribute('data-theme');
+    const lbl=document.getElementById('theme-btn-label');
+    const ico=document.getElementById('theme-btn-icon');
+    if(lbl) lbl.textContent=t==='cyber'?'Default':'Cyber';
+    if(ico) ico.textContent=t==='cyber'?'◇':'◈';
+  }
+  // Aplicar tema salvo sem flash
+  _applyTheme(localStorage.getItem(STORE)||'default');
+
+  window.toggleTheme=function(e){
+    const isCyber=document.documentElement.getAttribute('data-theme')==='cyber';
+    const next=isCyber?'default':'cyber';
+
+    // Coordenadas do botão para o ripple sair de lá
+    const btn=e.currentTarget;
+    const r=btn.getBoundingClientRect();
+    const rx=((r.left+r.width/2)/window.innerWidth*100).toFixed(1)+'%';
+    const ry=((r.top+r.height/2)/window.innerHeight*100).toFixed(1)+'%';
+    const fromColor=next==='cyber'?'rgba(139,92,246,.75)':'rgba(56,189,248,.55)';
+    const toColor=next==='cyber'?'rgba(6,2,15,.97)':'rgba(8,12,20,.97)';
+
+    // Overlay de portal
+    const ov=document.createElement('div');
+    ov.style.cssText=[
+      'position:fixed;inset:0;z-index:99999;pointer-events:none;',
+      'opacity:0;transition:opacity .24s ease;',
+      `background:radial-gradient(circle at ${rx} ${ry},${fromColor} 0%,${toColor} 58%);`
+    ].join('');
+    document.body.appendChild(ov);
+
+    requestAnimationFrame(()=>{
+      ov.style.opacity='1';
+      setTimeout(()=>{
+        // Ativa transições suaves em todos os elementos
+        document.documentElement.classList.add('theme-fx');
+        _applyTheme(next);
+        localStorage.setItem(STORE,next);
+        setTimeout(()=>document.documentElement.classList.remove('theme-fx'),480);
+        // Dissolve overlay
+        ov.style.opacity='0';
+        setTimeout(()=>ov.remove(),320);
+      },210);
+    });
+  };
 })();
 </script>
 </body>
