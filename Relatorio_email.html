@@ -2123,7 +2123,8 @@ function fmtTime(iso){if(!iso)return '';const d=new Date(iso),t=new Date();if(d.
 function fmtFull(d){return d.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'America/Sao_Paulo'});}
 function sn(e){return e.senderName||e.sender?.split('@')[0].replace(/[._]/g,' ').replace(/\w/g,c=>c.toUpperCase())||'—';}
 function clean(s){if(!s)return '';return s.replace(/[\n\t‌  ]+/g,' ').replace(/\s{2,}/g,' ').trim().slice(0,220);}
-function esc(s){return(s||'').replace(/'/g,"\'");}
+function esc(s){return(s||'').replace(/'/g,"\\'");}
+function he(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let currentTab='urgencias',currentFilter='all';
@@ -2197,11 +2198,11 @@ function hideLoading(){document.getElementById('loading-overlay').style.display=
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function emailCard(e, extraCls=''){
   const isU=!e.isRead,isPinned=PINNED_IDS.has(e.id),base=e.importance==='high'?'high-prio':(isU?'unread':''),cls=[base,extraCls,isPinned?'pinned':''].filter(Boolean).join(' '),s=clean(e.summary),link=esc(e.webLink||'#');
-  return `<div class="email-card ${cls}" onclick="openEmailReader('${esc(e.id)}')" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${s.toLowerCase()}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}">
+  return `<div class="email-card ${cls}" onclick="openEmailReader('${esc(e.id)}')" data-subject="${he((e.subject||'').toLowerCase())}" data-sender="${he(((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim())}" data-summary="${he(s.toLowerCase())}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}">
     <div class="email-inner">
-      <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}${isPinned?'<span class="pin-badge">FIXADO</span>':''}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
-      <div class="email-from">De: <strong>${sn(e)}</strong> · <span style="font-family:var(--mono);font-size:.68rem">${e.sender||''}</span></div>
-      ${s?`<div class="email-summary">${s}</div>`:''}
+      <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${he(e.subject||'(sem assunto)')}${isPinned?'<span class="pin-badge">FIXADO</span>':''}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
+      <div class="email-from">De: <strong>${he(sn(e))}</strong> · <span style="font-family:var(--mono);font-size:.68rem">${he(e.sender||'')}</span></div>
+      ${s?`<div class="email-summary">${he(s)}</div>`:''}
       <div class="email-footer">${isU?'<span class="tag unread">UNREAD</span>':'<span class="tag read">READ</span>'}${e.hasAttachments?'<span class="tag attach">ANEXO</span>':''}${e.importance==='high'?'<span class="tag high">HIGH</span>':''}<span style="margin-left:auto;font-size:.68rem;color:var(--text-muted);font-family:var(--mono)">clique para ler ›</span></div>
     </div>
     <div class="email-actions" onclick="event.stopPropagation()">
@@ -2229,12 +2230,12 @@ function emailCard(e, extraCls=''){
 
 function replyCard(e){
   const isPinned=PINNED_IDS.has(e.id),isU=!e.isRead;
-  return `<div class="reply-card" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${clean(e.summary||'').toLowerCase()}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')">
+  return `<div class="reply-card" data-subject="${he((e.subject||'').toLowerCase())}" data-sender="${he(((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim())}" data-summary="${he(clean(e.summary||'').toLowerCase())}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')">
     <div class="reply-inner">
       <div class="reply-reason">↩ AGUARDA RESPOSTA${isPinned?'<span class="pin-badge" style="margin-left:8px">FIXADO</span>':''}</div>
-      <div class="reply-subject">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}</div>
-      <div class="reply-from">${sn(e)} · <span style="font-family:var(--mono);font-size:.68rem">${e.sender||''}</span> · ${fmtTime(e.receivedDateTime)}</div>
-      ${e.summary?`<div class="reply-snippet">${clean(e.summary)}</div>`:''}
+      <div class="reply-subject">${e.importance==='high'?'⚠ ':''}${he(e.subject||'(sem assunto)')}</div>
+      <div class="reply-from">${he(sn(e))} · <span style="font-family:var(--mono);font-size:.68rem">${he(e.sender||'')}</span> · ${fmtTime(e.receivedDateTime)}</div>
+      ${e.summary?`<div class="reply-snippet">${he(clean(e.summary))}</div>`:''}
     </div>
     <div class="email-actions" onclick="event.stopPropagation()">
       <button class="eact reply"     onclick="openReply('${esc(e.id)}','reply')"    >↩ Responder</button>
@@ -2450,13 +2451,13 @@ async function fetchSentEmails(){
 function sentCard(e){
   const tos=(e.toRecipients||[]).map(r=>r.emailAddress?.name||r.emailAddress?.address||'').filter(Boolean).join(', ')||'—';
   const _sTos=(e.toRecipients||[]).map(r=>(r.emailAddress?.name||r.emailAddress?.address||'')).join(' ').toLowerCase();
-  return `<div class="sent-card" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${_sTos}" data-summary="${clean(e.summary||'').toLowerCase()}" data-date="${(e.sentDateTime||'').slice(0,10)}" data-read="1" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')">
+  return `<div class="sent-card" data-subject="${he((e.subject||'').toLowerCase())}" data-sender="${he(_sTos)}" data-summary="${he(clean(e.summary||'').toLowerCase())}" data-date="${(e.sentDateTime||'').slice(0,10)}" data-read="1" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')">
     <div class="sent-inner">
       <div class="sent-label">📤 ENVIADO${e.hasAttachments?' &nbsp;📎':''}</div>
-      <div class="sent-subject">${e.importance==='high'?'⚠ ':''}${e.subject||'(sem assunto)'}</div>
-      <div class="sent-to">Para: <strong>${tos}</strong></div>
+      <div class="sent-subject">${e.importance==='high'?'⚠ ':''}${he(e.subject||'(sem assunto)')}</div>
+      <div class="sent-to">Para: <strong>${he(tos)}</strong></div>
       <div class="sent-time">${fmtTime(e.sentDateTime)}</div>
-      ${e.summary?`<div class="sent-snippet">${clean(e.summary)}</div>`:''}
+      ${e.summary?`<div class="sent-snippet">${he(clean(e.summary))}</div>`:''}
     </div>
     <div class="email-actions" onclick="event.stopPropagation()">
       <button class="eact fwd" onclick="openReply('${esc(e.id)}','forward')">➡ Encaminhar</button>
