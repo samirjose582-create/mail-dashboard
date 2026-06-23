@@ -2786,34 +2786,36 @@ async function openEmailReader(id){
     let _bodyContent=msg.body?.content||'';
     const _isHtmlBody=(msg.body?.contentType||'').toLowerCase()==='html';
     const _hasCidRefs=_isHtmlBody&&/cid:/i.test(_bodyContent);
-    // hasAttachments=false para e-mails com APENAS inline images (quirk do Graph API)
     if(msg.hasAttachments||_hasCidRefs){
       try{
-        // IMPORTANTE: contentId e contentBytes NÃO são suportados em $select na coleção
-        // → buscar apenas metadata aqui; conteúdo de cada inline vem em chamada separada
-        const att=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments?$select=id,name,size,contentType,isInline,contentId`);
+        // Sem $select → recebe todos os campos de metadata (contentId, isInline, etc.)
+        // contentBytes NÃO vem na coleção — buscado individualmente por attachment
+        const att=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments`);
         const allAtts=(att?.value||[]).filter(f=>f.contentType!=='application/ms-tnef');
-        // Ficheiros visíveis → barra de anexos
+        // Ficheiros visíveis (não inline) → barra de anexos
         const files=allAtts.filter(f=>!f.isInline);
         if(files.length){
           const el=document.getElementById('er-attachments');
           el.className='er-attachments visible';
           el.innerHTML=`<span class="er-att-label">📎 ANEXOS</span>`+files.map(f=>`<span class="er-att-chip">📄 ${he(f.name||'')}<span>${(f.size/1024).toFixed(0)} KB</span><button class="er-att-dl" onclick="downloadAttachment('${esc(id)}','${esc(f.id)}','${esc(f.name)}','${esc(f.contentType||'')}',this)">⬇ Baixar</button></span>`).join('');
         }
-        // Buscar cada inline individualmente (sem $select, assim contentBytes é retornado)
+        // Substituição de imagens inline (cid:)
+        // Inclui qualquer attachment com contentId, independente de isInline ser true ou false
         if(_hasCidRefs){
-          const inlines=allAtts.filter(f=>f.isInline&&f.contentId);
+          const inlines=allAtts.filter(f=>f.contentId||f.isInline);
           for(const f of inlines){
             try{
               const full=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(f.id)}`);
               if(!full?.contentBytes)continue;
-              const cid=(full.contentId||f.contentId).replace(/^<|>$/g,'');
-              const dataUrl=`data:${full.contentType};base64,${full.contentBytes}`;
-              const cidEsc=cid.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+              const rawCid=(full.contentId||f.contentId||'');
+              const cid=rawCid.replace(/^<|>$/g,'').trim();
+              if(!cid)continue;
+              const dataUrl=`data:${full.contentType||'image/png'};base64,${full.contentBytes}`;
+              const cidEsc=cid.replace(/[.*+?^${}()|[\]\\@]/g,'\\$&');
               _bodyContent=_bodyContent
-                .replace(new RegExp('cid:<'+cidEsc+'>','gi'),dataUrl)
-                .replace(new RegExp('cid:'+cidEsc,'gi'),dataUrl);
-            }catch(ie){console.warn('[email img inline]',f.name,ie);}
+                .replace(new RegExp('cid:\\s*<'+cidEsc+'>','gi'),dataUrl)
+                .replace(new RegExp('cid:\\s*'+cidEsc,'gi'),dataUrl);
+            }catch(ie){console.warn('[inline img]',f.name,ie);}
           }
         }
       }catch(e){console.warn('[email att]',e);}
