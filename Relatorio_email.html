@@ -2596,20 +2596,36 @@ async function openEmailReader(id){
     if(tags.length){const tr=document.getElementById('er-tagrow');tr.style.display='flex';tr.innerHTML=tags.join('');}
     // actions
     _erRenderActions(msg,msg.flag?.flagStatus==='flagged');
-    // attachments
+    // attachments + substituição de imagens inline (cid:)
+    let _bodyContent=msg.body?.content||'';
     if(msg.hasAttachments){
       try{
-        const att=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments?$select=id,name,size,contentType`);
-        const files=(att.value||[]).filter(f=>f.contentType!=='application/ms-tnef');
+        const att=await graphGet(`/me/messages/${encodeURIComponent(id)}/attachments?$select=id,name,size,contentType,isInline,contentId`);
+        const allAtts=(att.value||[]).filter(f=>f.contentType!=='application/ms-tnef');
+        // Ficheiros normais → barra de anexos
+        const files=allAtts.filter(f=>!f.isInline);
         if(files.length){
           const el=document.getElementById('er-attachments');
           el.className='er-attachments visible';
-          el.innerHTML=`<span class="er-att-label">📎 ANEXOS</span>`+files.map(f=>`<span class="er-att-chip">📄 ${esc(f.name)}<span>${(f.size/1024).toFixed(0)} KB</span><button class="er-att-dl" onclick="downloadAttachment('${esc(id)}','${esc(f.id)}','${esc(f.name)}','${esc(f.contentType||'')}',this)">⬇ Baixar</button></span>`).join('');
+          el.innerHTML=`<span class="er-att-label">📎 ANEXOS</span>`+files.map(f=>`<span class="er-att-chip">📄 ${he(f.name||'')}<span>${(f.size/1024).toFixed(0)} KB</span><button class="er-att-dl" onclick="downloadAttachment('${esc(id)}','${esc(f.id)}','${esc(f.name)}','${esc(f.contentType||'')}',this)">⬇ Baixar</button></span>`).join('');
+        }
+        // Imagens inline → buscar contentBytes e substituir cid: por data URL
+        const inlines=allAtts.filter(f=>f.isInline&&f.contentId);
+        if(inlines.length&&msg.body?.contentType?.toLowerCase()==='html'){
+          await Promise.all(inlines.map(f=>
+            graphGet(`/me/messages/${encodeURIComponent(id)}/attachments/${encodeURIComponent(f.id)}?$select=contentType,contentId,contentBytes`)
+              .then(full=>{
+                if(!full?.contentBytes||!full?.contentId)return;
+                const cid=full.contentId.replace(/[<>]/g,'');
+                const re=new RegExp('cid:'+cid.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi');
+                _bodyContent=_bodyContent.replace(re,`data:${full.contentType};base64,${full.contentBytes}`);
+              }).catch(()=>{})
+          ));
         }
       }catch(e){/* ignore */}
     }
     // body
-    _erRenderBody(msg.body?.content||'',msg.body?.contentType||'text');
+    _erRenderBody(_bodyContent,msg.body?.contentType||'text');
   }catch(err){
     document.getElementById('er-loading').innerHTML=`<div class="er-error">Erro ao carregar e-mail:<br>${err.message}</div>`;
   }
