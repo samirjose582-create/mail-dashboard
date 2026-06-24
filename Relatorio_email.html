@@ -1597,7 +1597,7 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
       <div class="adv-panel-title">Filtros Avançados</div>
       <div class="adv-grid">
         <div class="adv-field" style="position:relative">
-          <label>De (remetente)</label>
+          <label id="af-de-label">De (remetente)</label>
           <input type="text" id="af-de" placeholder="ex: Renato, samir@empresa.com" oninput="_afDeInput()" autocomplete="off">
           <div class="contact-dd" id="dd-af-de"></div>
         </div>
@@ -3057,6 +3057,13 @@ function switchTab(tab){
   document.querySelectorAll('.email-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+tab));
   const hide=NO_SEARCH.includes(tab);
   document.getElementById('srch-wrap').style.display=hide?'none':'';
+  // Aba Enviados: "De" passa a ser "Para (destinatário)"
+  const _lbl=document.getElementById('af-de-label');
+  const _inp=document.getElementById('af-de');
+  if(_lbl&&_inp){
+    if(tab==='enviados'){_lbl.textContent='Para (destinatário)';_inp.placeholder='ex: João, cliente@empresa.com';}
+    else{_lbl.textContent='De (remetente)';_inp.placeholder='ex: Renato, samir@empresa.com';}
+  }
   if(!hide) applyFilters();
   if(tab==='enviados'&&!_sentLoaded){
     _sentLoaded=true;
