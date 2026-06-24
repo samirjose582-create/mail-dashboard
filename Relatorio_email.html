@@ -2573,8 +2573,13 @@ function empty(icon,title,msg){return `<div class="empty"><div class="icon">${ic
 // ── ENVIADOS ──────────────────────────────────────────────────────────────────
 async function fetchSentEmails(){
   const SEL_S='id,subject,toRecipients,sentDateTime,bodyPreview,hasAttachments,importance,webLink';
-  const res=await graphGet(`/me/mailFolders/SentItems/messages?$orderby=sentDateTime desc&$top=50&$select=${SEL_S}`);
-  return (res?.value||[]).map(m=>({
+  const yearAgo=(()=>{const d=new Date();d.setFullYear(d.getFullYear()-1);return d.toISOString().slice(0,10)+'T00:00:00Z';})();
+  const p=document.getElementById('panel-enviados');
+  const raw=await graphGetAll(
+    `/me/mailFolders/SentItems/messages?$orderby=sentDateTime desc&$top=500&$select=${SEL_S}&$filter=sentDateTime ge ${yearAgo}`,
+    n=>{if(p)p.innerHTML=sh('var(--cyan)','📤 ENVIADOS','...')+`<div class="empty"><div class="icon">📤</div><h3>A carregar… ${n} e-mails</h3></div>`;}
+  );
+  return (raw||[]).map(m=>({
     id:m.id, subject:m.subject||'',
     toRecipients:m.toRecipients||[],
     sentDateTime:m.sentDateTime,
@@ -2606,9 +2611,10 @@ function sentCard(e){
 function renderSentPanel(){
   const p=document.getElementById('panel-enviados');
   if(!p) return;
-  p.innerHTML=SENT_EMAILS.length
-    ? sh('var(--cyan)','📤 ENVIADOS',SENT_EMAILS.length)+SENT_EMAILS.map(sentCard).join('')
-    : sh('var(--cyan)','📤 ENVIADOS',0)+empty('📤','Nenhum e-mail enviado','');
+  if(SENT_EMAILS.length)
+    _lazyRender(p,SENT_EMAILS,sentCard,sh('var(--cyan)','📤 ENVIADOS (último ano)',SENT_EMAILS.length));
+  else
+    p.innerHTML=sh('var(--cyan)','📤 ENVIADOS',0)+empty('📤','Nenhum e-mail enviado','');
 }
 
 // Renderiza lista de itens em lotes de PAGE conforme o scroll (scroll infinito)
