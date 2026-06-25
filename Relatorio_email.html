@@ -523,6 +523,18 @@ html[data-theme="white"] .history-btn.history-btn-on{background:rgba(217,119,6,.
 .proj-emails-wrap{padding:8px;}
 .proj-no-emails{text-align:center;padding:24px 16px;font-size:.75rem;color:var(--text-muted);font-style:italic;}
 .proj-rule-or-sep{text-align:center;font-size:.58rem;color:var(--text-muted);margin:2px 0;letter-spacing:.5px;}
+/* ── subcategorias lidos / não lidos ── */
+.proj-sub{margin:0 0 3px;}
+.proj-sub-hdr{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:8px;cursor:pointer;background:rgba(255,255,255,.022);border:1px solid transparent;transition:background .15s,border-color .15s;}
+.proj-sub-hdr:hover{background:rgba(255,255,255,.05);border-color:var(--border);}
+.proj-sub-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.55px;flex:1;}
+.proj-sub-badge{font-size:.6rem;font-family:var(--mono);padding:1px 8px;border-radius:10px;font-weight:700;}
+.proj-sub-badge.u{background:rgba(56,189,248,.18);color:var(--blue);}
+.proj-sub-badge.r{background:rgba(255,255,255,.07);color:var(--text-muted);}
+.proj-sub-chevron{font-size:.72rem;color:var(--text-muted);transition:transform .18s;flex-shrink:0;}
+.proj-sub.open .proj-sub-chevron{transform:rotate(90deg);}
+.proj-sub-body{display:none;padding-top:4px;}
+.proj-sub.open .proj-sub-body{display:block;}
 
 /* ── EMPTY ── */
 .empty{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:48px;text-align:center;}
@@ -8208,6 +8220,35 @@ function hlMatch(text,q){
     });
   }
 
+  // ── SUBCATEGORIAS LIDOS / NÃO LIDOS ───────────────────────────────────────
+  function _emailsSplit(matched, pid){
+    if(!matched.length) return '<div class="proj-no-emails">Nenhum e-mail encontrado nos carregados.</div>';
+    const unread=matched.filter(e=>!e.isRead);
+    const read=matched.filter(e=>e.isRead);
+    const u1=`psu_${pid}_u`, u2=`psu_${pid}_r`;
+    return `
+      <div class="proj-sub open" id="${u1}">
+        <div class="proj-sub-hdr" onclick="toggleProjSub('${u1}')">
+          <span class="proj-sub-label" style="color:var(--blue)">📬 Não lidos</span>
+          <span class="proj-sub-badge u">${unread.length}</span>
+          <span class="proj-sub-chevron">›</span>
+        </div>
+        <div class="proj-sub-body">
+          ${unread.length ? unread.map(e=>emailCard(e)).join('') : '<div class="proj-no-emails">Nenhum e-mail não lido neste contrato.</div>'}
+        </div>
+      </div>
+      <div class="proj-sub${read.length&&!unread.length?' open':''}" id="${u2}">
+        <div class="proj-sub-hdr" onclick="toggleProjSub('${u2}')">
+          <span class="proj-sub-label" style="color:var(--text-muted)">📂 Lidos</span>
+          <span class="proj-sub-badge r">${read.length}</span>
+          <span class="proj-sub-chevron">›</span>
+        </div>
+        <div class="proj-sub-body">
+          ${read.length ? read.map(e=>emailCard(e)).join('') : '<div class="proj-no-emails">Nenhum e-mail lido neste contrato.</div>'}
+        </div>
+      </div>`;
+  }
+
   // ── RENDER PRINCIPAL ───────────────────────────────────────────────────────
   function renderProjetosPanel(){
     const el=document.getElementById('panel-projetos');
@@ -8237,7 +8278,7 @@ function hlMatch(text,q){
         </div>
         <div class="proj-block-body">
           ${_rulesEditor(p)}
-          <div class="proj-emails-wrap">${matched.map(e=>emailCard(e)).join('')||'<div class="proj-no-emails">Nenhum e-mail encontrado nos carregados.</div>'}</div>
+          <div class="proj-emails-wrap">${_emailsSplit(matched, p.id)}</div>
         </div>
       </div>`;
     });
@@ -8294,12 +8335,13 @@ function hlMatch(text,q){
     if(rp){const t=document.createElement('div');t.innerHTML=_rulesEditor(p);rp.replaceWith(t.firstElementChild);}
     // Lista
     const wrap=block.querySelector('.proj-emails-wrap');
-    if(wrap)wrap.innerHTML=matched.map(e=>emailCard(e)).join('')||'<div class="proj-no-emails">Nenhum e-mail encontrado nos carregados.</div>';
+    if(wrap)wrap.innerHTML=_emailsSplit(matched, p.id);
   }
 
   // ── API PÚBLICA ────────────────────────────────────────────────────────────
   window.renderProjetosPanel=renderProjetosPanel;
   window.toggleProjBlock=function(pid){document.querySelector(`.proj-block[data-pid="${pid}"]`)?.classList.toggle('open');};
+  window.toggleProjSub=function(uid){document.getElementById(uid)?.classList.toggle('open');};
   window.pjAddRule=function(pid){
     const d=_pLoad();const p=d.projects.find(x=>x.id===pid);if(!p)return;
     if(!p.emailRules)p.emailRules=[];
