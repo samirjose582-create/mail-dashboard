@@ -7280,16 +7280,13 @@ function hlMatch(text,q){
         if(isW)cls+=' is-weekend';if(isH)cls+=' is-holiday';if(isT)cls+=' is-today';
         if(hasConflict)cls+=' is-conflict';
         let bar='';
-        if(inRange&&!isW){
-          // isFirst/isLast considerando apenas dias úteis (sem fins-de-semana)
-          const prevInBar=dIdx>0&&days[dIdx-1]>=p.start&&days[dIdx-1]<=p.end&&!_isWe(days[dIdx-1]);
-          const nextInBar=dIdx<days.length-1&&days[dIdx+1]>=p.start&&days[dIdx+1]<=p.end&&!_isWe(days[dIdx+1]);
-          const isFirst=!prevInBar,isLast=!nextInBar;
+        if(inRange){
+          const isFirst=ds===p.start,isLast=ds===p.end;
           let bc='alloc-bar ';bc+=isFirst&&isLast?'alloc-bar-solo':isFirst?'alloc-bar-start':isLast?'alloc-bar-end':'alloc-bar-mid';
           if(hasConflict)bc+=' alloc-bar-conflict';
           const lbl=isFirst?`<span class="alloc-bar-pct">${pct}%</span>`:'';
           const prevDs=dIdx>0?days[dIdx-1]:null;
-          const prevConflict=prevDs&&!_isWe(prevDs)&&inRange&&(p.assignees||[]).some(a=>conflictKeys.has(a+'|'+prevDs));
+          const prevConflict=prevDs&&inRange&&(p.assignees||[]).some(a=>conflictKeys.has(a+'|'+prevDs));
           const isConflictStart=hasConflict&&!prevConflict;
           const badge=isConflictStart?`<span class="alloc-conflict-label" title="Sobreposição: ${conflictAssignees.join(', ')}">⚠ ${conflictAssignees.join(', ')}</span>`:'';
           bar=`<div class="${bc}" style="background:${barColor};overflow:hidden">${lbl}</div>${badge}`;
@@ -7964,13 +7961,13 @@ function hlMatch(text,q){
         const ref=`${FDL}${rn}:${LDL}${rn}`;
         sh.addConditionalFormatting({ref,rules:[
           {type:'expression',priority:pri++,
-           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},WEEKDAY(${FDL}$3,2)<=5,$I${rn}="▶ Em Progresso")`],
+           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="▶ Em Progresso")`],
            style:cfFill(pc)},
           {type:'expression',priority:pri++,
-           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},WEEKDAY(${FDL}$3,2)<=5,$I${rn}="⏸ Paralisado")`],
+           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="⏸ Paralisado")`],
            style:cfFill(C.yellowBg)},
           {type:'expression',priority:pri++,
-           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},WEEKDAY(${FDL}$3,2)<=5,$I${rn}="✓ Concluído")`],
+           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="✓ Concluído")`],
            style:cfFill(C.greenBg)},
         ]});
       });
