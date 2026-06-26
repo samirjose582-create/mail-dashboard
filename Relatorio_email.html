@@ -7934,11 +7934,13 @@ function hlMatch(text,q){
       const lastRow=sh.rowCount;
 
       // ── FORMATAÇÃO CONDICIONAL DINÂMICA ───────────────────────────────────
-      // Fórmula por projecto: compara serial inteiro (linha 3) com F/G
-      // Ao editar Início ou Término no Excel as barras movem automaticamente.
-      // Status do dropdown altera a cor da barra em tempo real.
-      // Prioridade: número menor = maior precedência sobre outras regras.
+      // dayExpr calcula o serial do dia da coluna actual sem referência relativa:
+      //   $J$3 = serial do 1.º dia (absoluto) | COLUMN() = coluna actual
+      //   Resultado: serial do dia da célula avaliada — não precisa de ajuste pelo ExcelJS.
+      // Prioridade: número menor = maior precedência (barras vencem hoje/fim-de-semana).
       let pri=1;
+      const absBase=`$${FDL}$3`;                          // e.g. "$J$3"
+      const dayExpr=`${absBase}+COLUMN()-COLUMN(${absBase})`;// serial do dia actual
 
       allProjs.forEach((p,idx)=>{
         const rn=projRowNums[idx];if(!rn)return;
@@ -7947,15 +7949,15 @@ function hlMatch(text,q){
         sh.addConditionalFormatting({ref,rules:[
           // Em Progresso → cor do projetista
           {type:'expression',priority:pri++,
-           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="Em Progresso")`],
+           formulae:[`AND(${dayExpr}>=$F${rn},${dayExpr}<=$G${rn},$I${rn}="Em Progresso")`],
            style:cfFill(pc)},
           // Paralisado → amarelo
           {type:'expression',priority:pri++,
-           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="Paralisado")`],
+           formulae:[`AND(${dayExpr}>=$F${rn},${dayExpr}<=$G${rn},$I${rn}="Paralisado")`],
            style:cfFill(C.yellowBg)},
           // Concluido → verde
           {type:'expression',priority:pri++,
-           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="Concluido")`],
+           formulae:[`AND(${dayExpr}>=$F${rn},${dayExpr}<=$G${rn},$I${rn}="Concluido")`],
            style:cfFill(C.greenBg)},
         ]});
       });
@@ -7963,12 +7965,12 @@ function hlMatch(text,q){
       // Hoje (âmbar) — menor prioridade que barras
       sh.addConditionalFormatting({ref:`${FDL}5:${LDL}${lastRow}`,rules:[
         {type:'expression',priority:pri++,
-         formulae:[`${FDL}$3=TODAY()`],style:cfFill(C.todayBg)},
+         formulae:[`${dayExpr}=TODAY()`],style:cfFill(C.todayBg)},
       ]});
       // Fim-de-semana (cinza) — menor prioridade de todas
       sh.addConditionalFormatting({ref:`${FDL}5:${LDL}${lastRow}`,rules:[
         {type:'expression',priority:pri++,
-         formulae:[`WEEKDAY(${FDL}$3,2)>5`],style:cfFill(C.weekendBg)},
+         formulae:[`WEEKDAY(${dayExpr},2)>5`],style:cfFill(C.weekendBg)},
       ]});
 
       sh.views=[{state:'frozen',xSplit:FC,ySplit:4,showGridLines:false}];
