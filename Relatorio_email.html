@@ -7718,6 +7718,7 @@ function hlMatch(text,q){
       const exportDate=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
       const toArgb=h=>'FF'+h.replace('#','').toUpperCase().padStart(6,'0');
 
+      // ── Paleta ───────────────────────────────────────────────────────────
       const C={
         white:'FFFFFFFF',bgLight:'FFF8FAFC',bgAlt:'FFF1F5F9',
         hdrBg:'FF1E3A5F',hdrTxt:'FFFFFFFF',
@@ -7731,16 +7732,23 @@ function hlMatch(text,q){
         textDark:'FF1E293B',textMuted:'FF64748B',
         border:'FFE2E8F0',borderMed:'FFCBD5E1',borderDark:'FF94A3B8',
       };
-
       const bdr=(t='thin',c=C.border)=>({style:t,color:{argb:c}});
       const fill=argb=>({type:'pattern',pattern:'solid',fgColor:{argb}});
       const cfFill=argb=>({fill:{type:'pattern',pattern:'solid',fgColor:{argb}}});
       const font=(opts={})=>({name:'Calibri',size:10,...opts});
       const col2l=n=>{let s='';while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26);}return s;};
 
+      // Serial inteiro do Excel (sem componente de hora) — garante comparação CF precisa
+      const xSerial=ds=>{
+        const d=new Date(ds+'T00:00:00Z');
+        return Math.round((d.getTime()-new Date('1899-12-30T00:00:00Z').getTime())/86400000);
+      };
+
       const personColor=p=>{const a=(p.assignees||[])[0];return a?toArgb(_nameColor(a)):toArgb(p.color||'#0EA5E9');};
       const stBg=p=>{const s=p.status||'progresso';return s==='concluido'?C.greenBg:s==='paralisado'?C.yellowBg:null;};
-      const stLabel=p=>{const s=p.status||'progresso';return s==='concluido'?'✓ Concluído':s==='paralisado'?'⏸ Paralisado':'▶ Em Progresso';};
+      // Status em ASCII puro — fórmulas CF não suportam Unicode de forma fiável
+      const ST={progresso:'Em Progresso',paralisado:'Paralisado',concluido:'Concluido'};
+      const stLabel=p=>ST[p.status||'progresso']||'Em Progresso';
 
       const actProjs=data.projects.filter(p=>(p.status||'progresso')!=='concluido');
       const doneProjs=data.projects.filter(p=>(p.status||'progresso')==='concluido');
@@ -7752,13 +7760,11 @@ function hlMatch(text,q){
       // FC=9: A=Código B=Projeto C=Atribuídos D=% E=Etapa F=Início G=Término H=Dias I=Status
       const sh=wb.addWorksheet('Alocação de Equipe',{views:[{showGridLines:false}]});
       const FC=9;
-      [11,30,22,6,14,11,11,8,16].forEach((w,i)=>sh.getColumn(i+1).width=w);
+      [11,30,22,6,14,11,11,8,18].forEach((w,i)=>sh.getColumn(i+1).width=w);
       days.forEach((_,i)=>sh.getColumn(FC+i+1).width=3.2);
 
-      const FDC=FC+1;                   // first day column number (10)
-      const LDC=FC+days.length;         // last day column number
-      const FDL=col2l(FDC);             // 'J'
-      const LDL=col2l(LDC);
+      const FDC=FC+1;const LDC=FC+days.length;
+      const FDL=col2l(FDC);const LDL=col2l(LDC);// 'J' e última coluna
 
       // Grupos de meses
       const mGroups=[];let mCur='',mSt=FDC;
@@ -7779,9 +7785,10 @@ function hlMatch(text,q){
       // ── R1: Título + Meses ────────────────────────────────────────────────
       const r1=sh.addRow(new Array(FC+days.length).fill(''));r1.height=30;
       sh.mergeCells(r1.number,1,r1.number,FC);
-      Object.assign(r1.getCell(1),{value:'ALOCAÇÃO DE EQUIPE  ·  '+exportDate,
-        font:font({bold:true,size:13,color:{argb:C.hdrTxt}}),fill:fill(C.hdrBg),
-        alignment:{vertical:'middle',horizontal:'center'}});
+      const r1c=r1.getCell(1);
+      r1c.value='ALOCAÇÃO DE EQUIPE  ·  '+exportDate;
+      r1c.font=font({bold:true,size:13,color:{argb:C.hdrTxt}});
+      r1c.fill=fill(C.hdrBg);r1c.alignment={vertical:'middle',horizontal:'center'};
       mGroups.forEach(({m,s,e})=>{
         if(s<e)sh.mergeCells(r1.number,s,r1.number,e);
         const c=r1.getCell(s);
@@ -7794,10 +7801,10 @@ function hlMatch(text,q){
       // ── R2: Resumo + Semanas ──────────────────────────────────────────────
       const r2=sh.addRow(new Array(FC+days.length).fill(''));r2.height=18;
       sh.mergeCells(r2.number,1,r2.number,FC);
-      Object.assign(r2.getCell(1),{
-        value:data.projects.length+' projeto(s)  ·  '+actProjs.length+' ativo(s)  ·  '+doneProjs.length+' concluído(s)',
-        font:font({size:9,color:{argb:C.hdrTxt}}),fill:fill(C.subHdrBg),
-        alignment:{vertical:'middle',horizontal:'center'}});
+      const r2c=r2.getCell(1);
+      r2c.value=data.projects.length+' projeto(s)  ·  '+actProjs.length+' ativo(s)  ·  '+doneProjs.length+' concluído(s)';
+      r2c.font=font({size:9,color:{argb:C.hdrTxt}});
+      r2c.fill=fill(C.subHdrBg);r2c.alignment={vertical:'middle',horizontal:'center'};
       wGroups.forEach(({label,s,e})=>{
         if(s<e)sh.mergeCells(r2.number,s,r2.number,e);
         const c=r2.getCell(s);c.value=label;
@@ -7806,8 +7813,9 @@ function hlMatch(text,q){
         c.border={left:bdr('thin',C.border),bottom:bdr('thin',C.border)};
       });
 
-      // ── R3: Cabeçalhos colunas fixas + datas reais dos dias ───────────────
-      // As datas reais (Date objects) permitem que as fórmulas CF comparem com F/G
+      // ── R3: Cabeçalhos + seriais inteiros dos dias ────────────────────────
+      // Seriais inteiros (sem hora) garantem comparações >=/<= exactas nas fórmulas CF
+      const DOW_PT=['D','S','T','Q','Q','S','S'];
       const r3=sh.addRow(new Array(FC+days.length).fill(''));r3.height=22;
       ['Código','Projeto','Atribuídos','%','Etapa','Início','Término','Dias','Status'].forEach((lbl,i)=>{
         const c=r3.getCell(i+1);c.value=lbl;
@@ -7819,8 +7827,8 @@ function hlMatch(text,q){
         const d=new Date(ds+'T12:00:00'),dow=d.getDay();
         const c=r3.getCell(FDC+i);
         const isWe=dow===0||dow===6,isH=_isHol(ds),isT=ds===today;
-        c.value=d;           // data real → usada pelas fórmulas de CF
-        c.numFmt='d';        // exibir só o número do dia
+        c.value=xSerial(ds);// serial inteiro — sem componente de hora
+        c.numFmt='d';       // mostra só o número do dia
         c.font=font({bold:isT||isH,size:8,color:{argb:isT?C.todayTxt:isH?C.redTxt:isWe?C.textMuted:C.textDark}});
         c.fill=fill(isT?C.todayBg:isH?C.holBg:isWe?C.weekendBg:C.white);
         c.alignment={vertical:'middle',horizontal:'center'};
@@ -7829,7 +7837,6 @@ function hlMatch(text,q){
       });
 
       // ── R4: Abreviatura dia-da-semana ─────────────────────────────────────
-      const DOW_PT=['D','S','T','Q','Q','S','S'];
       const r4=sh.addRow(new Array(FC+days.length).fill(''));r4.height=12;
       for(let i=1;i<=FC;i++){const c=r4.getCell(i);c.fill=fill(C.bgAlt);c.border={bottom:bdr('medium',C.borderDark)};}
       days.forEach((ds,i)=>{
@@ -7843,85 +7850,65 @@ function hlMatch(text,q){
         c.border={bottom:bdr('medium',C.borderDark)};
       });
 
-      // ── Linhas de projeto ─────────────────────────────────────────────────
-      // Datas exportadas como Date objects (editáveis no Excel)
-      // Dias calculado por fórmula NETWORKDAYS (actualiza automaticamente)
-      // Status com validação dropdown
+      // ── Linhas de projecto ────────────────────────────────────────────────
       const projRowNums=[];
-
       const writeRow=p=>{
         const pct=Math.min(100,Math.max(0,p.progress||0));
         const st=p.status||'progresso';
         const pc=personColor(p);
         const bg=stBg(p)||C.white;
         const pctColor=pct>=80?C.greenLine:pct>=40?'FFF59E0B':'FFEF4444';
-
         const row=sh.addRow(new Array(FC+days.length).fill(''));row.height=20;
         const rn=row.number;
         projRowNums.push(rn);
-
-        const fb=(i)=>({top:bdr('thin',C.border),bottom:bdr('thin',C.border),
+        const fb=i=>({top:bdr('thin',C.border),bottom:bdr('thin',C.border),
           left:bdr('thin',C.border),right:bdr(i===FC-1?'medium':'thin',i===FC-1?C.borderDark:C.border)});
 
-        // A: Código (cor do projetista)
-        const cA=row.getCell(1);
-        cA.value=p.code||'—';cA.fill=fill(pc);
+        // A — Código (fundo=cor do projetista)
+        const cA=row.getCell(1);cA.value=p.code||'—';cA.fill=fill(pc);
         cA.font=font({bold:true,size:9,color:{argb:'FF000000'}});
         cA.alignment={vertical:'middle',horizontal:'center'};cA.border=fb(0);
-
-        // B: Projeto
-        const cB=row.getCell(2);
-        cB.value=p.name||'';cB.fill=fill(bg);
+        // B — Projeto
+        const cB=row.getCell(2);cB.value=p.name||'';cB.fill=fill(bg);
         cB.font=font({bold:true,size:9,color:{argb:st==='concluido'?C.greenTxt:st==='paralisado'?C.yellowTxt:C.textDark}});
         cB.alignment={vertical:'middle'};cB.border=fb(1);
-
-        // C: Atribuídos
-        const cC=row.getCell(3);
-        cC.value=(p.assignees||[]).join(', ')||'—';cC.fill=fill(bg);
-        cC.font=font({size:9,color:{argb:C.textMuted}});
-        cC.alignment={vertical:'middle'};cC.border=fb(2);
-
-        // D: Progresso — número real formatado como %
-        const cD=row.getCell(4);
-        cD.value=pct/100;cD.numFmt='0%';cD.fill=fill(bg);
+        // C — Atribuídos
+        const cC=row.getCell(3);cC.value=(p.assignees||[]).join(', ')||'—';cC.fill=fill(bg);
+        cC.font=font({size:9,color:{argb:C.textMuted}});cC.alignment={vertical:'middle'};cC.border=fb(2);
+        // D — % (número decimal real, formato %)
+        const cD=row.getCell(4);cD.value=pct/100;cD.numFmt='0%';cD.fill=fill(bg);
         cD.font=font({bold:true,size:9,color:{argb:pctColor}});
         cD.alignment={vertical:'middle',horizontal:'center'};cD.border=fb(3);
-
-        // E: Etapa
-        const cE=row.getCell(5);
-        cE.value=p.stage||'—';cE.fill=fill(bg);
+        // E — Etapa
+        const cE=row.getCell(5);cE.value=p.stage||'—';cE.fill=fill(bg);
         cE.font=font({size:9,color:{argb:C.textDark}});
         cE.alignment={vertical:'middle',horizontal:'center'};cE.border=fb(4);
-
-        // F: Início — data real editável
+        // F — Início: serial inteiro editável
         const cF=row.getCell(6);
-        if(p.start){cF.value=new Date(p.start+'T12:00:00');cF.numFmt='DD/MM/YYYY';}
+        cF.value=p.start?xSerial(p.start):'';
+        if(p.start)cF.numFmt='DD/MM/YYYY';
         cF.fill=fill(bg);cF.font=font({size:9,color:{argb:C.textDark}});
         cF.alignment={vertical:'middle',horizontal:'center'};cF.border=fb(5);
-
-        // G: Término — data real editável
+        // G — Término: serial inteiro editável
         const cG=row.getCell(7);
-        if(p.end){cG.value=new Date(p.end+'T12:00:00');cG.numFmt='DD/MM/YYYY';}
+        cG.value=p.end?xSerial(p.end):'';
+        if(p.end)cG.numFmt='DD/MM/YYYY';
         cG.fill=fill(bg);cG.font=font({size:9,color:{argb:C.textDark}});
         cG.alignment={vertical:'middle',horizontal:'center'};cG.border=fb(6);
-
-        // H: Dias úteis — fórmula NETWORKDAYS (recalcula ao mudar F/G)
+        // H — Dias úteis: fórmula NETWORKDAYS (recalcula ao mudar F/G)
         const cH=row.getCell(8);
         cH.value={formula:`IF(AND(F${rn}<>"",G${rn}<>""),NETWORKDAYS(F${rn},G${rn}),"")`};
         cH.fill=fill(bg);cH.font=font({bold:true,size:9,color:{argb:C.blueTxt}});
         cH.alignment={vertical:'middle',horizontal:'center'};cH.border=fb(7);
-
-        // I: Status — dropdown com validação
-        const cI=row.getCell(9);
-        cI.value=stLabel(p);
+        // I — Status: dropdown ASCII (CF precisa de texto exacto sem símbolos Unicode)
+        const cI=row.getCell(9);cI.value=stLabel(p);
         if(st==='concluido'){cI.fill=fill(C.greenBg);cI.font=font({bold:true,size:9,color:{argb:C.greenTxt}});}
         else if(st==='paralisado'){cI.fill=fill(C.yellowBg);cI.font=font({bold:true,size:9,color:{argb:C.yellowTxt}});}
         else{cI.fill=fill(bg);cI.font=font({size:9,color:{argb:C.greenLine}});}
         cI.alignment={vertical:'middle',horizontal:'center'};cI.border=fb(8);
         cI.dataValidation={type:'list',allowBlank:false,
-          formulae:['"▶ Em Progresso,⏸ Paralisado,✓ Concluído"']};
-
-        // Células do Gantt — apenas bordas; cores via formatação condicional
+          formulae:['"Em Progresso,Paralisado,Concluido"']};
+        // Células do Gantt — só bordas; CF pinta as cores dinamicamente
         days.forEach((_,i)=>{
           const c=row.getCell(FDC+i);
           c.border={top:bdr('thin',C.border),bottom:bdr('thin',C.border),right:bdr('thin',C.border)};
@@ -7929,12 +7916,11 @@ function hlMatch(text,q){
       };
 
       actProjs.forEach(p=>writeRow(p));
-
       if(doneProjs.length){
         const sr=sh.addRow(new Array(FC+days.length).fill(''));sr.height=18;
         sh.mergeCells(sr.number,1,sr.number,FC);
         const sc=sr.getCell(1);
-        sc.value='✓  CONCLUÍDOS  ·  '+doneProjs.length+' projeto(s)';
+        sc.value='CONCLUIDOS  -  '+doneProjs.length+' projeto(s)';
         sc.font=font({bold:true,size:9,color:{argb:C.greenTxt}});sc.fill=fill(C.greenBg);
         sc.alignment={vertical:'middle',horizontal:'left'};
         sc.border={top:bdr('medium',C.greenLine),bottom:bdr('thin',C.border)};
@@ -7948,42 +7934,41 @@ function hlMatch(text,q){
       const lastRow=sh.rowCount;
 
       // ── FORMATAÇÃO CONDICIONAL DINÂMICA ───────────────────────────────────
-      // As fórmulas comparam a data do cabeçalho (linha 3) com F/G de cada projeto.
-      // Ao editar F ou G no Excel, as barras se atualizam automaticamente.
-      // Prioridade: menor número = maior precedência.
+      // Fórmula por projecto: compara serial inteiro (linha 3) com F/G
+      // Ao editar Início ou Término no Excel as barras movem automaticamente.
+      // Status do dropdown altera a cor da barra em tempo real.
+      // Prioridade: número menor = maior precedência sobre outras regras.
       let pri=1;
 
-      // Por projeto: 3 regras (Em Progresso / Paralisado / Concluído)
-      // Ref = apenas a linha desse projeto, colunas do calendário
       allProjs.forEach((p,idx)=>{
         const rn=projRowNums[idx];if(!rn)return;
         const pc=personColor(p);
         const ref=`${FDL}${rn}:${LDL}${rn}`;
         sh.addConditionalFormatting({ref,rules:[
+          // Em Progresso → cor do projetista
           {type:'expression',priority:pri++,
-           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="▶ Em Progresso")`],
+           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="Em Progresso")`],
            style:cfFill(pc)},
+          // Paralisado → amarelo
           {type:'expression',priority:pri++,
-           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="⏸ Paralisado")`],
+           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="Paralisado")`],
            style:cfFill(C.yellowBg)},
+          // Concluido → verde
           {type:'expression',priority:pri++,
-           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="✓ Concluído")`],
+           formulae:[`AND(${FDL}$3>=$F${rn},${FDL}$3<=$G${rn},$I${rn}="Concluido")`],
            style:cfFill(C.greenBg)},
         ]});
       });
 
-      // Hoje — destaque âmbar (menor prioridade que as barras)
+      // Hoje (âmbar) — menor prioridade que barras
       sh.addConditionalFormatting({ref:`${FDL}5:${LDL}${lastRow}`,rules:[
         {type:'expression',priority:pri++,
-         formulae:[`${FDL}$3=TODAY()`],
-         style:cfFill(C.todayBg)},
+         formulae:[`${FDL}$3=TODAY()`],style:cfFill(C.todayBg)},
       ]});
-
-      // Fim-de-semana — cinza muito claro (menor prioridade de todas)
+      // Fim-de-semana (cinza) — menor prioridade de todas
       sh.addConditionalFormatting({ref:`${FDL}5:${LDL}${lastRow}`,rules:[
         {type:'expression',priority:pri++,
-         formulae:[`WEEKDAY(${FDL}$3,2)>5`],
-         style:cfFill(C.weekendBg)},
+         formulae:[`WEEKDAY(${FDL}$3,2)>5`],style:cfFill(C.weekendBg)},
       ]});
 
       sh.views=[{state:'frozen',xSplit:FC,ySplit:4,showGridLines:false}];
