@@ -7167,7 +7167,7 @@ function hlMatch(text,q){
   }
   function _fmt(ds){if(!ds)return'—';const[y,m,d]=ds.split('-');return`${d}/${m}/${y}`;}
   function _initials(n){return n.trim().split(/\s+/).map(p=>p[0]||'').join('').toUpperCase().slice(0,2);}
-  function _nameColor(n){let h=0;for(const c of n)h=c.charCodeAt(0)+((h<<5)-h);return ALLOC_COLORS[Math.abs(h)%ALLOC_COLORS.length];}
+  function _nameColor(n){const tc=_load().teamColors;if(tc&&tc[n])return tc[n];let h=0;for(const c of n)h=c.charCodeAt(0)+((h<<5)-h);return ALLOC_COLORS[Math.abs(h)%ALLOC_COLORS.length];}
   function _uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
   function renderAllocPanel(){
@@ -7569,7 +7569,7 @@ function hlMatch(text,q){
           <label class="alloc-form-label">Progresso — <span id="af-pct-val" style="color:var(--yellow)">${proj?.progress||0}%</span></label>
           <input class="alloc-form-input" type="range" id="af-pct" min="0" max="100" value="${proj?.progress||0}" oninput="document.getElementById('af-pct-val').textContent=this.value+'%'" style="padding:4px 0;accent-color:var(--yellow)">
         </div>
-        <div class="alloc-form-row"><label class="alloc-form-label">Cor</label><div class="alloc-color-swatches">${swatches}</div></div>
+        <div class="alloc-form-row"><label class="alloc-form-label">Cor do Projeto</label><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><input type="color" id="af-color" value="${selColor}" title="Escolher cor RGB" oninput="document.querySelectorAll('#alloc-modal-ov .alloc-swatch').forEach(s=>s.classList.remove('selected'))" style="width:44px;height:34px;border:1px solid var(--border);border-radius:6px;background:transparent;cursor:pointer;padding:2px"><div class="alloc-color-swatches">${swatches}</div></div></div>
         <div class="alloc-form-actions">${delBtn}<button class="alloc-btn-cancel" onclick="closeAllocModal()">Cancelar</button><button class="alloc-btn-save" onclick="saveAllocProject()">💾 Salvar</button></div>
       </div>
     </div>`;
@@ -7579,6 +7579,7 @@ function hlMatch(text,q){
   window.allocPickColor=function(el){
     document.querySelectorAll('#alloc-modal-ov .alloc-swatch').forEach(s=>s.classList.remove('selected'));
     el.classList.add('selected');
+    const ci=document.getElementById('af-color');if(ci)ci.value=el.dataset.color;
   };
 
   window.closeAllocModal=function(){document.getElementById('alloc-modal-ov')?.remove();_editPid=null;};
@@ -7590,7 +7591,7 @@ function hlMatch(text,q){
     const start=document.getElementById('af-start')?.value||'';
     const end=document.getElementById('af-end')?.value||'';
     const pct=parseInt(document.getElementById('af-pct')?.value||'0');
-    const color=document.querySelector('#alloc-modal-ov .alloc-swatch.selected')?.dataset.color||ALLOC_COLORS[0];
+    const color=document.getElementById('af-color')?.value||document.querySelector('#alloc-modal-ov .alloc-swatch.selected')?.dataset.color||ALLOC_COLORS[0];
     const assignees=[...document.querySelectorAll('#af-members .alloc-member-chip.selected')].map(el=>el.dataset.member);
     if(!name){alert('Informe o nome do projeto.');return;}
     if(!start||!end){alert('Informe as datas de início e término.');return;}
@@ -7611,9 +7612,19 @@ function hlMatch(text,q){
     _save(data);closeAllocModal();renderAllocPanel();
   };
 
+  window.setTeamMemberColor=function(name,color,inputEl){
+    const data=_load();
+    if(!data.teamColors)data.teamColors={};
+    data.teamColors[name]=color;
+    _save(data);
+    const av=inputEl?.closest('.alloc-team-item')?.querySelector('.alloc-avatar');
+    if(av)av.style.background=color;
+    renderAllocPanel();
+  };
+
   window.openTeamModal=function(){
     const data=_load();const team=data.team||[];
-    const listHtml=t=>t.length?t.map(m=>`<div class="alloc-team-item"><span class="alloc-team-name">${m}</span><button class="alloc-team-del" onclick="removeTeamMember('${m}')">✕</button></div>`).join(''):'<p style="color:var(--text-muted);font-size:.8rem;margin:0">Nenhum membro ainda.</p>';
+    const listHtml=t=>t.length?t.map(m=>{const c=(_load().teamColors||{})[m]||_nameColor(m);return`<div class="alloc-team-item"><span class="alloc-avatar" style="background:${c};width:22px;height:22px;font-size:.55rem;flex-shrink:0">${_initials(m)}</span><span class="alloc-team-name" style="flex:1;margin-left:8px">${m}</span><input type="color" value="${c}" title="Cor do projetista" onchange="setTeamMemberColor('${m}',this.value,this)" style="width:32px;height:28px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:4px;padding:1px;flex-shrink:0"><button class="alloc-team-del" onclick="removeTeamMember('${m}')">✕</button></div>`;}).join(''):'<p style="color:var(--text-muted);font-size:.8rem;margin:0">Nenhum membro ainda.</p>';
     const ov=document.createElement('div');
     ov.className='alloc-modal-overlay';ov.id='team-modal-ov';
     ov.onclick=e=>{if(e.target===ov)closeTeamModal();};
@@ -7639,7 +7650,7 @@ function hlMatch(text,q){
     const data=_load();
     if(!data.team.includes(name)){data.team.push(name);_save(data);}
     inp.value='';
-    const listHtml=t=>t.length?t.map(m=>`<div class="alloc-team-item"><span class="alloc-team-name">${m}</span><button class="alloc-team-del" onclick="removeTeamMember('${m}')">✕</button></div>`).join(''):'<p style="color:var(--text-muted);font-size:.8rem;margin:0">Nenhum membro ainda.</p>';
+    const listHtml=t=>t.length?t.map(m=>{const c=(_load().teamColors||{})[m]||_nameColor(m);return`<div class="alloc-team-item"><span class="alloc-avatar" style="background:${c};width:22px;height:22px;font-size:.55rem;flex-shrink:0">${_initials(m)}</span><span class="alloc-team-name" style="flex:1;margin-left:8px">${m}</span><input type="color" value="${c}" title="Cor do projetista" onchange="setTeamMemberColor('${m}',this.value,this)" style="width:32px;height:28px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:4px;padding:1px;flex-shrink:0"><button class="alloc-team-del" onclick="removeTeamMember('${m}')">✕</button></div>`;}).join(''):'<p style="color:var(--text-muted);font-size:.8rem;margin:0">Nenhum membro ainda.</p>';
     const el=document.getElementById('team-list');if(el)el.innerHTML=listHtml(data.team);
     inp.focus();
   };
@@ -7649,7 +7660,7 @@ function hlMatch(text,q){
     data.team=data.team.filter(m=>m!==name);
     data.projects.forEach(p=>{p.assignees=(p.assignees||[]).filter(a=>a!==name);});
     _save(data);
-    const listHtml=t=>t.length?t.map(m=>`<div class="alloc-team-item"><span class="alloc-team-name">${m}</span><button class="alloc-team-del" onclick="removeTeamMember('${m}')">✕</button></div>`).join(''):'<p style="color:var(--text-muted);font-size:.8rem;margin:0">Nenhum membro ainda.</p>';
+    const listHtml=t=>t.length?t.map(m=>{const c=(_load().teamColors||{})[m]||_nameColor(m);return`<div class="alloc-team-item"><span class="alloc-avatar" style="background:${c};width:22px;height:22px;font-size:.55rem;flex-shrink:0">${_initials(m)}</span><span class="alloc-team-name" style="flex:1;margin-left:8px">${m}</span><input type="color" value="${c}" title="Cor do projetista" onchange="setTeamMemberColor('${m}',this.value,this)" style="width:32px;height:28px;border:1px solid var(--border);background:transparent;cursor:pointer;border-radius:4px;padding:1px;flex-shrink:0"><button class="alloc-team-del" onclick="removeTeamMember('${m}')">✕</button></div>`;}).join(''):'<p style="color:var(--text-muted);font-size:.8rem;margin:0">Nenhum membro ainda.</p>';
     const el=document.getElementById('team-list');if(el)el.innerHTML=listHtml(data.team);
   };
 
