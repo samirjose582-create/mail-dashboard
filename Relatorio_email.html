@@ -7711,146 +7711,214 @@ function hlMatch(text,q){
           document.head.appendChild(s);
         });
       }
+
       const data=_load();
       const days=_days();
       const today=new Date().toISOString().slice(0,10);
       const exportDate=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
       const toArgb=h=>'FF'+h.replace('#','').toUpperCase().padStart(6,'0');
-      const DB='0F172A',SB='1E293B',MT='334155',TX='CBD5E1',YL='F59E0B',GR='10B981',BL='3B82F6',RD='EF4444';
+
+      // ── Paleta clara ──────────────────────────────────────────────────────
+      const C={
+        white:'FFFFFFFF', bgLight:'FFF8FAFC', bgAlt:'FFF1F5F9',
+        hdrBg:'FF1E3A5F', hdrTxt:'FFFFFFFF',
+        subHdrBg:'FF334155', subHdrTxt:'FFFFFFFF',
+        accent:'FF0EA5E9', accentTxt:'FFFFFFFF',
+        greenBg:'FFD1FAE5', greenTxt:'FF065F46', greenLine:'FF10B981',
+        yellowBg:'FFFEF3C7', yellowTxt:'FF92400E',
+        blueTxt:'FF0369A1',
+        redBg:'FFFEE2E2', redTxt:'FF991B1B',
+        todayBg:'FFFEF9C3', todayTxt:'FF92400E',
+        weekendBg:'FFF1F5F9', holBg:'FFFEE2E2',
+        textDark:'FF1E293B', textMuted:'FF64748B',
+        border:'FFE2E8F0', borderMed:'FFCBD5E1', borderDark:'FF94A3B8',
+      };
+
+      const bdr=(t='thin',c=C.border)=>({style:t,color:{argb:c}});
+      const fill=argb=>({type:'pattern',pattern:'solid',fgColor:{argb}});
+      const font=(opts={})=>({name:'Calibri',size:10,...opts});
+
+      // Cor assignee (igual ao HTML)
+      const personColor=p=>{const a=(p.assignees||[])[0];return a?toArgb(_nameColor(a)):toArgb(p.color||'#0EA5E9');};
+      const rowBg=p=>{const s=p.status||'progresso';return s==='concluido'?C.greenBg:s==='paralisado'?C.yellowBg:null;};
+      const stLabel=p=>{const s=p.status||'progresso';return s==='concluido'?'✓ Concluído':s==='paralisado'?'⏸ Paralisado':'▶ Em Progresso';};
+
+      // Mapa de conflitos
+      const conflictKeys=new Set();
+      {const pdMap=new Map();
+       data.projects.forEach(p=>{if(!p.start||!p.end)return;(p.assignees||[]).forEach(a=>{days.forEach(ds=>{if(ds>=p.start&&ds<=p.end){const k=a+'|'+ds;if(!pdMap.has(k))pdMap.set(k,[]);pdMap.get(k).push(p.name||'');}});});});
+       for(const[k,v]of pdMap)if(v.length>1)conflictKeys.add(k);}
+
+      const actProjs=data.projects.filter(p=>(p.status||'progresso')!=='concluido');
+      const doneProjs=data.projects.filter(p=>(p.status||'progresso')==='concluido');
 
       const wb=new ExcelJS.Workbook();
-      wb.creator='Mail Dashboard — MEC SOLUTIONS';wb.created=new Date();
+      wb.creator='MEC SOLUTIONS';wb.created=new Date();
 
-      // ── Sheet 1: Resumo ────────────────────────────────────────────────────
-      const s1=wb.addWorksheet('Resumo');
-      s1.mergeCells('A1:H1');
-      const t1=s1.getCell('A1');
-      t1.value=`ALOCAÇÃO DE EQUIPE  ·  ${exportDate}`;
-      t1.font={bold:true,size:13,color:{argb:`FF${YL}`}};
-      t1.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${DB}`}};
-      t1.alignment={vertical:'middle',horizontal:'center'};
-      s1.getRow(1).height=30;
+      // ════════════════════════════════════════════════════════════════════════
+      // SHEET ÚNICA — CALENDÁRIO GANTT
+      // FC=9: Código · Projeto · Atribuídos · % · Etapa · Início · Término · Dias · Status
+      // ════════════════════════════════════════════════════════════════════════
+      const sh=wb.addWorksheet('Alocação de Equipe',{views:[{showGridLines:false}]});
+      const FC=9;
+      const fcW=[11,30,22,6,14,11,11,8,16];
+      fcW.forEach((w,i)=>sh.getColumn(i+1).width=w);
+      days.forEach((_,i)=>sh.getColumn(FC+i+1).width=3.2);
 
-      const hdr1=['Código','Projeto','Atribuídos','Progresso','Etapa','Início','Término','Dias Úteis','Status'];
-      const hr1=s1.addRow(hdr1);
-      hr1.height=22;
-      hr1.eachCell(c=>{
-        c.font={bold:true,size:10,color:{argb:'FF000000'}};
-        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${YL}`}};
-        c.alignment={vertical:'middle',horizontal:'center'};
-        c.border={bottom:{style:'medium'}};
+      // Grupos de meses e semanas
+      const mGroups=[];let mCur='',mStart=FC+1;
+      days.forEach((ds,i)=>{const m=ds.slice(0,7);if(m!==mCur){if(mCur)mGroups.push({m:mCur,s:mStart,e:FC+i});mCur=m;mStart=FC+i+1;}});
+      mGroups.push({m:mCur,s:mStart,e:FC+days.length});
+
+      const wGroups=[];let wCur='',wStart=FC+1;
+      days.forEach((ds,i)=>{
+        const d=new Date(ds+'T12:00:00');const t=new Date(d);t.setDate(t.getDate()+3-(t.getDay()+6)%7);
+        const w1=new Date(t.getFullYear(),0,4);
+        const wk=String(Math.round(((t-w1)/86400000+w1.getDay()+6)/7)).padStart(2,'0');
+        const wid=`${t.getFullYear()}-${wk}`;
+        if(wid!==wCur){if(wCur)wGroups.push({label:`Sem ${wCur.split('-')[1]}`,s:wStart,e:FC+i});wCur=wid;wStart=FC+i+1;}
       });
+      wGroups.push({label:`Sem ${wCur.split('-')[1]}`,s:wStart,e:FC+days.length});
 
-      data.projects.forEach((p,i)=>{
-        const wd=_workDays(p.start||'',p.end||'');
-        const pct=Math.min(100,Math.max(0,p.progress||0));
-        const status=pct===100?'✅ Concluído':pct>=50?'🔄 Em Andamento':'🕐 Iniciando';
-        const bg=i%2===0?SB:DB;
-        const row=s1.addRow([
-          p.code||'',p.name||'',(p.assignees||[]).join(', '),
-          pct/100,p.stage||'',
-          p.start?new Date(p.start+'T12:00:00'):'',
-          p.end?new Date(p.end+'T12:00:00'):'',
-          wd,status
-        ]);
-        row.height=20;
-        const pc=toArgb(p.color||'#f59e0b');
-        row.eachCell((c,col)=>{
-          c.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${bg}`}};
-          c.font={size:10,color:{argb:`FF${TX}`}};
-          c.alignment={vertical:'middle'};
-          c.border={left:{style:'thin',color:{argb:`FF${MT}`}},right:{style:'thin',color:{argb:`FF${MT}`}}};
-          if(col===1){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:pc}};c.font={bold:true,size:10,color:{argb:'FF000000'}};c.alignment={vertical:'middle',horizontal:'center'};}
-          if(col===4){c.numFmt='0%';c.alignment={vertical:'middle',horizontal:'center'};}
-          if(col===5){c.alignment={vertical:'middle',horizontal:'center'};}
-          if(col===6||col===7){c.numFmt='DD/MM/YYYY';c.alignment={vertical:'middle',horizontal:'center'};}
-          if(col===8){c.font={bold:true,size:10,color:{argb:`FF${BL}`}};c.alignment={vertical:'middle',horizontal:'center'};}
-          if(col===9){c.alignment={vertical:'middle',horizontal:'center'};}
-        });
-      });
-
-      // Totals
-      const totWd=data.projects.reduce((s,p)=>s+_workDays(p.start||'',p.end||''),0);
-      const tr1=s1.addRow(['',`TOTAL: ${data.projects.length} projeto(s)`,'','','','','',totWd,'']);
-      tr1.height=22;
-      tr1.eachCell((c,col)=>{
-        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${MT}`}};
-        c.font={bold:true,size:10,color:{argb:`FF${YL}`}};
-        c.alignment={vertical:'middle',...(col===8?{horizontal:'center'}:{})};
-      });
-
-      s1.columns=[{width:12},{width:38},{width:32},{width:13},{width:16},{width:14},{width:14},{width:12},{width:18}];
-      s1.views=[{state:'frozen',ySplit:2}];
-
-      // ── Sheet 2: Calendário Gantt ──────────────────────────────────────────
-      const s2=wb.addWorksheet('Calendario Gantt');
-      const FC=8; // fixed left cols
-      const fcLbl=['Código','Projeto','Atribuídos','%','Etapa','Início','Término','Dias'];
-      [12,28,22,6,14,11,11,8].forEach((w,i)=>s2.getColumn(i+1).width=w);
-      days.forEach((_,i)=>s2.getColumn(FC+i+1).width=3.5);
-
-      // Row 1: fixed labels + month headers
-      const r1=s2.addRow(new Array(FC+days.length).fill(''));
-      r1.height=20;
-      fcLbl.forEach((lbl,i)=>{
-        const c=r1.getCell(i+1);
-        c.value=lbl;c.font={bold:true,size:9,color:{argb:`FF${YL}`}};
-        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:`FF${DB}`}};
-        c.alignment={vertical:'middle',horizontal:'center'};
-        c.border={right:{style:'thin',color:{argb:`FF${MT}`}},bottom:{style:'medium',color:{argb:`FF${YL}`}}};
-      });
-      // Month groups
-      const mGroups=[];let cm='',cms=FC+1;
-      days.forEach((ds,i)=>{const m=ds.slice(0,7);if(m!==cm){if(cm)mGroups.push({m:cm,s:cms,e:FC+i});cm=m;cms=FC+i+1;}});
-      mGroups.push({m:cm,s:cms,e:FC+days.length});
+      // ── Linha 1: Título (fixas) + Meses (calendário) ─────────────────────
+      const r1=sh.addRow(new Array(FC+days.length).fill(''));r1.height=30;
+      sh.mergeCells(r1.number,1,r1.number,FC);
+      const r1c=r1.getCell(1);
+      r1c.value='ALOCAÇÃO DE EQUIPE  ·  '+exportDate;
+      r1c.font=font({bold:true,size:13,color:{argb:C.hdrTxt}});
+      r1c.fill=fill(C.hdrBg);r1c.alignment={vertical:'middle',horizontal:'center'};
       mGroups.forEach(({m,s,e})=>{
-        if(s<e)s2.mergeCells(1,s,1,e);
+        if(s<e)sh.mergeCells(r1.number,s,r1.number,e);
         const c=r1.getCell(s);
         c.value=`${MONTHS_PT[+m.slice(5)-1]} ${m.slice(0,4)}`;
-        c.font={bold:true,size:9,color:{argb:'FFFFFFFF'}};
-        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1E3A5F'}};
+        c.font=font({bold:true,size:9,color:{argb:C.accentTxt}});c.fill=fill(C.accent);
         c.alignment={vertical:'middle',horizontal:'center'};
+        c.border={left:bdr('medium',C.borderDark),bottom:bdr('thin',C.border)};
       });
 
-      // Row 2: day numbers
-      const r2=s2.addRow(new Array(FC+days.length).fill(''));
-      r2.height=22;
+      // ── Linha 2: Resumo (fixas) + Semanas (calendário) ───────────────────
+      const r2=sh.addRow(new Array(FC+days.length).fill(''));r2.height=18;
+      sh.mergeCells(r2.number,1,r2.number,FC);
+      const r2c=r2.getCell(1);
+      r2c.value=`${data.projects.length} projeto(s)  ·  ${actProjs.length} ativo(s)  ·  ${doneProjs.length} concluído(s)  ·  gerado em ${exportDate}`;
+      r2c.font=font({size:9,color:{argb:C.hdrTxt}});
+      r2c.fill=fill(C.subHdrBg);r2c.alignment={vertical:'middle',horizontal:'center'};
+      wGroups.forEach(({label,s,e})=>{
+        if(s<e)sh.mergeCells(r2.number,s,r2.number,e);
+        const c=r2.getCell(s);c.value=label;
+        c.font=font({size:8,color:{argb:C.textMuted}});c.fill=fill(C.bgLight);
+        c.alignment={vertical:'middle',horizontal:'center'};
+        c.border={left:bdr('thin',C.border),bottom:bdr('thin',C.border)};
+      });
+
+      // ── Linha 3: Cabeçalhos das colunas fixas + Números dos dias ─────────
+      const DOW_PT=['D','S','T','Q','Q','S','S'];
+      const r3=sh.addRow(new Array(FC+days.length).fill(''));r3.height=22;
+      ['Código','Projeto','Atribuídos','%','Etapa','Início','Término','Dias','Status'].forEach((lbl,i)=>{
+        const c=r3.getCell(i+1);c.value=lbl;
+        c.font=font({bold:true,size:9,color:{argb:C.subHdrTxt}});c.fill=fill(C.subHdrBg);
+        c.alignment={vertical:'middle',horizontal:'center'};
+        c.border={right:bdr(i===FC-1?'medium':'thin',i===FC-1?C.borderDark:C.border),bottom:bdr('medium',C.borderDark)};
+      });
       days.forEach((ds,i)=>{
-        const d=new Date(ds+'T12:00:00'),dow=d.getDay();
-        const c=r2.getCell(FC+i+1);
-        c.value=d.getDate();
+        const d=new Date(ds+'T12:00:00');const dow=d.getDay();
+        const c=r3.getCell(FC+i+1);
         const isWe=dow===0||dow===6,isH=_isHol(ds),isT=ds===today;
-        c.font={bold:isT,size:8,color:{argb:isT?`FF${YL}`:isH?`FF${RD}`:isWe?'FF64748B':`FF${TX}`}};
-        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:isT?'FF78350F':isH?'FF2D0A0A':isWe?'FF1A1F2E':`FF${DB}`}};
+        c.value=d.getDate();
+        c.font=font({bold:isT||isH,size:8,color:{argb:isT?C.todayTxt:isH?C.redTxt:isWe?C.textMuted:C.textDark}});
+        c.fill=fill(isT?C.todayBg:isH?C.holBg:isWe?C.weekendBg:C.white);
         c.alignment={vertical:'middle',horizontal:'center'};
-        c.border={bottom:{style:'thin',color:{argb:`FF${MT}`}}};
-        if(isH){const hn=_holName(ds);if(hn)c.note=hn;}
+        c.border={bottom:bdr('medium',C.borderDark)};
+        if(isH){const hn=_holName(ds);if(hn)try{c.note=hn;}catch(e){}}
       });
 
-      // Project rows
-      data.projects.forEach(p=>{
+      // ── Linha 4: DOW abreviado (apenas área do calendário) ────────────────
+      const r4=sh.addRow(new Array(FC+days.length).fill(''));r4.height=12;
+      for(let i=1;i<=FC;i++){const c=r4.getCell(i);c.fill=fill(C.bgAlt);c.border={bottom:bdr('medium',C.borderDark)};}
+      days.forEach((ds,i)=>{
+        const d=new Date(ds+'T12:00:00');const dow=d.getDay();
+        const c=r4.getCell(FC+i+1);
+        const isWe=dow===0||dow===6,isH=_isHol(ds),isT=ds===today;
+        c.value=DOW_PT[dow];
+        c.font=font({size:7,color:{argb:C.textMuted}});
+        c.fill=fill(isT?C.todayBg:isH?C.holBg:isWe?C.weekendBg:C.white);
+        c.alignment={vertical:'middle',horizontal:'center'};
+        c.border={bottom:bdr('medium',C.borderDark)};
+      });
+
+      // ── Linhas de projeto ─────────────────────────────────────────────────
+      const writeRow=p=>{
         const wd=_workDays(p.start||'',p.end||'');
         const pct=Math.min(100,Math.max(0,p.progress||0));
-        const pc=toArgb(p.color||'#f59e0b');
-        const row=s2.addRow(new Array(FC+days.length).fill(''));
-        row.height=18;
-        [p.code||'',p.name||'',(p.assignees||[]).join(', '),`${pct}%`,p.stage||'',p.start?_fmt(p.start):'',p.end?_fmt(p.end):'',wd].forEach((v,i)=>{
+        const st=p.status||'progresso';
+        const pc=personColor(p);
+        const bg=rowBg(p)||C.white;
+        const pctColor=pct>=80?C.greenLine:pct>=40?'FFF59E0B':'FFEF4444';
+
+        const row=sh.addRow(new Array(FC+days.length).fill(''));row.height=20;
+
+        // 9 colunas fixas
+        const vals=[p.code||'—',p.name||'',(p.assignees||[]).join(', ')||'—',`${pct}%`,p.stage||'—',p.start?_fmt(p.start):'—',p.end?_fmt(p.end):'—',wd,stLabel(p)];
+        vals.forEach((v,i)=>{
           const c=row.getCell(i+1);c.value=v;
-          c.font={size:9,color:{argb:i===0?'FF000000':`FF${TX}`},bold:i===0||i===7};
-          c.fill={type:'pattern',pattern:'solid',fgColor:{argb:i===0?pc:`FF${SB}`}};
-          c.alignment={vertical:'middle',horizontal:i===0||i>=3?'center':'left'};
-          c.border={right:{style:'thin',color:{argb:`FF${MT}`}}};
+          c.fill=fill(i===0?pc:bg);
+          c.font=font({size:9,color:{argb:C.textDark},bold:i===0||i===1||i===7});
+          c.alignment={vertical:'middle',horizontal:(i===0||i>=3)?'center':'left'};
+          c.border={top:bdr('thin',C.border),bottom:bdr('thin',C.border),
+            left:bdr('thin',C.border),right:bdr(i===FC-1?'medium':'thin',i===FC-1?C.borderDark:C.border)};
+          if(i===0){c.font=font({bold:true,size:9,color:{argb:'FF000000'}});}
+          if(i===2){c.font=font({size:9,color:{argb:st==='concluido'?C.greenTxt:st==='paralisado'?C.yellowTxt:C.textMuted}});}
+          if(i===3){c.font=font({bold:true,size:9,color:{argb:pctColor}});}
+          if(i===7){c.font=font({bold:true,size:9,color:{argb:C.blueTxt}});}
+          if(i===8){// Status
+            if(st==='concluido'){c.fill=fill(C.greenBg);c.font=font({bold:true,size:9,color:{argb:C.greenTxt}});}
+            else if(st==='paralisado'){c.fill=fill(C.yellowBg);c.font=font({bold:true,size:9,color:{argb:C.yellowTxt}});}
+            else{c.font=font({size:9,color:{argb:C.greenLine}});}}
         });
+
+        // Células do calendário Gantt
         days.forEach((ds,i)=>{
-          const d=new Date(ds+'T12:00:00'),dow=d.getDay();
+          const d=new Date(ds+'T12:00:00');const dow=d.getDay();
           const c=row.getCell(FC+i+1);
           const inR=p.start&&p.end&&ds>=p.start&&ds<=p.end;
           const isWe=dow===0||dow===6,isH=_isHol(ds),isT=ds===today;
-          c.fill={type:'pattern',pattern:'solid',fgColor:{argb:inR?pc:isT?'FF78350F':isH?'FF2D0A0A':isWe?'FF1A1F2E':`FF${DB}`}};
+          const hasConf=inR&&(p.assignees||[]).some(a=>conflictKeys.has(a+'|'+ds));
+          let bgCell;
+          if(inR){
+            if(hasConf)bgCell=C.redBg;
+            else if(st==='concluido')bgCell=C.greenBg;
+            else if(st==='paralisado')bgCell=C.yellowBg;
+            else bgCell=pc;
+          }else bgCell=isT?C.todayBg:isH?C.holBg:isWe?C.weekendBg:C.white;
+          c.fill=fill(bgCell);
+          c.border={top:bdr('thin',C.border),bottom:bdr('thin',C.border),right:bdr('thin',C.border)};
+          if(inR&&ds===p.start&&pct>0){
+            c.value=`${pct}%`;
+            c.font=font({bold:true,size:7,color:{argb:(st==='progresso'&&!hasConf)?'FFFFFFFF':C.textDark}});
+            c.alignment={vertical:'middle',horizontal:'center'};
+          }
         });
-      });
+      };
 
-      s2.views=[{state:'frozen',xSplit:FC,ySplit:2}];
+      actProjs.forEach(p=>writeRow(p));
+
+      // Separador + concluídos
+      if(doneProjs.length){
+        const sr=sh.addRow(new Array(FC+days.length).fill(''));sr.height=18;
+        sh.mergeCells(sr.number,1,sr.number,FC);
+        const sc=sr.getCell(1);
+        sc.value=`✓  CONCLUÍDOS  ·  ${doneProjs.length} projeto(s)`;
+        sc.font=font({bold:true,size:9,color:{argb:C.greenTxt}});sc.fill=fill(C.greenBg);
+        sc.alignment={vertical:'middle',horizontal:'left'};
+        sc.border={top:bdr('medium',C.greenLine),bottom:bdr('thin',C.border)};
+        days.forEach((_,i)=>{
+          const c=sr.getCell(FC+i+1);c.fill=fill(C.greenBg);
+          c.border={top:bdr('medium',C.greenLine)};
+        });
+        doneProjs.forEach(p=>writeRow(p));
+      }
+
+      sh.views=[{state:'frozen',xSplit:FC,ySplit:4,showGridLines:false}];
 
       // ── Download ───────────────────────────────────────────────────────────
       const buf=await wb.xlsx.writeBuffer();
@@ -8323,7 +8391,7 @@ function hlMatch(text,q){
     const read=matched.filter(e=>e.isRead);
     const u1=`psu_${pid}_u`, u2=`psu_${pid}_r`;
     return `
-      <div class="proj-sub open" id="${u1}">
+      <div class="proj-sub" id="${u1}">
         <div class="proj-sub-hdr" onclick="toggleProjSub('${u1}')">
           <span class="proj-sub-label" style="color:var(--blue)">📬 Não lidos</span>
           <span class="proj-sub-badge u">${unread.length}</span>
@@ -8333,7 +8401,7 @@ function hlMatch(text,q){
           ${unread.length ? unread.map(e=>emailCard(e)).join('') : '<div class="proj-no-emails">Nenhum e-mail não lido neste contrato.</div>'}
         </div>
       </div>
-      <div class="proj-sub${read.length&&!unread.length?' open':''}" id="${u2}">
+      <div class="proj-sub" id="${u2}">
         <div class="proj-sub-hdr" onclick="toggleProjSub('${u2}')">
           <span class="proj-sub-label" style="color:var(--text-muted)">📂 Lidos</span>
           <span class="proj-sub-badge r">${read.length}</span>
