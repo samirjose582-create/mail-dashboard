@@ -141,12 +141,13 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 .header-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .header-date-chip{font-family:var(--mono);font-size:.72rem;color:var(--text-soft);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;line-height:1.4;text-align:right;}
 /* ── SELECÇÃO EM MASSA ────────────────────────────────────────────── */
-.sel-cb{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border:2px solid var(--border);border-radius:5px;background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:4;opacity:0;transition:opacity .15s,background .15s,border-color .15s;font-size:.75rem;color:var(--blue);flex-shrink:0;}
-.email-card:hover .sel-cb,.reply-card:hover .sel-cb,.sent-card:hover .sel-cb,.urgency-card:hover .sel-cb,.email-card.sel,.reply-card.sel,.sent-card.sel,.urgency-card.sel{opacity:1;}
-.email-card.sel .sel-cb,.reply-card.sel .sel-cb,.sent-card.sel .sel-cb,.urgency-card.sel .sel-cb{background:var(--blue);border-color:var(--blue);color:#fff;}
-.email-card.sel,.reply-card.sel,.sent-card.sel{background:rgba(56,189,248,.07)!important;border-color:rgba(56,189,248,.35)!important;}
-.urgency-card.sel{background:rgba(56,189,248,.07)!important;border-color:rgba(56,189,248,.35)!important;}
-.email-card.sel .email-inner,.reply-card.sel .reply-inner,.sent-card.sel .sent-inner,.urgency-card.sel .urgency-inner{padding-left:38px;}
+/* ── SELECT COLUMN ─────────────────────────────────────────────────────────── */
+.email-card,.reply-card,.sent-card,.urgency-card{display:grid;grid-template-columns:42px 1fr;}
+.sel-col{grid-column:1;grid-row:1;display:flex;align-items:center;justify-content:center;padding-left:5px;cursor:default;}
+.sel-cb{width:20px;height:20px;border:2px solid var(--border);border-radius:5px;background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .15s,background .15s,border-color .15s;font-size:.8rem;font-weight:700;color:var(--blue);flex-shrink:0;user-select:none;}
+.email-card:hover .sel-cb,.reply-card:hover .sel-cb,.sent-card:hover .sel-cb,.urgency-card:hover .sel-cb{opacity:.55;}
+.email-card.sel .sel-cb,.reply-card.sel .sel-cb,.sent-card.sel .sel-cb,.urgency-card.sel .sel-cb{background:var(--blue);border-color:var(--blue);color:#fff;opacity:1;}
+.email-card.sel,.reply-card.sel,.sent-card.sel,.urgency-card.sel{background:rgba(56,189,248,.07)!important;border-color:rgba(56,189,248,.35)!important;}
 #bulk-bar{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid rgba(56,189,248,.4);border-radius:16px;padding:10px 16px;display:none;align-items:center;gap:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:1200;backdrop-filter:blur(14px);white-space:nowrap;animation:bulkIn .18s ease;}
 @keyframes bulkIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 #bulk-count{font-size:.8rem;font-weight:700;color:var(--blue);padding-right:10px;border-right:1px solid var(--border);margin-right:2px;}
@@ -403,7 +404,7 @@ html[data-theme="white"] .history-btn.history-btn-on{background:rgba(217,119,6,.
 .er-act.er-ext:hover{opacity:1;}
 .er-act:disabled{opacity:.35;cursor:default;}
 .email-card:hover{border-color:var(--border2);background:var(--surface2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.4);}
-.email-inner{padding:13px 16px 13px 19px;}
+.email-inner{padding:13px 16px 13px 4px;grid-column:2;}
 .email-row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px;}
 .email-subject{font-size:.86rem;font-weight:600;color:var(--text);line-height:1.35;flex:1;}
 .email-subject.read{font-weight:400;color:var(--text-soft);}
@@ -434,7 +435,7 @@ html[data-theme="white"] .history-btn.history-btn-on{background:rgba(217,119,6,.
 .urgency-card{background:var(--surface);border:1px solid rgba(248,113,113,.2);border-radius:12px;margin-bottom:7px;cursor:pointer;transition:all .2s;overflow:hidden;position:relative;}
 .urgency-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red);}
 .urgency-card:hover{background:var(--red-dim);border-color:rgba(248,113,113,.4);transform:translateY(-1px);box-shadow:0 4px 20px var(--red-glow);}
-.urgency-inner{padding:12px 16px 12px 19px;}
+.urgency-inner{padding:12px 16px 12px 4px;grid-column:2;}
 .urgency-pill{display:inline-block;background:var(--red-dim);color:var(--red);font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:4px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;border:1px solid rgba(248,113,113,.2);font-family:var(--mono);}
 .urgency-subject{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:3px;}
 .urgency-from{font-size:.72rem;color:var(--text-muted);margin-bottom:4px;}
@@ -457,7 +458,7 @@ html[data-theme="white"] .history-btn.history-btn-on{background:rgba(217,119,6,.
 .sent-card{background:var(--surface);border:1px solid rgba(34,211,238,.15);border-radius:12px;margin-bottom:7px;cursor:pointer;transition:all .2s;overflow:hidden;position:relative;}
 .sent-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cyan);}
 .sent-card:hover{background:var(--cyan-dim);border-color:rgba(34,211,238,.35);transform:translateY(-1px);}
-.sent-inner{padding:12px 16px 12px 19px;}
+.sent-inner{padding:12px 16px 12px 4px;grid-column:2;}
 .sent-label{font-size:.62rem;font-weight:700;color:var(--cyan);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;font-family:var(--mono);}
 .sent-subject{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:3px;}
 .sent-to{font-size:.73rem;color:var(--text-muted);margin-bottom:2px;}
@@ -468,7 +469,7 @@ html[data-theme="white"] .history-btn.history-btn-on{background:rgba(217,119,6,.
 .reply-card{background:var(--surface);border:1px solid rgba(251,191,36,.18);border-radius:12px;margin-bottom:7px;cursor:pointer;transition:all .2s;overflow:hidden;position:relative;}
 .reply-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--yellow);}
 .reply-card:hover{background:var(--yellow-dim);border-color:rgba(251,191,36,.4);transform:translateY(-1px);}
-.reply-inner{padding:12px 16px 12px 19px;}
+.reply-inner{padding:12px 16px 12px 4px;grid-column:2;}
 .reply-reason{font-size:.62rem;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;font-family:var(--mono);}
 .reply-subject{font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:3px;}
 .reply-from{font-size:.73rem;color:var(--text-muted);margin-bottom:4px;}
@@ -816,7 +817,7 @@ html[data-theme="white"] .history-btn.history-btn-on{background:rgba(217,119,6,.
 .composer.comp-max .comp-resize-handle{display:none;}
 .composer.comp-max .comp-attach-area,.composer.comp-max .comp-footer{flex-shrink:0;}
 /* ── REPLY / FORWARD ── */
-.email-actions{display:flex;gap:5px;padding:7px 16px 10px;border-top:1px solid var(--border);background:var(--surface2);flex-wrap:wrap;}
+.email-actions{grid-column:1/-1;display:flex;gap:5px;padding:7px 16px 10px;border-top:1px solid var(--border);background:var(--surface2);flex-wrap:wrap;}
 .eact{background:none;border:1px solid var(--border);color:var(--text-muted);padding:4px 11px;border-radius:6px;cursor:pointer;font-size:.69rem;font-weight:600;transition:all .15s;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:5px;}
 .eact.reply:hover{background:var(--blue-dim);border-color:rgba(56,189,248,.3);color:var(--blue);}
 .eact.reply-all:hover{background:var(--green-dim);border-color:rgba(74,222,128,.3);color:var(--green);}
@@ -2263,8 +2264,32 @@ let DATA={unread:[],read:[],flagged:[],total:0};
 let _userProfile={name:'',email:'',firstName:''};
 let URGENCIAS=[],ALL_URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[],SENT_EMAILS=[];
 const _selectedIds=new Set();
-function toggleEmailSelect(id,ev){ev&&ev.stopPropagation();const card=document.querySelector(`[data-eid="${CSS.escape(id)}"]`);if(_selectedIds.has(id)){_selectedIds.delete(id);card?.classList.remove('sel');if(card){const cb=card.querySelector('.sel-cb');if(cb)cb.textContent='';}}else{_selectedIds.add(id);card?.classList.add('sel');if(card){const cb=card.querySelector('.sel-cb');if(cb)cb.textContent='✓';}}_updateBulkBar();}
-function clearSelection(){_selectedIds.clear();document.querySelectorAll('.email-card.sel,.reply-card.sel,.sent-card.sel,.urgency-card.sel').forEach(el=>{el.classList.remove('sel');const cb=el.querySelector('.sel-cb');if(cb)cb.textContent='';});_updateBulkBar();}
+let _lastClickedId=null;
+function _getVisibleIds(){
+  const panel=document.getElementById('panel-'+currentTab)||document.querySelector('.email-panel.active');
+  return [...(panel?.querySelectorAll('[data-eid]')||[])].map(el=>el.getAttribute('data-eid'));
+}
+function _selectCard(id,select){
+  const card=document.querySelector(`[data-eid="${CSS.escape(id)}"]`);
+  if(select){_selectedIds.add(id);card?.classList.add('sel');const cb=card?.querySelector('.sel-cb');if(cb)cb.textContent='✓';}
+  else{_selectedIds.delete(id);card?.classList.remove('sel');const cb=card?.querySelector('.sel-cb');if(cb)cb.textContent='';}
+}
+function toggleEmailSelect(id,ev){
+  ev&&ev.stopPropagation();
+  if(ev&&ev.shiftKey&&_lastClickedId&&_lastClickedId!==id){
+    const all=_getVisibleIds();
+    const i1=all.indexOf(_lastClickedId),i2=all.indexOf(id);
+    if(i1!==-1&&i2!==-1){
+      const s=Math.min(i1,i2),end=Math.max(i1,i2);
+      all.slice(s,end+1).forEach(eid=>_selectCard(eid,true));
+      _updateBulkBar();return;
+    }
+  }
+  _selectCard(id,!_selectedIds.has(id));
+  _lastClickedId=id;
+  _updateBulkBar();
+}
+function clearSelection(){_selectedIds.clear();_lastClickedId=null;document.querySelectorAll('.email-card.sel,.reply-card.sel,.sent-card.sel,.urgency-card.sel').forEach(el=>{el.classList.remove('sel');const cb=el.querySelector('.sel-cb');if(cb)cb.textContent='';});_updateBulkBar();}
 function _updateBulkBar(){const bar=document.getElementById('bulk-bar'),cnt=document.getElementById('bulk-count'),n=_selectedIds.size;if(bar)bar.style.display=n>0?'flex':'none';if(cnt)cnt.textContent=`${n} selecionado${n!==1?'s':''}`;}
 async function bulkAction(action){
   const ids=[..._selectedIds];if(!ids.length)return;
@@ -2397,7 +2422,7 @@ function emailCard(e, extraCls=''){
   const isU=!e.isRead,isPinned=PINNED_IDS.has(e.id),base=e.importance==='high'?'high-prio':(isU?'unread':''),cls=[base,extraCls,isPinned?'pinned':''].filter(Boolean).join(' '),s=clean(e.summary),link=esc(e.webLink||'#');
   const _isSel=_selectedIds.has(e.id);
   return `<div class="email-card ${cls}${_isSel?' sel':''}" onclick="openEmailReader('${esc(e.id)}')" data-eid="${esc(e.id)}" data-subject="${he((e.subject||'').toLowerCase())}" data-sender="${he(((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim())}" data-summary="${he(s.toLowerCase())}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}">
-    <div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_isSel?'✓':''}</div>
+    <div class="sel-col"><div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_isSel?'✓':''}</div></div>
     <div class="email-inner">
       <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${he(e.subject||'(sem assunto)')}${isPinned?'<span class="pin-badge">FIXADO</span>':''}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
       <div class="email-from">De: <strong>${he(sn(e))}</strong> · <span style="font-family:var(--mono);font-size:.68rem">${he(e.sender||'')}</span></div>
@@ -2430,7 +2455,7 @@ function emailCard(e, extraCls=''){
 function replyCard(e){
   const isPinned=PINNED_IDS.has(e.id),isU=!e.isRead,_isSel=_selectedIds.has(e.id);
   return `<div class="reply-card${_isSel?' sel':''}" data-eid="${esc(e.id)}" data-subject="${he((e.subject||'').toLowerCase())}" data-sender="${he(((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim())}" data-summary="${he(clean(e.summary||'').toLowerCase())}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')">
-    <div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_isSel?'✓':''}</div>
+    <div class="sel-col"><div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_isSel?'✓':''}</div></div>
     <div class="reply-inner">
       <div class="reply-reason">↩ AGUARDA RESPOSTA${isPinned?'<span class="pin-badge" style="margin-left:8px">FIXADO</span>':''}</div>
       <div class="reply-subject">${e.importance==='high'?'⚠ ':''}${he(e.subject||'(sem assunto)')}</div>
@@ -2658,7 +2683,7 @@ function sentCard(e){
   const _sTos=(e.toRecipients||[]).map(r=>(r.emailAddress?.name||r.emailAddress?.address||'')).join(' ').toLowerCase();
   const _isSel=_selectedIds.has(e.id);
   return `<div class="sent-card${_isSel?' sel':''}" data-eid="${esc(e.id)}" data-subject="${he((e.subject||'').toLowerCase())}" data-sender="${he(_sTos)}" data-summary="${he(clean(e.summary||'').toLowerCase())}" data-date="${(e.sentDateTime||'').slice(0,10)}" data-read="1" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')">
-    <div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_isSel?'✓':''}</div>
+    <div class="sel-col"><div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_isSel?'✓':''}</div></div>
     <div class="sent-inner">
       <div class="sent-label">📤 ENVIADO${e.hasAttachments?' &nbsp;📎':''}</div>
       <div class="sent-subject">${e.importance==='high'?'⚠ ':''}${he(e.subject||'(sem assunto)')}</div>
@@ -2809,7 +2834,7 @@ function renderUrgencias(){
   const _prefix=_periodBar+sh('var(--red)',_title,URGENCIAS.length);
   if(URGENCIAS.length){
     _lazyRender(_urgEl,URGENCIAS,
-      e=>{const _s=_selectedIds.has(e.id);return`<div class="urgency-card${_s?' sel':''}" data-eid="${esc(e.id)}" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${clean(e.summary).toLowerCase()}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')"><div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_s?'✓':''}</div><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`;},
+      e=>{const _s=_selectedIds.has(e.id);return`<div class="urgency-card${_s?' sel':''}" data-eid="${esc(e.id)}" data-subject="${(e.subject||'').toLowerCase()}" data-sender="${((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim()}" data-summary="${clean(e.summary).toLowerCase()}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')"><div class="sel-col"><div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_s?'✓':''}</div></div><div class="urgency-inner"><div class="urgency-pill">⚡ ${e._urgency}</div><div class="urgency-subject">${e.subject||''}</div><div class="urgency-from">${sn(e)} · ${fmtTime(e.receivedDateTime)}</div><div class="urgency-reason">${clean(e.summary).slice(0,130)}</div></div></div>`;},
       _prefix);
   }else{
     _urgEl.innerHTML=_periodBar+empty('✓','Sem urgências',`Nenhum e-mail crítico ${_label}.`);
