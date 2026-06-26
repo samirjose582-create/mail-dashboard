@@ -7256,6 +7256,8 @@ function hlMatch(text,q){
         const pctColor=pct>=80?'var(--green)':pct>=40?'var(--yellow)':'var(--orange)';
         const avatars=(p.assignees||[]).map(a=>`<span class="alloc-avatar" style="background:${_nameColor(a)}" title="${a}">${_initials(a)}</span>`).join('');
         const assignStr=(p.assignees||[]).join(', ').slice(0,18)||'—';
+        const _firstA=(p.assignees||[])[0];
+        const barColor=_firstA?_nameColor(_firstA):(p.color||ALLOC_COLORS[0]);
         const dayCells=days.map((ds,dIdx)=>{
           const d=new Date(ds+'T12:00:00');const dow=d.getDay();
           const isT=ds===todayStr,isW=_isWe(ds),isH=_isHol(ds);
@@ -7276,7 +7278,7 @@ function hlMatch(text,q){
             const prevConflict=prevDs&&inRange&&(p.assignees||[]).some(a=>conflictKeys.has(a+'|'+prevDs));
             const isConflictStart=hasConflict&&!prevConflict;
             const badge=isConflictStart?`<span class="alloc-conflict-label" title="Sobreposição: ${conflictAssignees.join(', ')}">⚠ ${conflictAssignees.join(', ')}</span>`:'';
-            bar=`<div class="${bc}" style="background:${p.color||ALLOC_COLORS[0]};overflow:hidden">${lbl}</div>${badge}`;
+            bar=`<div class="${bc}" style="background:${barColor};overflow:hidden">${lbl}</div>${badge}`;
           }
           return `<td class="${cls}"><div class="alloc-day-inner">${bar}</div></td>`;
         }).join('');
