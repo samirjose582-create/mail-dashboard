@@ -1307,7 +1307,7 @@ body.ck-active{padding-bottom:54px;}
 .alloc-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:13px;background:var(--surface);}
 .alloc-table{border-collapse:separate;border-spacing:0;white-space:nowrap;min-width:100%;}
 .alloc-table th,.alloc-table td{border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
-.alloc-th-hdr{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);text-align:center;padding:5px 4px;position:sticky;z-index:3;top:0;background:var(--surface);}
+.alloc-th-hdr{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);text-align:center;padding:5px 4px;position:sticky;z-index:8;top:0;background:var(--surface);}
 .alloc-th-month{font-size:.6rem;font-weight:700;color:var(--text-soft);text-align:center;padding:4px 0;position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--border);}
 .alloc-th-week{font-size:.55rem;color:var(--text-muted);text-align:center;padding:2px 0;position:sticky;top:24px;z-index:2;background:var(--surface);border-bottom:1px solid var(--border);}
 .alloc-th-day{width:var(--adw,38px);min-width:var(--adw,38px);max-width:var(--adw,38px);text-align:center;padding:2px 1px;font-size:.57rem;position:sticky;top:40px;z-index:2;background:var(--surface);}
@@ -1318,7 +1318,7 @@ body.ck-active{padding-bottom:54px;}
 .alloc-th-day.is-holiday{background:rgba(239,68,68,.07);}
 .alloc-td-day.is-holiday{background:rgba(239,68,68,.04);}
 .alloc-td-day.is-today{background:rgba(245,158,11,.08);}
-.alloc-td-left{font-size:.72rem;padding:6px 8px;color:var(--text-soft);vertical-align:middle;position:sticky;z-index:4;background:var(--surface);will-change:transform;}
+.alloc-td-left{font-size:.72rem;padding:6px 8px;color:var(--text-soft);vertical-align:middle;position:sticky;z-index:10;background:var(--surface);will-change:transform;}
 .alloc-td-day{width:var(--adw,38px);min-width:var(--adw,38px);max-width:var(--adw,38px);height:var(--adh,42px);padding:0;vertical-align:middle;}
 .alloc-day-inner{position:relative;width:100%;height:var(--adh,42px);overflow:hidden;}
 .alloc-zoom-ctrl{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px 8px;}
@@ -1344,7 +1344,7 @@ body.ck-active{padding-bottom:54px;}
 .alloc-bar-pct{position:absolute;top:50%;transform:translateY(-50%);left:8px;font-size:.5rem;font-weight:700;color:rgba(255,255,255,.95);white-space:nowrap;pointer-events:none;z-index:1;}
 .alloc-bar-conflict{opacity:.85;}
 .alloc-td-day.is-conflict{background:rgba(239,68,68,.14);}
-.alloc-conflict-label{position:absolute;top:1px;left:50%;transform:translateX(-50%);font-size:6px;font-weight:900;color:#fff;white-space:nowrap;background:rgba(239,68,68,.8);padding:1px 4px;border-radius:3px;z-index:4;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:default;}
+.alloc-conflict-label{position:absolute;top:1px;left:50%;transform:translateX(-50%);font-size:6px;font-weight:900;color:#fff;white-space:nowrap;background:rgba(239,68,68,.8);padding:1px 4px;border-radius:3px;z-index:3;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:default;}
 .alloc-conflict-summary{margin-top:10px;padding:10px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:10px;font-size:.75rem;color:var(--text-soft);line-height:1.7;}
 .alloc-conflict-summary strong{color:rgba(239,68,68,.9);}
 .alloc-conflict-summary .acp-item{display:block;padding-left:8px;}
@@ -1382,8 +1382,8 @@ body.ck-active{padding-bottom:54px;}
 .alloc-wrap.cols-hidden .alloc-td-left[data-col="6"],
 .alloc-wrap.cols-hidden .alloc-td-left[data-col="7"]{display:none;}
 #alloc-toggle-cols-btn{min-width:110px;}
-.alloc-row:hover .alloc-td-left{background:rgba(255,255,255,.025);}
-.alloc-sep-col{border-right:2px solid var(--border) !important;}
+.alloc-row:hover .alloc-td-left{background:var(--surface2);}
+.alloc-sep-col{border-right:2px solid var(--border) !important;box-shadow:4px 0 12px rgba(0,0,0,.45);}
 /* Modals */
 .alloc-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9100;display:flex;align-items:center;justify-content:center;padding:16px;}
 .alloc-modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
@@ -7211,11 +7211,11 @@ function hlMatch(text,q){
     const CH=['Projeto','Atribuído','%','Etapa','Início','Término','Dias',''];
 
     // Header: month row
-    const mHdrLeft=`<th colspan="${CW.length}" style="text-align:left;padding:6px 10px;font-size:.68rem;font-weight:700;color:var(--yellow);background:var(--surface);position:sticky;left:0;z-index:4;top:0;border-bottom:1px solid var(--border)">🏗 ALOCAÇÃO DE EQUIPE</th>`;
+    const mHdrLeft=`<th colspan="${CW.length}" style="text-align:left;padding:6px 10px;font-size:.68rem;font-weight:700;color:var(--yellow);background:var(--surface);position:sticky;left:0;z-index:12;top:0;border-bottom:1px solid var(--border)">🏗 ALOCAÇÃO DE EQUIPE</th>`;
     const mHdrRight=mSpans.map(({m,n})=>`<th colspan="${n}" class="alloc-th-month">${MONTHS_SH[+m.slice(5)-1]} ${m.slice(0,4)}</th>`).join('');
 
     // Header: week row
-    const wHdrLeft=`<th colspan="${CW.length}" style="background:var(--surface);position:sticky;left:0;z-index:4;top:24px;padding:3px 10px;font-size:.6rem;color:var(--text-muted);border-bottom:1px solid var(--border)">${navLbl}</th>`;
+    const wHdrLeft=`<th colspan="${CW.length}" style="background:var(--surface);position:sticky;left:0;z-index:12;top:24px;padding:3px 10px;font-size:.6rem;color:var(--text-muted);border-bottom:1px solid var(--border)">${navLbl}</th>`;
     const wHdrRight=wSpans.map(({n,label})=>`<th colspan="${n}" class="alloc-th-week">${label}</th>`).join('');
 
     // Header: col names + day numbers
@@ -7327,7 +7327,7 @@ function hlMatch(text,q){
         _actProjs.forEach(p=>{ rows+=_renderProjRow(p); });
       if(_doneProjs.length){
         const _sepDays=days.map(()=>`<td class="alloc-td-day"></td>`).join('');
-        rows+=`<tr class="alloc-sep-row"><td colspan="${CW.length}" class="alloc-td-left" style="left:${CL[0]}px;z-index:4">✓ CONCLUÍDOS · ${_doneProjs.length}</td>${_sepDays}</tr>`;
+        rows+=`<tr class="alloc-sep-row"><td colspan="${CW.length}" class="alloc-td-left" style="left:${CL[0]}px;z-index:10">✓ CONCLUÍDOS · ${_doneProjs.length}</td>${_sepDays}</tr>`;
         _doneProjs.forEach(p=>{ rows+=_renderProjRow(p); });
       }
     }
