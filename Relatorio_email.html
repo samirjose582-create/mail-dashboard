@@ -2264,7 +2264,7 @@ let DATA={unread:[],read:[],flagged:[],total:0};
 let _userProfile={name:'',email:'',firstName:''};
 let URGENCIAS=[],ALL_URGENCIAS=[],RESPONDER=[],REUNIOES=[],PROJETOS={},CALENDAR_EVENTS=[],SENT_EMAILS=[];
 const _selectedIds=new Set();
-let _lastClickedId=null;
+let _lastClickedId=null,_lastAction=true;
 function _getVisibleIds(){
   const panel=document.getElementById('panel-'+currentTab)||document.querySelector('.email-panel.active');
   return [...(panel?.querySelectorAll('[data-eid]')||[])].map(el=>el.getAttribute('data-eid'));
@@ -2281,12 +2281,13 @@ function toggleEmailSelect(id,ev){
     const i1=all.indexOf(_lastClickedId),i2=all.indexOf(id);
     if(i1!==-1&&i2!==-1){
       const s=Math.min(i1,i2),end=Math.max(i1,i2);
-      all.slice(s,end+1).forEach(eid=>_selectCard(eid,true));
+      all.slice(s,end+1).forEach(eid=>_selectCard(eid,_lastAction));
       _updateBulkBar();return;
     }
   }
-  _selectCard(id,!_selectedIds.has(id));
-  _lastClickedId=id;
+  const willSelect=!_selectedIds.has(id);
+  _selectCard(id,willSelect);
+  _lastClickedId=id;_lastAction=willSelect;
   _updateBulkBar();
 }
 function clearSelection(){_selectedIds.clear();_lastClickedId=null;document.querySelectorAll('.email-card.sel,.reply-card.sel,.sent-card.sel,.urgency-card.sel').forEach(el=>{el.classList.remove('sel');const cb=el.querySelector('.sel-cb');if(cb)cb.textContent='';});_updateBulkBar();}
