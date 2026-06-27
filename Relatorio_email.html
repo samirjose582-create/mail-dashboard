@@ -7946,18 +7946,20 @@ function hlMatch(text,q){
         const rn=projRowNums[idx];if(!rn)return;
         const pc=personColor(p);
         const ref=`${FDL}${rn}:${LDL}${rn}`;
+        // NOT(day>end) equivale a day<=end mas sem o caracter '<' que o ExcelJS
+        // não faz XML-encode nas fórmulas CF, produzindo XML inválido ignorado pelo Excel.
         sh.addConditionalFormatting({ref,rules:[
           // Em Progresso → cor do projetista
           {type:'expression',priority:pri++,
-           formulae:[`AND(${dayExpr}>=$F${rn},${dayExpr}<=$G${rn},$I${rn}="Em Progresso")`],
+           formulae:[`AND(${dayExpr}>=$F${rn},NOT(${dayExpr}>$G${rn}),$I${rn}="Em Progresso")`],
            style:cfFill(pc)},
           // Paralisado → amarelo
           {type:'expression',priority:pri++,
-           formulae:[`AND(${dayExpr}>=$F${rn},${dayExpr}<=$G${rn},$I${rn}="Paralisado")`],
+           formulae:[`AND(${dayExpr}>=$F${rn},NOT(${dayExpr}>$G${rn}),$I${rn}="Paralisado")`],
            style:cfFill(C.yellowBg)},
           // Concluido → verde
           {type:'expression',priority:pri++,
-           formulae:[`AND(${dayExpr}>=$F${rn},${dayExpr}<=$G${rn},$I${rn}="Concluido")`],
+           formulae:[`AND(${dayExpr}>=$F${rn},NOT(${dayExpr}>$G${rn}),$I${rn}="Concluido")`],
            style:cfFill(C.greenBg)},
         ]});
       });
