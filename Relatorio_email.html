@@ -7908,9 +7908,16 @@ function hlMatch(text,q){
         cI.alignment={vertical:'middle',horizontal:'center'};cI.border=fb(8);
         cI.dataValidation={type:'list',allowBlank:false,
           formulae:['"Em Progresso,Paralisado,Concluido"']};
-        // Células do Gantt — só bordas; CF pinta as cores dinamicamente
-        days.forEach((_,i)=>{
+        // Células do Gantt — preenche a barra directamente (CF não é fiável no ExcelJS)
+        const barColor=st==='concluido'?C.greenBg:st==='paralisado'?C.yellowBg:pc;
+        days.forEach((ds,i)=>{
           const c=row.getCell(FDC+i);
+          const dow=new Date(ds+'T12:00:00').getDay();
+          const inRange=p.start&&p.end&&ds>=p.start&&ds<=p.end;
+          const isWe=dow===0||dow===6, isT=ds===today;
+          if(inRange)c.fill=fill(barColor);
+          else if(isT)c.fill=fill(C.todayBg);
+          else if(isWe)c.fill=fill(C.weekendBg);
           c.border={top:bdr('thin',C.border),bottom:bdr('thin',C.border),right:bdr('thin',C.border)};
         });
       };
@@ -7930,50 +7937,6 @@ function hlMatch(text,q){
         });
         doneProjs.forEach(p=>writeRow(p));
       }
-
-      const lastRow=sh.rowCount;
-
-      // ── FORMATAÇÃO CONDICIONAL DINÂMICA ───────────────────────────────────
-      // dayExpr calcula o serial do dia da coluna actual sem referência relativa:
-      //   $J$3 = serial do 1.º dia (absoluto) | COLUMN() = coluna actual
-      //   Resultado: serial do dia da célula avaliada — não precisa de ajuste pelo ExcelJS.
-      // Prioridade: número menor = maior precedência (barras vencem hoje/fim-de-semana).
-      let pri=1;
-      const absBase=`$${FDL}$3`;                          // e.g. "$J$3"
-      const dayExpr=`${absBase}+COLUMN()-COLUMN(${absBase})`;// serial do dia actual
-
-      allProjs.forEach((p,idx)=>{
-        const rn=projRowNums[idx];if(!rn)return;
-        const pc=personColor(p);
-        const ref=`${FDL}${rn}:${LDL}${rn}`;
-        // NOT(day>end) equivale a day<=end mas sem o caracter '<' que o ExcelJS
-        // não faz XML-encode nas fórmulas CF, produzindo XML inválido ignorado pelo Excel.
-        sh.addConditionalFormatting({ref,rules:[
-          // Em Progresso → cor do projetista
-          {type:'expression',priority:pri++,
-           formulae:[`AND(${dayExpr}>=$F${rn},NOT(${dayExpr}>$G${rn}),$I${rn}="Em Progresso")`],
-           style:cfFill(pc)},
-          // Paralisado → amarelo
-          {type:'expression',priority:pri++,
-           formulae:[`AND(${dayExpr}>=$F${rn},NOT(${dayExpr}>$G${rn}),$I${rn}="Paralisado")`],
-           style:cfFill(C.yellowBg)},
-          // Concluido → verde
-          {type:'expression',priority:pri++,
-           formulae:[`AND(${dayExpr}>=$F${rn},NOT(${dayExpr}>$G${rn}),$I${rn}="Concluido")`],
-           style:cfFill(C.greenBg)},
-        ]});
-      });
-
-      // Hoje (âmbar) — menor prioridade que barras
-      sh.addConditionalFormatting({ref:`${FDL}5:${LDL}${lastRow}`,rules:[
-        {type:'expression',priority:pri++,
-         formulae:[`${dayExpr}=TODAY()`],style:cfFill(C.todayBg)},
-      ]});
-      // Fim-de-semana (cinza) — menor prioridade de todas
-      sh.addConditionalFormatting({ref:`${FDL}5:${LDL}${lastRow}`,rules:[
-        {type:'expression',priority:pri++,
-         formulae:[`WEEKDAY(${dayExpr},2)>5`],style:cfFill(C.weekendBg)},
-      ]});
 
       sh.views=[{state:'frozen',xSplit:FC,ySplit:4,showGridLines:false}];
 
