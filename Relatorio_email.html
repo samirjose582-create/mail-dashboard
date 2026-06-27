@@ -7908,16 +7908,17 @@ function hlMatch(text,q){
         cI.alignment={vertical:'middle',horizontal:'center'};cI.border=fb(8);
         cI.dataValidation={type:'list',allowBlank:false,
           formulae:['"Em Progresso,Paralisado,Concluido"']};
-        // Células do Gantt — preenche a barra directamente (CF não é fiável no ExcelJS)
-        const barColor=st==='concluido'?C.greenBg:st==='paralisado'?C.yellowBg:pc;
-        days.forEach((ds,i)=>{
+        // Células do Gantt: fórmula "█" dinâmica — barra move ao editar F/G no Excel.
+        // NOT(day>G) evita <= (caracter < quebra XML no ExcelJS); lógica equivalente.
+        const barFontColor=st==='concluido'?C.greenTxt:st==='paralisado'?C.yellowTxt:pc;
+        const ab=`$${FDL}$3`; // serial do 1.º dia (absoluto)
+        const day=`${ab}+COLUMN()-COLUMN(${ab})`; // serial do dia da célula actual
+        const rng=`AND(NOT($F${rn}=""),NOT($G${rn}=""),${day}>=$F${rn},NOT(${day}>$G${rn}))`;
+        days.forEach((_,i)=>{
           const c=row.getCell(FDC+i);
-          const dow=new Date(ds+'T12:00:00').getDay();
-          const inRange=p.start&&p.end&&ds>=p.start&&ds<=p.end;
-          const isWe=dow===0||dow===6, isT=ds===today;
-          if(inRange)c.fill=fill(barColor);
-          else if(isT)c.fill=fill(C.todayBg);
-          else if(isWe)c.fill=fill(C.weekendBg);
+          c.value={formula:`IF(${rng},"█","")`};
+          c.font=font({size:9,bold:true,color:{argb:barFontColor}});
+          c.alignment={vertical:'middle',horizontal:'center'};
           c.border={top:bdr('thin',C.border),bottom:bdr('thin',C.border),right:bdr('thin',C.border)};
         });
       };
