@@ -7703,13 +7703,21 @@ function hlMatch(text,q){
     const btn=document.getElementById('alloc-export-btn');
     if(btn){btn.disabled=true;btn.textContent='⏳ Gerando...';}
     try{
-      if(typeof ExcelJS==='undefined'){
-        await new Promise((res,rej)=>{
-          const s=document.createElement('script');
-          s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
-          s.onload=res;s.onerror=()=>rej(new Error('Falha ao carregar ExcelJS'));
-          document.head.appendChild(s);
-        });
+      if(typeof ExcelJS==='undefined'||typeof JSZip==='undefined'){
+        await Promise.all([
+          typeof ExcelJS!=='undefined'?Promise.resolve():new Promise((res,rej)=>{
+            const s=document.createElement('script');
+            s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+            s.onload=res;s.onerror=()=>rej(new Error('Falha ExcelJS'));
+            document.head.appendChild(s);
+          }),
+          typeof JSZip!=='undefined'?Promise.resolve():new Promise((res,rej)=>{
+            const s=document.createElement('script');
+            s.src='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+            s.onload=res;s.onerror=()=>rej(new Error('Falha JSZip'));
+            document.head.appendChild(s);
+          })
+        ]);
       }
 
       const data=_load();
@@ -7908,25 +7916,11 @@ function hlMatch(text,q){
         cI.alignment={vertical:'middle',horizontal:'center'};cI.border=fb(8);
         cI.dataValidation={type:'list',allowBlank:false,
           formulae:['"Em Progresso,Paralisado,Concluido"']};
-        // Células do Gantt: fórmula dinâmica + CF cellIs para preenchimento sólido.
-        // Fórmula coloca "█" quando o dia está na faixa → barra move ao editar F/G.
-        // CF cellIs="█" pinta o fundo sólido (sem fórmula complexa — sem problemas de XML).
-        // Cor da fonte = cor do preenchimento → "█" invisível sobre fundo colorido.
-        const barColor=st==='concluido'?C.greenLine:st==='paralisado'?'FFF59E0B':pc;
-        const ab=`$${FDL}$3`;
-        const day=`${ab}+COLUMN()-COLUMN(${ab})`;
-        const rng=`AND(NOT($F${rn}=""),NOT($G${rn}=""),${day}>=$F${rn},NOT(${day}>$G${rn}))`;
+        // Células do Gantt — CF dinâmico injectado via JSZip (ver secção Download)
         days.forEach((_,i)=>{
           const c=row.getCell(FDC+i);
-          c.value={formula:`IF(${rng},"█","")`};
-          c.font=font({size:9,bold:true,color:{argb:barColor}});// cor = fundo → invisível
-          c.alignment={vertical:'middle',horizontal:'center'};
           c.border={top:bdr('thin',C.border),bottom:bdr('thin',C.border),right:bdr('thin',C.border)};
         });
-        // CF: cellIs equal "█" → fundo sólido. Tipo simples, sem < no XML.
-        sh.addConditionalFormatting({ref:`${FDL}${rn}:${LDL}${rn}`,rules:[
-          {type:'cellIs',priority:1,operator:'equal',formulae:['"█"'],style:cfFill(barColor)},
-        ]});
       };
 
       actProjs.forEach(p=>writeRow(p));
@@ -7947,9 +7941,41 @@ function hlMatch(text,q){
 
       sh.views=[{state:'frozen',xSplit:FC,ySplit:4,showGridLines:false}];
 
-      // ── Download ───────────────────────────────────────────────────────────
-      const buf=await wb.xlsx.writeBuffer();
-      const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      // ── Download: injectar CF directamente no XML do xlsx via JSZip ───────
+      // ExcelJS CF API não gera XML válido em contexto browser; escrevemos nós.
+      const rawBuf=await wb.xlsx.writeBuffer();
+      const zip=await new JSZip().loadAsync(rawBuf);
+      // 1. Registar cores → dxfId (order matters: primeiro registado = id 0)
+      const _parBg='FFF59E0B',_okBg=C.greenLine;
+      const _dc=[],_dm={};
+      const _reg=c=>{if(_dm[c]===undefined){_dm[c]=_dc.length;_dc.push(c);}return _dm[c];};
+      _reg(_parBg);_reg(_okBg);allProjs.forEach(p=>_reg(personColor(p)));
+      // 2. styles.xml — substituir <dxfs> com os nossos dxf entries
+      let sX=await zip.file('xl/styles.xml').async('string');
+      const _dxf=_dc.map(c=>`<dxf><fill><patternFill patternType="solid"><fgColor rgb="${c}"/></patternFill></fill></dxf>`).join('');
+      sX=sX.replace(/<dxfs[^>]*\/>/,'').replace(/<dxfs[\s\S]*?<\/dxfs>/,'');
+      sX=sX.replace('</styleSheet>',`<dxfs count="${_dc.length}">${_dxf}</dxfs></styleSheet>`);
+      zip.file('xl/styles.xml',sX);
+      // 3. sheet1.xml — construir <conditionalFormatting> e injectar
+      const _AB=`$${FDL}$3`,_DY=`${_AB}+COLUMN()-COLUMN(${_AB})`;
+      // _mf: formula CF sem '<' — '>' é codificado como '&gt;' para XML válido
+      const _mf=(rn,st)=>`AND(NOT($F${rn}=""),NOT($G${rn}=""),${_DY}>=$F${rn},NOT(${_DY}>$G${rn}),$I${rn}="${st}")`.replace(/>/g,'&gt;');
+      let _cf='',_p=1;
+      allProjs.forEach((p,i)=>{
+        const rn=projRowNums[i];if(!rn)return;
+        const _pc=personColor(p),sq=`${FDL}${rn}:${LDL}${rn}`;
+        _cf+=`<conditionalFormatting sqref="${sq}">`;
+        _cf+=`<cfRule type="expression" priority="${_p++}" dxfId="${_reg(_pc)}"><formula>${_mf(rn,'Em Progresso')}</formula></cfRule>`;
+        _cf+=`<cfRule type="expression" priority="${_p++}" dxfId="${_reg(_parBg)}"><formula>${_mf(rn,'Paralisado')}</formula></cfRule>`;
+        _cf+=`<cfRule type="expression" priority="${_p++}" dxfId="${_reg(_okBg)}"><formula>${_mf(rn,'Concluido')}</formula></cfRule>`;
+        _cf+=`</conditionalFormatting>`;
+      });
+      let wX=await zip.file('xl/worksheets/sheet1.xml').async('string');
+      wX=wX.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g,'');
+      wX=wX.replace('</worksheet>',_cf+'</worksheet>');
+      zip.file('xl/worksheets/sheet1.xml',wX);
+      const _fb=await zip.generateAsync({type:'arraybuffer',compression:'DEFLATE'});
+      const blob=new Blob([_fb],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
       a.href=url;a.download=`Alocacao_Equipe_${today}.xlsx`;
