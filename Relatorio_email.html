@@ -7908,19 +7908,25 @@ function hlMatch(text,q){
         cI.alignment={vertical:'middle',horizontal:'center'};cI.border=fb(8);
         cI.dataValidation={type:'list',allowBlank:false,
           formulae:['"Em Progresso,Paralisado,Concluido"']};
-        // Células do Gantt: fórmula "█" dinâmica — barra move ao editar F/G no Excel.
-        // NOT(day>G) evita <= (caracter < quebra XML no ExcelJS); lógica equivalente.
-        const barFontColor=st==='concluido'?C.greenTxt:st==='paralisado'?C.yellowTxt:pc;
-        const ab=`$${FDL}$3`; // serial do 1.º dia (absoluto)
-        const day=`${ab}+COLUMN()-COLUMN(${ab})`; // serial do dia da célula actual
+        // Células do Gantt: fórmula dinâmica + CF cellIs para preenchimento sólido.
+        // Fórmula coloca "█" quando o dia está na faixa → barra move ao editar F/G.
+        // CF cellIs="█" pinta o fundo sólido (sem fórmula complexa — sem problemas de XML).
+        // Cor da fonte = cor do preenchimento → "█" invisível sobre fundo colorido.
+        const barColor=st==='concluido'?C.greenLine:st==='paralisado'?'FFF59E0B':pc;
+        const ab=`$${FDL}$3`;
+        const day=`${ab}+COLUMN()-COLUMN(${ab})`;
         const rng=`AND(NOT($F${rn}=""),NOT($G${rn}=""),${day}>=$F${rn},NOT(${day}>$G${rn}))`;
         days.forEach((_,i)=>{
           const c=row.getCell(FDC+i);
           c.value={formula:`IF(${rng},"█","")`};
-          c.font=font({size:9,bold:true,color:{argb:barFontColor}});
+          c.font=font({size:9,bold:true,color:{argb:barColor}});// cor = fundo → invisível
           c.alignment={vertical:'middle',horizontal:'center'};
           c.border={top:bdr('thin',C.border),bottom:bdr('thin',C.border),right:bdr('thin',C.border)};
         });
+        // CF: cellIs equal "█" → fundo sólido. Tipo simples, sem < no XML.
+        sh.addConditionalFormatting({ref:`${FDL}${rn}:${LDL}${rn}`,rules:[
+          {type:'cellIs',priority:1,operator:'equal',formulae:['"█"'],style:cfFill(barColor)},
+        ]});
       };
 
       actProjs.forEach(p=>writeRow(p));
