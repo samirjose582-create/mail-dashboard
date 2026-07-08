@@ -143,9 +143,9 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:
 /* ── SELECÇÃO EM MASSA ────────────────────────────────────────────── */
 /* ── SELECT COLUMN ─────────────────────────────────────────────────────────── */
 .email-card,.reply-card,.sent-card,.urgency-card{display:grid;grid-template-columns:42px 1fr;}
-.sel-col{grid-column:1;grid-row:1;display:flex;align-items:center;justify-content:center;padding-left:5px;cursor:default;}
-.sel-cb{width:20px;height:20px;border:2px solid var(--border);border-radius:5px;background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .15s,background .15s,border-color .15s;font-size:.8rem;font-weight:700;color:var(--blue);flex-shrink:0;user-select:none;}
-.email-card:hover .sel-cb,.reply-card:hover .sel-cb,.sent-card:hover .sel-cb,.urgency-card:hover .sel-cb{opacity:.55;}
+.sel-col{grid-column:1;grid-row:1;display:flex;align-items:center;justify-content:center;padding-left:5px;cursor:pointer;}
+.sel-cb{width:20px;height:20px;border:2px solid var(--border);border-radius:5px;background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.28;transition:opacity .15s,background .15s,border-color .15s;font-size:.8rem;font-weight:700;color:var(--blue);flex-shrink:0;user-select:none;pointer-events:none;}
+.email-card:hover .sel-cb,.reply-card:hover .sel-cb,.sent-card:hover .sel-cb,.urgency-card:hover .sel-cb{opacity:.7;}
 .email-card.sel .sel-cb,.reply-card.sel .sel-cb,.sent-card.sel .sel-cb,.urgency-card.sel .sel-cb{background:var(--blue);border-color:var(--blue);color:#fff;opacity:1;}
 .email-card.sel,.reply-card.sel,.sent-card.sel,.urgency-card.sel{background:rgba(56,189,248,.07)!important;border-color:rgba(56,189,248,.35)!important;}
 #bulk-bar{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid rgba(56,189,248,.4);border-radius:16px;padding:10px 16px;display:none;align-items:center;gap:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:1200;backdrop-filter:blur(14px);white-space:nowrap;animation:bulkIn .18s ease;}
@@ -2297,9 +2297,9 @@ function _getVisibleIds(){
   return [...(panel?.querySelectorAll('[data-eid]')||[])].map(el=>el.getAttribute('data-eid'));
 }
 function _selectCard(id,select){
-  const card=document.querySelector(`[data-eid="${CSS.escape(id)}"]`);
-  if(select){_selectedIds.add(id);card?.classList.add('sel');const cb=card?.querySelector('.sel-cb');if(cb)cb.textContent='✓';}
-  else{_selectedIds.delete(id);card?.classList.remove('sel');const cb=card?.querySelector('.sel-cb');if(cb)cb.textContent='';}
+  const cards=document.querySelectorAll(`[data-eid="${CSS.escape(id)}"]`);
+  if(select){_selectedIds.add(id);cards.forEach(c=>{c.classList.add('sel');const cb=c.querySelector('.sel-cb');if(cb)cb.textContent='✓';});}
+  else{_selectedIds.delete(id);cards.forEach(c=>{c.classList.remove('sel');const cb=c.querySelector('.sel-cb');if(cb)cb.textContent='';});}
 }
 function toggleEmailSelect(id,ev){
   ev&&ev.stopPropagation();
@@ -2450,7 +2450,7 @@ function emailCard(e, extraCls=''){
   const isU=!e.isRead,isPinned=PINNED_IDS.has(e.id),base=e.importance==='high'?'high-prio':(isU?'unread':''),cls=[base,extraCls,isPinned?'pinned':''].filter(Boolean).join(' '),s=clean(e.summary),link=esc(e.webLink||'#');
   const _isSel=_selectedIds.has(e.id);
   return `<div class="email-card ${cls}${_isSel?' sel':''}" onclick="openEmailReader('${esc(e.id)}')" data-eid="${esc(e.id)}" data-subject="${he((e.subject||'').toLowerCase())}" data-sender="${he(((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim())}" data-summary="${he(s.toLowerCase())}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}">
-    <div class="sel-col"><div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_isSel?'✓':''}</div></div>
+    <div class="sel-col" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar"><div class="sel-cb">${_isSel?'✓':''}</div></div>
     <div class="email-inner">
       <div class="email-row1"><div class="email-subject ${isU?'':'read'}">${e.importance==='high'?'⚠ ':''}${he(e.subject||'(sem assunto)')}${isPinned?'<span class="pin-badge">FIXADO</span>':''}</div><div class="email-time">${fmtTime(e.receivedDateTime)}</div></div>
       <div class="email-from">De: <strong>${he(sn(e))}</strong> · <span style="font-family:var(--mono);font-size:.68rem">${he(e.sender||'')}</span></div>
@@ -2483,7 +2483,7 @@ function emailCard(e, extraCls=''){
 function replyCard(e){
   const isPinned=PINNED_IDS.has(e.id),isU=!e.isRead,_isSel=_selectedIds.has(e.id);
   return `<div class="reply-card${_isSel?' sel':''}" data-eid="${esc(e.id)}" data-subject="${he((e.subject||'').toLowerCase())}" data-sender="${he(((e.senderName||'')+' '+(e.sender||'')).toLowerCase().trim())}" data-summary="${he(clean(e.summary||'').toLowerCase())}" data-date="${(e.receivedDateTime||'').slice(0,10)}" data-read="${e.isRead?'1':'0'}" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')">
-    <div class="sel-col"><div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_isSel?'✓':''}</div></div>
+    <div class="sel-col" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar"><div class="sel-cb">${_isSel?'✓':''}</div></div>
     <div class="reply-inner">
       <div class="reply-reason">↩ AGUARDA RESPOSTA${isPinned?'<span class="pin-badge" style="margin-left:8px">FIXADO</span>':''}</div>
       <div class="reply-subject">${e.importance==='high'?'⚠ ':''}${he(e.subject||'(sem assunto)')}</div>
@@ -2711,7 +2711,7 @@ function sentCard(e){
   const _sTos=(e.toRecipients||[]).map(r=>(r.emailAddress?.name||r.emailAddress?.address||'')).join(' ').toLowerCase();
   const _isSel=_selectedIds.has(e.id);
   return `<div class="sent-card${_isSel?' sel':''}" data-eid="${esc(e.id)}" data-subject="${he((e.subject||'').toLowerCase())}" data-sender="${he(_sTos)}" data-summary="${he(clean(e.summary||'').toLowerCase())}" data-date="${(e.sentDateTime||'').slice(0,10)}" data-read="1" data-attach="${e.hasAttachments}" data-high="${e.importance==='high'}" onclick="openEmailReader('${esc(e.id)}')">
-    <div class="sel-col"><div class="sel-cb" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar">${_isSel?'✓':''}</div></div>
+    <div class="sel-col" onclick="toggleEmailSelect('${esc(e.id)}',event)" title="Selecionar"><div class="sel-cb">${_isSel?'✓':''}</div></div>
     <div class="sent-inner">
       <div class="sent-label">📤 ENVIADO${e.hasAttachments?' &nbsp;📎':''}</div>
       <div class="sent-subject">${e.importance==='high'?'⚠ ':''}${he(e.subject||'(sem assunto)')}</div>
@@ -7950,11 +7950,13 @@ function hlMatch(text,q){
       const _dc=[],_dm={};
       const _reg=c=>{if(_dm[c]===undefined){_dm[c]=_dc.length;_dc.push(c);}return _dm[c];};
       _reg(_parBg);_reg(_okBg);allProjs.forEach(p=>_reg(personColor(p)));
-      // 2. styles.xml — substituir <dxfs> com os nossos dxf entries
+      // 2. styles.xml — substituir <dxfs> NO LUGAR (mantém ordem dos elementos XML)
       let sX=await zip.file('xl/styles.xml').async('string');
-      const _dxf=_dc.map(c=>`<dxf><fill><patternFill patternType="solid"><fgColor rgb="${c}"/></patternFill></fill></dxf>`).join('');
-      sX=sX.replace(/<dxfs[^>]*\/>/,'').replace(/<dxfs[\s\S]*?<\/dxfs>/,'');
-      sX=sX.replace('</styleSheet>',`<dxfs count="${_dc.length}">${_dxf}</dxfs></styleSheet>`);
+      const _dxf=_dc.map(c=>`<dxf><fill><patternFill><fgColor rgb="${c}"/></patternFill></fill></dxf>`).join('');
+      const _nd=`<dxfs count="${_dc.length}">${_dxf}</dxfs>`;
+      if(/<dxfs[^>]*\/>/.test(sX))sX=sX.replace(/<dxfs[^>]*\/>/,_nd);
+      else if(/<dxfs/.test(sX))sX=sX.replace(/<dxfs[\s\S]*?<\/dxfs>/,_nd);
+      else sX=sX.replace('</styleSheet>',_nd+'</styleSheet>');
       zip.file('xl/styles.xml',sX);
       // 3. sheet1.xml — construir <conditionalFormatting> e injectar
       const _AB=`$${FDL}$3`,_DY=`${_AB}+COLUMN()-COLUMN(${_AB})`;
@@ -7972,7 +7974,8 @@ function hlMatch(text,q){
       });
       let wX=await zip.file('xl/worksheets/sheet1.xml').async('string');
       wX=wX.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g,'');
-      wX=wX.replace('</worksheet>',_cf+'</worksheet>');
+      if(wX.includes('<dataValidations'))wX=wX.replace('<dataValidations',_cf+'<dataValidations');
+      else wX=wX.replace('</worksheet>',_cf+'</worksheet>');
       zip.file('xl/worksheets/sheet1.xml',wX);
       const _fb=await zip.generateAsync({type:'arraybuffer',compression:'DEFLATE'});
       const blob=new Blob([_fb],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
