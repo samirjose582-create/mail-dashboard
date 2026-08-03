@@ -771,7 +771,16 @@ html[data-theme="white"] .history-btn.history-btn-on{background:rgba(217,119,6,.
 .teams-live-badge{background:rgba(248,113,113,.15);color:var(--red);font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid rgba(248,113,113,.25);display:flex;align-items:center;gap:4px;animation:pulse-badge 2s infinite;}
 @keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:.6}}
 .teams-subject{font-size:.87rem;font-weight:600;color:var(--text);margin-bottom:3px;line-height:1.35;}
-.teams-org{font-size:.71rem;color:var(--text-muted);margin-bottom:8px;}
+.teams-org{font-size:.71rem;color:var(--text-muted);margin-bottom:4px;}
+.meet-members-wrap{margin-top:7px;}
+.meet-members-toggle{cursor:pointer;font-size:.69rem;color:var(--purple);font-weight:600;list-style:none;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid rgba(192,132,252,.25);border-radius:6px;background:rgba(192,132,252,.07);user-select:none;transition:background .15s;}
+.meet-members-toggle::-webkit-details-marker,.meet-members-toggle::marker{display:none;}
+details.meet-members-wrap[open] .meet-members-toggle{background:rgba(192,132,252,.14);}
+.meet-members-list{margin-top:7px;display:flex;flex-direction:column;gap:3px;padding:7px 10px;background:rgba(192,132,252,.04);border:1px solid rgba(192,132,252,.12);border-radius:8px;}
+.meet-member-row{display:flex;align-items:center;gap:7px;font-size:.71rem;color:var(--text-soft);padding:2px 0;}
+.meet-member-resp{width:14px;text-align:center;font-weight:700;font-family:var(--mono);font-size:.65rem;flex-shrink:0;}
+.meet-member-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.meet-member-opt{font-size:.58rem;color:var(--text-muted);border:1px solid var(--border);border-radius:3px;padding:0 4px;flex-shrink:0;}
 .teams-meta{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
 .teams-meta-item{font-size:.68rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
 .teams-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
@@ -2218,7 +2227,7 @@ async function fetchCalendarEvents(){
     const todayMidnightSP=new Date(Math.floor((now.getTime()-spOffset)/(86400000))*86400000+spOffset);
     const start=todayMidnightSP.toISOString().replace(/\.\d+Z$/,'Z');
     const end=new Date(todayMidnightSP.getTime()+30*86400000).toISOString().replace(/\.\d+Z$/,'Z');
-    const sel='id,subject,start,end,organizer,onlineMeeting,webLink,bodyPreview,location,isOnlineMeeting,isCancelled';
+    const sel='id,subject,start,end,organizer,onlineMeeting,webLink,bodyPreview,location,isOnlineMeeting,isCancelled,attendees';
     const url=`https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${start}&endDateTime=${end}&$select=${sel}&$top=100`;
     console.log('[CalendarView] fetching',url);
     const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
@@ -2255,7 +2264,13 @@ async function fetchCalendarEvents(){
           isOnline:e.isOnlineMeeting||!!e.onlineMeeting?.joinUrl,
           webLink:e.webLink||'#',
           summary:e.bodyPreview||'',
-          location:e.location?.displayName||''
+          location:e.location?.displayName||'',
+          attendees:(e.attendees||[]).filter(a=>a.type!=='resource').map(a=>({
+            name:a.emailAddress?.name||a.emailAddress?.address||'',
+            email:a.emailAddress?.address||'',
+            response:a.status?.response||'none',
+            type:a.type||'required'
+          }))
         };
       });
   }catch(err){console.error('[Calendar] fetch error:',err);return[];}
@@ -5119,6 +5134,23 @@ function renderMeetingCal(){
               <div class="teams-subject" style="margin-top:5px">${e.subject}</div>
               ${e.organizer?`<div class="teams-org">👤 ${e.organizer}</div>`:''}
               ${e.location?`<div class="teams-org">📍 ${e.location}</div>`:''}
+              ${(e.attendees&&e.attendees.length)?`
+              <details class="meet-members-wrap">
+                <summary class="meet-members-toggle">👥 Ver membros (${e.attendees.length})</summary>
+                <div class="meet-members-list">
+                  ${e.attendees.map(a=>{
+                    const rMap={accepted:'✓',declined:'✗',tentativelyAccepted:'?',notResponded:'–',none:'–'};
+                    const cMap={accepted:'var(--green)',declined:'#f87171',tentativelyAccepted:'var(--yellow)',notResponded:'var(--text-muted)',none:'var(--text-muted)'};
+                    const resp=rMap[a.response]||'–';
+                    const rc=cMap[a.response]||'var(--text-muted)';
+                    return `<div class="meet-member-row">
+                      <span class="meet-member-resp" style="color:${rc}">${resp}</span>
+                      <span class="meet-member-name" title="${esc(a.email)}">${esc(a.name)}</span>
+                      ${a.type==='optional'?'<span class="meet-member-opt">opc</span>':''}
+                    </div>`;
+                  }).join('')}
+                </div>
+              </details>`:''}
               <div class="teams-actions" style="margin-top:10px">
                 ${e.joinUrl
                   ?`<a class="btn-join${live?' ':" "}" href="${esc(e.joinUrl)}" target="_blank" onclick="event.stopPropagation()">▶ Entrar no Teams</a>`
