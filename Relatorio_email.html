@@ -2373,9 +2373,42 @@ async function bulkAction(action){
       if(action==='flag'&&!DATA.flagged.find(x=>x.id===id))DATA.flagged.push(e);
       if(action==='unflag')DATA.flagged=DATA.flagged.filter(x=>x.id!==id);
     });
-    clearSelection();buildDerived();renderAll();updateCounts();
+    _bulkUpdateDOM(ids,action);
+    clearSelection();buildDerived();updateCounts();
   }catch(err){alert('Erro na acção em massa: '+err.message);}
   finally{btns.forEach(b=>b.disabled=false);}
+}
+function _bulkUpdateDOM(ids,action){
+  // Cards devem desaparecer quando saem do filtro da tab actual
+  const shouldRemove=
+    (action==='read'   &&currentTab==='unread')||
+    (action==='unread' &&currentTab==='lidos')||
+    (action==='unflag' &&currentTab==='fixados');
+  ids.forEach(id=>{
+    document.querySelectorAll(`[data-eid="${CSS.escape(id)}"]`).forEach(card=>{
+      if(shouldRemove){
+        card.style.transition='opacity .22s,transform .2s';
+        card.style.opacity='0';card.style.transform='translateX(-6px)';
+        setTimeout(()=>card.remove(),240);
+      } else {
+        if(action==='read'||action==='unread'){
+          const isRead=action==='read';
+          card.classList.toggle('unread',!isRead);
+          card.dataset.read=isRead?'1':'0';
+          const subj=card.querySelector('.email-subject');
+          if(subj)subj.classList.toggle('read',isRead);
+          const foot=card.querySelector('.email-footer');
+          if(foot){const tag=foot.querySelector('.tag.unread,.tag.read');if(tag){tag.className=isRead?'tag read':'tag unread';tag.textContent=isRead?'READ':'UNREAD';}}
+        }
+        if(action==='flag'||action==='unflag'){
+          const isFlagged=action==='flag';
+          card.classList.toggle('pinned',isFlagged);
+          const subj=card.querySelector('.email-subject');
+          if(subj){let pb=subj.querySelector('.pin-badge');if(isFlagged&&!pb){pb=document.createElement('span');pb.className='pin-badge';pb.textContent='FIXADO';subj.appendChild(pb);}else if(!isFlagged&&pb)pb.remove();}
+        }
+      }
+    });
+  });
 }
 let _urgPeriodDays=1; // 1=hoje, 3, 7, 15, 30, 90, 0=tudo
 let _urgCustomDate=null; // ISO date string para período personalizado
