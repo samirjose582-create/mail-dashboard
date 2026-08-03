@@ -2338,14 +2338,34 @@ async function bulkAction(action){
   const ids=[..._selectedIds];if(!ids.length)return;
   const btns=document.querySelectorAll('#bulk-bar .bulk-btn');btns.forEach(b=>b.disabled=true);
   try{
-    const patches=ids.map(id=>{
-      if(action==='read')   return graphPatch(`/me/messages/${encodeURIComponent(id)}`,{isRead:true});
-      if(action==='unread') return graphPatch(`/me/messages/${encodeURIComponent(id)}`,{isRead:false});
-      if(action==='flag')   return graphPatch(`/me/messages/${encodeURIComponent(id)}`,{flag:{flagStatus:'flagged'}});
-      if(action==='unflag') return graphPatch(`/me/messages/${encodeURIComponent(id)}`,{flag:{flagStatus:'notFlagged'}});
-    });
-    await Promise.all(patches);
-    // Actualiza estado local
+    const token=await getToken();if(!token)throw new Error('Sem token');
+    const patchBody=
+      action==='read'   ?{isRead:true}:
+      action==='unread' ?{isRead:false}:
+      action==='flag'   ?{flag:{flagStatus:'flagged'}}:
+      action==='unflag' ?{flag:{flagStatus:'notFlagged'}}:null;
+    if(!patchBody)return;
+    // Graph $batch — máx. 20 por lote; evita MailboxConcurrency throttle
+    const BATCH=20;
+    for(let i=0;i<ids.length;i+=BATCH){
+      const chunk=ids.slice(i,i+BATCH);
+      const requests=chunk.map((id,idx)=>({
+        id:String(idx+1),method:'PATCH',
+        url:`/me/messages/${encodeURIComponent(id)}`,
+        headers:{'Content-Type':'application/json'},
+        body:patchBody
+      }));
+      const res=await fetch('https://graph.microsoft.com/v1.0/$batch',{
+        method:'POST',
+        headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify({requests})
+      });
+      if(!res.ok)throw new Error(`Graph Batch ${res.status}: ${await res.text()}`);
+      const d=await res.json();
+      const throttled=(d.responses||[]).some(r=>r.status===429);
+      // Pausa entre lotes (extra se throttle)
+      if(i+BATCH<ids.length)await new Promise(r=>setTimeout(r,throttled?1200:350));
+    }
     ids.forEach(id=>{
       const e=_emailMap[id];if(!e)return;
       if(action==='read'){e.isRead=true;DATA.unread=DATA.unread.filter(x=>x.id!==id);if(!DATA.read.find(x=>x.id===id))DATA.read.push(e);}
