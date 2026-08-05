@@ -1492,6 +1492,13 @@ body.prem-active .content{max-width:100%;padding:8px 14px;}
 .prem-item-del{background:none;border:none;color:transparent;cursor:pointer;font-size:.75rem;padding:0 2px;transition:color .15s;flex-shrink:0;}
 .prem-item:hover .prem-item-del{color:rgba(239,68,68,.4);}
 .prem-item-del:hover{color:#ef4444!important;}
+.prem-item-edit{background:none;border:none;color:transparent;cursor:pointer;font-size:.72rem;padding:0 2px;transition:color .15s;flex-shrink:0;}
+.prem-item:hover .prem-item-edit{color:rgba(6,182,212,.45);}
+.prem-item-edit:hover{color:#06b6d4!important;}
+.prem-item-body{flex:1;}
+.prem-inline-edit{display:flex;gap:6px;align-items:center;margin-top:5px;flex-wrap:wrap;}
+.prem-inline-inp{flex:1;min-width:120px;background:var(--surface2);border:1px solid rgba(6,182,212,.4);border-radius:6px;padding:5px 9px;font-size:.76rem;color:var(--text);font-family:'Inter',sans-serif;outline:none;font-weight:600;}
+.prem-inline-inp:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(6,182,212,.12);}
 /* nota card */
 .prem-nota-card{background:linear-gradient(135deg,rgba(251,146,60,.05),rgba(251,146,60,.02));border:1px solid rgba(251,146,60,.15);border-radius:10px;padding:12px 14px;position:relative;transition:all .15s;}
 .prem-nota-card:hover{border-color:rgba(251,146,60,.35);}
@@ -8192,13 +8199,14 @@ function hlMatch(text,q){
     const premItems=prems.length?prems.map(it=>`
       <div class="prem-item" id="pi-${it.id}">
         <button class="prem-status-btn ${it.status||'pendente'}" onclick="premToggleStatus('${p.id}','${it.id}')" title="Status: ${it.status||'pendente'}">${STATUS_ICON[it.status||'pendente']}</button>
-        <div style="flex:1">
+        <div class="prem-item-body">
           <div class="prem-item-text ${it.status==='verificado'?'verificado':''}">${it.text}</div>
           <div class="prem-item-meta">
             <span class="prem-tag prem-tag-${it.tag||'geral'}">${it.tag||'geral'}</span>
             <span class="prem-item-date">${_fmtDate(it.createdAt)}</span>
           </div>
         </div>
+        <button class="prem-item-edit" onclick="premEditItem('${p.id}','${it.id}')" title="Editar premissa">✏</button>
         <button class="prem-item-del" onclick="premDelItem('${p.id}','${it.id}')">✕</button>
       </div>`).join(''):'<div style="font-size:.72rem;color:var(--text-muted);padding:8px 0">Nenhuma premissa ainda — adicione abaixo</div>';
 
@@ -8315,6 +8323,49 @@ function hlMatch(text,q){
     const p=data.projects.find(pr=>pr.id===pid);
     if(!p)return;
     p.premissas=(p.premissas||[]).filter(i=>i.id!==iid);
+    _save(data);
+    openPremProject(pid);
+  };
+
+  window.premEditItem=function(pid,iid){
+    const el=document.getElementById('pi-'+iid);
+    if(!el||el.querySelector('.prem-inline-edit'))return; // já em edição
+    const data=_load();
+    const p=data.projects.find(pr=>pr.id===pid);
+    const it=p?.premissas?.find(i=>i.id===iid);
+    if(!it)return;
+    // Esconde texto e meta
+    const body=el.querySelector('.prem-item-body');
+    body.querySelector('.prem-item-text').style.display='none';
+    body.querySelector('.prem-item-meta').style.display='none';
+    el.querySelector('.prem-item-edit').style.display='none';
+    el.querySelector('.prem-item-del').style.display='none';
+    // Cria UI de edição inline
+    const tagOpts=TAGS.map(t=>`<option value="${t}"${(it.tag||'geral')===t?' selected':''}>${t}</option>`).join('');
+    const ui=document.createElement('div');
+    ui.className='prem-inline-edit';
+    ui.innerHTML=`<input class="prem-inline-inp" id="pei-${iid}" value="${it.text.replace(/"/g,'&quot;').replace(/</g,'&lt;')}">
+      <select class="prem-tag-sel" id="pet-${iid}">${tagOpts}</select>
+      <button class="prem-add-btn" onclick="premSaveEdit('${pid}','${iid}')">✓ Salvar</button>
+      <button class="prem-item-del" style="color:#ef4444;opacity:1" onclick="openPremProject('${pid}')">✕</button>`;
+    body.appendChild(ui);
+    const inp=document.getElementById('pei-'+iid);
+    inp.focus();inp.select();
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();premSaveEdit(pid,iid);}
+      if(e.key==='Escape')openPremProject(pid);
+    });
+  };
+
+  window.premSaveEdit=function(pid,iid){
+    const text=(document.getElementById('pei-'+iid)?.value||'').trim();
+    const tag=document.getElementById('pet-'+iid)?.value||'geral';
+    if(!text)return;
+    const data=_load();
+    const p=data.projects.find(pr=>pr.id===pid);
+    const it=p?.premissas?.find(i=>i.id===iid);
+    if(!it)return;
+    it.text=text;it.tag=tag;
     _save(data);
     openPremProject(pid);
   };
